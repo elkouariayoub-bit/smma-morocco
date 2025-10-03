@@ -6,7 +6,7 @@ import { useSupabaseClient } from '@/lib/supabase';
 import { User } from '@supabase/supabase-js';
 import { useEffect, useState } from 'react';
 import { PenSquare, Clock, Archive, BarChart2, LogOut } from 'lucide-react';
-import type { Page } from '../types';
+import type { Page } from '@/lib/types';
 import type { MouseEvent } from 'react';
 
 type NavItem = {

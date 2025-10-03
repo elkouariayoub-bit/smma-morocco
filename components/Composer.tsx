@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import type { ChangeEvent } from 'react';
 import { Card } from './Card';
 import { Button } from './Button';
-import { SocialPlatform } from '../types';
+import { SocialPlatform } from '@/lib/types';
 import { Wand2 } from './Icon';
 import { generateCaption } from '../services/geminiService';
 

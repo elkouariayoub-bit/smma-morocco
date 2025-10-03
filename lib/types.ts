@@ -45,3 +45,5 @@ export interface AnalyticsSnapshot {
   likes: number;
   comments: number;
 }
+
+export type Page = 'composer' | 'queue' | 'drafts' | 'analytics';

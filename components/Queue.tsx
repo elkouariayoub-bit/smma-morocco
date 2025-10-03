@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { Card } from './Card';
-import { Post, PostStatus } from '../types';
+import { Post, PostStatus } from '@/lib/types';
 
 export const Queue: React.FC = () => {
   const [queue, setQueue] = useState<Post[]>([]);
