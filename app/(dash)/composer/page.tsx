@@ -10,7 +10,7 @@ import { SocialPlatform } from '@/lib/types';
 
 const Select = ({ className, ...props }: React.SelectHTMLAttributes<HTMLSelectElement>) => (
   <select
-    className={`flex h-9 w-full items-center justify-between rounded-2xl border border-gray-300 bg-white px-3 py-1 text-sm outline-none focus:ring-2 focus:ring-gray-400 ${className}`}
+className={`flex h-9 w-full items-center justify-between rounded-md border border-gray-300 bg-white px-3 py-1 text-sm outline-none focus:ring-2 focus:ring-gray-400 ${className}`}
     {...props}
   />
 );
@@ -42,29 +42,24 @@ export default function ComposerPage() {
   }, [caption, title, image, platform, when]);
 
   const handleGenerateCaption = async () => {
-    if (!aiTopic.trim()) return;
-    setIsGenerating(true);
-    setError(null);
-    try {
-      const response = await fetch('/api/ai/caption', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ topic: aiTopic, tone, length }),
-      });
-      
-      const data = await response.json();
-
-      if (!response.ok || !data.ok) {
-        throw new Error(data.error || 'An unexpected error occurred.');
-      }
-
-      setCaption(prev => prev ? `${prev}\n\n${data.result}` : data.result);
-    } catch (err: any) {
-      setError(err.message);
-    } finally {
-      setIsGenerating(false);
-    }
-  };
+  if (!aiTopic.trim()) return;
+  setIsGenerating(true);
+  setError(null);
+  try {
+    const res = await fetch('/api/ai/caption', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ topic: aiTopic }),
+    });
+    const data = await res.json();
+    if (!res.ok || !data?.ok) throw new Error(data?.error || 'Failed to generate');
+    setCaption((prev) => (prev ? `${prev}\n\n${data.result}` : data.result));
+  } catch (e: any) {
+    setError(e?.message || 'Failed to generate');
+  } finally {
+    setIsGenerating(false);
+  }
+};
 
   async function saveDraft() {
     if (!userId) return setMessage('❌ Sign in');
