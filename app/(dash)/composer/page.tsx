@@ -1,21 +1,25 @@
 'use client';
 import { useEffect, useState } from 'react';
+import type { ChangeEvent, SelectHTMLAttributes } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Wand2 } from 'lucide-react';
-import { supabase } from '@/lib/supabase';
+import { useSupabaseClient } from '@/lib/supabase';
 import { SocialPlatform } from '@/lib/types';
 
-const Select = ({ className, ...props }: React.SelectHTMLAttributes<HTMLSelectElement>) => (
+type SelectProps = SelectHTMLAttributes<HTMLSelectElement>;
+
+const Select = ({ className = '', ...props }: SelectProps) => (
   <select
-className={`flex h-9 w-full items-center justify-between rounded-md border border-gray-300 bg-white px-3 py-1 text-sm outline-none focus:ring-2 focus:ring-gray-400 ${className}`}
+    className={`flex h-9 w-full items-center justify-between rounded-md border border-gray-300 bg-white px-3 py-1 text-sm outline-none focus:ring-2 focus:ring-gray-400 ${className}`}
     {...props}
   />
 );
 
 export default function ComposerPage() {
+  const supabase = useSupabaseClient();
   const [title, setTitle] = useState("");
   const [caption, setCaption] = useState("");
   const [image, setImage] = useState<File | null>(null);
@@ -34,7 +38,9 @@ export default function ComposerPage() {
   const [userId, setUserId] = useState<string | null>(null);
 
   useEffect(() => {
-    supabase.auth.getUser().then(({ data }) => setUserId(data.user?.id ?? null));
+    supabase.auth.getUser().then(({ data }: { data: { user: { id: string } | null } }) => {
+      setUserId(data?.user?.id ?? null);
+    });
   }, []);
 
   useEffect(() => {
@@ -42,56 +48,24 @@ export default function ComposerPage() {
   }, [caption, title, image, platform, when]);
 
   const handleGenerateCaption = async () => {
-  if (!aiTopic.trim()) return;
-  setIsGenerating(true);
-  setError(null);
-  try {
-    const res = await fetch('/api/ai/caption', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ topic: aiTopic }),
-    });
-    const data = await res.json();
-    if (!res.ok || !data?.ok) throw new Error(data?.error || 'Failed to generate');
-    setCaption((prev) => (prev ? `${prev}\n\n${data.result}` : data.result));
-  } catch (e: any) {
-    setError(e?.message || 'Failed to generate');
-  } finally {
-    setIsGenerating(false);
-  }
-};
-
-const handleSchedule = async () => {
-  setIsSaving(true);
-  setError(null);
-  try {
-    // You need the current user_id; simplest is to fetch it from Supabase auth
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) throw new Error('You must be signed in');
-
-    const payload = {
-      platform,
-      caption,
-      image_url: image,
-      scheduled_at: when,  // ISO string
-      user_id: user.id,
-    };
-
-    const res = await fetch('/api/ai/posts', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload),
-    });
-    const data = await res.json();
-    if (!res.ok || !data?.ok) throw new Error(data?.error || 'Failed to save');
-    setMessage('Scheduled!');
-    // optionally clear form
-  } catch (e: any) {
-    setError(e?.message || 'Failed to save');
-  } finally {
-    setIsSaving(false);
-  }
-};
+    if (!aiTopic.trim()) return;
+    setIsGenerating(true);
+    setError(null);
+    try {
+      const res = await fetch('/api/ai/caption', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ topic: aiTopic }),
+      });
+      const data = await res.json();
+      if (!res.ok || !data?.ok) throw new Error(data?.error || 'Failed to generate');
+      setCaption((prev) => (prev ? `${prev}\n\n${data.result}` : data.result));
+    } catch (e: any) {
+      setError(e?.message || 'Failed to generate');
+    } finally {
+      setIsGenerating(false);
+    }
+  };
 
   async function saveDraft() {
     if (!userId) return setMessage('❌ Sign in');
@@ -137,27 +111,44 @@ const handleSchedule = async () => {
             <CardContent className="space-y-4">
                 <div>
                     <label className="block text-sm font-medium mb-1.5">Title (optional)</label>
-                    <Input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="An internal title for your post" />
+                    <Input
+                      value={title}
+                      onChange={(event: ChangeEvent<HTMLInputElement>) => setTitle(event.target.value)}
+                      placeholder="An internal title for your post"
+                    />
                 </div>
                 <div>
                     <label className="block text-sm font-medium mb-1.5">Caption</label>
-                    <Textarea value={caption} onChange={(e) => setCaption(e.target.value)} rows={6} placeholder="Write something…" />
+                    <Textarea
+                      value={caption}
+                      onChange={(event: ChangeEvent<HTMLTextAreaElement>) => setCaption(event.target.value)}
+                      rows={6}
+                      placeholder="Write something…"
+                    />
                 </div>
                 <div>
                     <label className="block text-sm font-medium mb-1.5">Image (optional)</label>
-                    <Input type="file" accept="image/*" onChange={(e) => setImage(e.target.files?.[0] || null)} />
+                    <Input
+                      type="file"
+                      accept="image/*"
+                      onChange={(event: ChangeEvent<HTMLInputElement>) => setImage(event.target.files?.[0] ?? null)}
+                    />
                 </div>
 
                 <div className="grid grid-cols-2 gap-4 pt-2">
                     <div>
                         <label className="block text-sm font-medium mb-1.5">Platform</label>
-                        <Select value={platform} onChange={(e) => setPlatform(e.target.value as SocialPlatform)}>
+                        <Select value={platform} onChange={(event: ChangeEvent<HTMLSelectElement>) => setPlatform(event.target.value as SocialPlatform)}>
                           {Object.values(SocialPlatform).map(p => <option key={p} value={p} className="capitalize">{p}</option>)}
                         </Select>
                     </div>
                     <div>
                         <label className="block text-sm font-medium mb-1.5">Schedule for</label>
-                        <Input type="datetime-local" value={when} onChange={(e) => setWhen(e.target.value)} />
+                        <Input
+                          type="datetime-local"
+                          value={when}
+                          onChange={(event: ChangeEvent<HTMLInputElement>) => setWhen(event.target.value)}
+                        />
                     </div>
                 </div>
 
@@ -195,11 +186,16 @@ const handleSchedule = async () => {
             <div className="space-y-3">
               <div>
                 <label htmlFor="ai-topic" className="block text-sm font-medium mb-1.5">Topic</label>
-                <Input id="ai-topic" value={aiTopic} onChange={(e) => setAiTopic(e.target.value)} placeholder="e.g., a new product launch" />
+                <Input
+                  id="ai-topic"
+                  value={aiTopic}
+                  onChange={(event: ChangeEvent<HTMLInputElement>) => setAiTopic(event.target.value)}
+                  placeholder="e.g., a new product launch"
+                />
               </div>
                <div>
                 <label htmlFor="ai-tone" className="block text-sm font-medium mb-1.5">Tone</label>
-                <Select id="ai-tone" value={tone} onChange={(e) => setTone(e.target.value)}>
+                <Select id="ai-tone" value={tone} onChange={(event: ChangeEvent<HTMLSelectElement>) => setTone(event.target.value)}>
                     <option value="friendly">Friendly</option>
                     <option value="professional">Professional</option>
                     <option value="witty">Witty</option>
@@ -208,7 +204,7 @@ const handleSchedule = async () => {
               </div>
               <div>
                 <label htmlFor="ai-length" className="block text-sm font-medium mb-1.5">Length</label>
-                <Select id="ai-length" value={length} onChange={(e) => setLength(e.target.value)}>
+                <Select id="ai-length" value={length} onChange={(event: ChangeEvent<HTMLSelectElement>) => setLength(event.target.value)}>
                     <option value="short">Short</option>
                     <option value="medium">Medium</option>
                     <option value="long">Long</option>

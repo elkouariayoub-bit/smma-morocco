@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { Button } from './ui/button';
-import { supabase } from '@/lib/supabase';
+import { useSupabaseClient } from '@/lib/supabase';
 import { User } from '@supabase/supabase-js';
 
 const navLinks = [
@@ -13,6 +13,7 @@ const navLinks = [
 ];
 
 export function Navbar() {
+  const supabase = useSupabaseClient();
   const [user, setUser] = useState<User | null>(null);
 
   useEffect(() => {
@@ -23,7 +24,7 @@ export function Navbar() {
 
     fetchUser();
     
-    const { data: authListener } = supabase.auth.onAuthStateChange((_event, session) => {
+    const { data: authListener } = supabase.auth.onAuthStateChange((_event: string, session: { user: User | null } | null) => {
       setUser(session?.user ?? null);
     });
 

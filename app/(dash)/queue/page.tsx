@@ -24,7 +24,7 @@ export default async function QueuePage() {
             {!error && (!posts || posts.length === 0) && (
                 <p className="text-gray-600 text-center py-8">Your queue is empty.</p>
             )}
-            {posts?.map(item => (
+            {posts?.map((item: { id: string; platform: string; caption: string; scheduled_at: string }) => (
                 <div key={item.id} className="border p-4 rounded-2xl bg-white">
                     <div className="flex items-center justify-between">
                         <div>

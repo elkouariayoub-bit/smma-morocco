@@ -2,21 +2,36 @@
 
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { supabase } from '@/lib/supabase';
+import { useSupabaseClient } from '@/lib/supabase';
 import { User } from '@supabase/supabase-js';
 import { useEffect, useState } from 'react';
 import { PenSquare, Clock, Archive, BarChart2, LogOut } from 'lucide-react';
+import type { Page } from '../types';
+import type { MouseEvent } from 'react';
 
-const navItems = [
-  { href: '/composer', label: 'Composer', icon: PenSquare },
-  { href: '/queue', label: 'Queue', icon: Clock },
-  { href: '/drafts', label: 'Drafts', icon: Archive },
-  { href: '/analytics', label: 'Analytics', icon: BarChart2 },
+type NavItem = {
+  href: string;
+  label: string;
+  icon: typeof PenSquare;
+  page: Page;
+};
+
+const navItems: NavItem[] = [
+  { href: '/composer', label: 'Composer', icon: PenSquare, page: 'composer' },
+  { href: '/queue', label: 'Queue', icon: Clock, page: 'queue' },
+  { href: '/drafts', label: 'Drafts', icon: Archive, page: 'drafts' },
+  { href: '/analytics', label: 'Analytics', icon: BarChart2, page: 'analytics' },
 ];
 
-export function Sidebar() {
+type SidebarProps = {
+  currentPage?: Page;
+  setCurrentPage?: (page: Page) => void;
+};
+
+export function Sidebar({ currentPage, setCurrentPage }: SidebarProps = {}) {
   const pathname = usePathname();
   const router = useRouter();
+  const supabase = useSupabaseClient();
   const [user, setUser] = useState<User | null>(null);
 
   useEffect(() => {
@@ -27,7 +42,7 @@ export function Sidebar() {
 
     fetchUser();
     
-    const { data: authListener } = supabase.auth.onAuthStateChange((_event, session) => {
+    const { data: authListener } = supabase.auth.onAuthStateChange((_event: string, session: { user: User | null } | null) => {
       setUser(session?.user ?? null);
     });
 
@@ -49,7 +64,13 @@ export function Sidebar() {
       </div>
       <nav className="flex-1 p-4 space-y-1">
         {navItems.map((item) => {
-          const isActive = pathname === item.href;
+          const isActive = setCurrentPage ? currentPage === item.page : pathname === item.href;
+          const handleItemClick = (event: MouseEvent<HTMLAnchorElement>) => {
+            if (setCurrentPage) {
+              event.preventDefault();
+              setCurrentPage(item.page);
+            }
+          };
           return (
             <Link
               key={item.href}
@@ -59,6 +80,7 @@ export function Sidebar() {
                   ? 'bg-gray-900 text-white'
                   : 'text-gray-600 hover:bg-gray-100'
               }`}
+              onClick={handleItemClick}
             >
               <item.icon className="w-5 h-5" />
               <span>{item.label}</span>

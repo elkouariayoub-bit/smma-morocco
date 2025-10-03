@@ -4,11 +4,12 @@
 import { Sidebar } from "@/components/Sidebar";
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { supabase } from '@/lib/supabase';
+import { useSupabaseClient } from '@/lib/supabase';
 
 export default function DashLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
+  const supabase = useSupabaseClient();
 
   useEffect(() => {
     const checkSession = async () => {
@@ -23,7 +24,7 @@ export default function DashLayout({ children }: { children: React.ReactNode }) 
 
     checkSession();
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event: string, session: any) => {
       if (!session) {
         router.replace('/login');
       }
