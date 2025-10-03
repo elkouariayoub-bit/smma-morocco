@@ -61,6 +61,38 @@ export default function ComposerPage() {
   }
 };
 
+const handleSchedule = async () => {
+  setIsSaving(true);
+  setError(null);
+  try {
+    // You need the current user_id; simplest is to fetch it from Supabase auth
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) throw new Error('You must be signed in');
+
+    const payload = {
+      platform,
+      caption,
+      image_url: image,
+      scheduled_at: when,  // ISO string
+      user_id: user.id,
+    };
+
+    const res = await fetch('/api/ai/posts', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+    const data = await res.json();
+    if (!res.ok || !data?.ok) throw new Error(data?.error || 'Failed to save');
+    setMessage('Scheduled!');
+    // optionally clear form
+  } catch (e: any) {
+    setError(e?.message || 'Failed to save');
+  } finally {
+    setIsSaving(false);
+  }
+};
+
   async function saveDraft() {
     if (!userId) return setMessage('❌ Sign in');
     setSaving(true);
