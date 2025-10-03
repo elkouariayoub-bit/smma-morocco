@@ -14,24 +14,27 @@ export default function LoginPage({ searchParams }: { searchParams: { message: s
   const [isLoading, setIsLoading] = useState(false);
 
   const handleMagicLinkSignIn = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError(null);
-    setIsLoading(true);
+  e.preventDefault();
+  setError(null);
+  setIsLoading(true);
 
-    const { error } = await supabase.auth.signInWithOtp({
-      email,
-      options: {
-        emailRedirectTo: `${window.location.origin}/auth/callback`,
-      },
-    });
+  const { error } = await supabase.auth.signInWithOtp({
+    email,
+    options: {
+      // Use the page you want users to land on after clicking the email link.
+      // If you don't have /auth/callback implemented, use the site root:
+      emailRedirectTo: `${window.location.origin}/`,
+    },
+  });
 
-    setIsLoading(false);
-    if (error) {
-      setError(error.message);
-    } else {
-      setSent(true);
-    }
-  };
+  setIsLoading(false);
+  if (error) {
+    setError(error.message);
+  } else {
+    setSent(true);
+  }
+};
+
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50 p-4">
