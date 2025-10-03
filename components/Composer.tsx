@@ -1,8 +1,9 @@
 
 import React, { useState } from 'react';
+import type { ChangeEvent } from 'react';
 import { Card } from './Card';
 import { Button } from './Button';
-import { SocialPlatform } from '../types';
+import { SocialPlatform } from '@/lib/types';
 import { Wand2 } from './Icon';
 import { generateCaption } from '../services/geminiService';
 
@@ -118,7 +119,7 @@ export const Composer: React.FC = () => {
                     <div>
                         <textarea
                             value={content}
-                            onChange={(e) => setContent(e.target.value)}
+                            onChange={(event: ChangeEvent<HTMLTextAreaElement>) => setContent(event.target.value)}
                             placeholder="What do you want to talk about?"
                             className="w-full h-64 p-3 border border-slate-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 dark:bg-slate-700 dark:border-slate-600 dark:text-slate-100"
                         />
@@ -147,7 +148,7 @@ export const Composer: React.FC = () => {
                             id="ai-topic"
                             type="text"
                             value={aiTopic}
-                            onChange={(e) => setAiTopic(e.target.value)}
+                            onChange={(event: ChangeEvent<HTMLInputElement>) => setAiTopic(event.target.value)}
                             placeholder="e.g., a new product launch"
                             className="w-full p-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 dark:bg-slate-700 dark:border-slate-600 dark:text-slate-100"
                         />

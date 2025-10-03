@@ -2,10 +2,10 @@
 import React from 'react';
 
 interface IconProps extends React.SVGProps<SVGSVGElement> {
-  children: React.ReactNode;
+  children?: React.ReactNode;
 }
 
-export const Icon: React.FC<IconProps> = ({ children, className = 'w-6 h-6', ...props }) => {
+export const Icon: React.FC<IconProps> = ({ children = null, className = 'w-6 h-6', ...props }) => {
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"

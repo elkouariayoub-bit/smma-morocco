@@ -1,26 +1,56 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { createServerComponentClient } from "@supabase/auth-helpers-nextjs";
 import { cookies } from "next/headers";
+import { getMissingEnvVars } from "@/lib/env";
+import { MissingEnvNotice } from "@/components/MissingEnvNotice";
 
 export const revalidate = 3600; // Revalidate hourly
 
+type Snapshot = {
+  impressions: number | null;
+  likes: number | null;
+  comments: number | null;
+};
+
+type SnapshotTotals = {
+  impressions: number;
+  likes: number;
+  comments: number;
+};
+
 export default async function AnalyticsPage() {
-    const supabase = createServerComponentClient({ cookies });
-    const { data } = await supabase
-        .from('analytics_snapshots')
-        .select('impressions, likes, comments');
-    
-    const totals = (data || []).reduce((acc, r) => ({
-        impressions: acc.impressions + (r.impressions ?? 0),
-        likes: acc.likes + (r.likes ?? 0),
-        comments: acc.comments + (r.comments ?? 0),
-    }), { impressions: 0, likes: 0, comments: 0 });
-    
-    const metrics = [
-        { label: 'Impressions', v: totals.impressions },
-        { label: 'Likes', v: totals.likes },
-        { label: 'Comments', v: totals.comments }
-    ];
+  const missingSupabase = getMissingEnvVars(['supabaseUrl', 'supabaseAnonKey']);
+
+  if (missingSupabase.length) {
+    return (
+      <MissingEnvNotice
+        missing={missingSupabase}
+        title="Supabase environment variables are missing"
+        description="Analytics requires Supabase access to load engagement snapshots. Configure the credentials and redeploy."
+      />
+    );
+  }
+
+  const supabase = createServerComponentClient({ cookies });
+  const { data } = await supabase
+    .from('analytics_snapshots')
+    .select('impressions, likes, comments');
+
+  const records: Snapshot[] = Array.isArray(data) ? data : [];
+  const totals = records.reduce<SnapshotTotals>(
+    (accumulator, record) => ({
+      impressions: accumulator.impressions + (record.impressions ?? 0),
+      likes: accumulator.likes + (record.likes ?? 0),
+      comments: accumulator.comments + (record.comments ?? 0),
+    }),
+    { impressions: 0, likes: 0, comments: 0 },
+  );
+
+  const metrics = [
+    { label: 'Impressions', v: totals.impressions },
+    { label: 'Likes', v: totals.likes },
+    { label: 'Comments', v: totals.comments },
+  ];
 
   return (
     <div className="grid md:grid-cols-3 gap-4">

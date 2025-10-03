@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Card } from './Card';
-import { Post, SocialPlatform, PostStatus } from '../types';
+import { Post, SocialPlatform, PostStatus } from '@/lib/types';
 
 const mockDrafts: Post[] = [
   {

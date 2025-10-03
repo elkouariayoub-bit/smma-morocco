@@ -1,19 +1,25 @@
-
 'use client';
 
 import { Sidebar } from "@/components/Sidebar";
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { supabase } from '@/lib/supabase';
+import { useSupabaseClient } from '@/lib/supabase';
+import { MissingEnvNotice } from '@/components/MissingEnvNotice';
 
 export default function DashLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
+  const { client: supabase, missingEnv } = useSupabaseClient();
 
   useEffect(() => {
+    if (missingEnv.length || !supabase) {
+      setLoading(false);
+      return;
+    }
+
     const checkSession = async () => {
       const { data: { session } } = await supabase.auth.getSession();
-      
+
       if (!session) {
         router.replace('/login');
       } else {
@@ -23,7 +29,7 @@ export default function DashLayout({ children }: { children: React.ReactNode }) 
 
     checkSession();
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event: string, session: any) => {
       if (!session) {
         router.replace('/login');
       }
@@ -33,7 +39,17 @@ export default function DashLayout({ children }: { children: React.ReactNode }) 
       subscription?.unsubscribe();
     };
 
-  }, [router]);
+  }, [router, supabase, missingEnv]);
+
+  if (missingEnv.length) {
+    return (
+      <MissingEnvNotice
+        missing={missingEnv}
+        title="Supabase environment variables are missing"
+        description="The dashboard requires Supabase credentials to authenticate users and load data."
+      />
+    );
+  }
 
   if (loading) {
     return (

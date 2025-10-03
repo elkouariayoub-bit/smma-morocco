@@ -1,40 +1,51 @@
 'use client';
 
 import { useState } from 'react';
-import { supabase } from '@/lib/supabase';
+import { useSupabaseClient } from '@/lib/supabase';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import Link from 'next/link';
+import { MissingEnvNotice } from '@/components/MissingEnvNotice';
 
 export default function LoginPage({ searchParams }: { searchParams: { message: string } }) {
+  const { client: supabase, missingEnv } = useSupabaseClient();
   const [email, setEmail] = useState('');
   const [sent, setSent] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
-  const handleMagicLinkSignIn = async (e: React.FormEvent) => {
-  e.preventDefault();
-  setError(null);
-  setIsLoading(true);
-
-  const { error } = await supabase.auth.signInWithOtp({
-    email,
-    options: {
-      // Use the page you want users to land on after clicking the email link.
-      // If you don't have /auth/callback implemented, use the site root:
-      emailRedirectTo: `${window.location.origin}/`,
-    },
-  });
-
-  setIsLoading(false);
-  if (error) {
-    setError(error.message);
-  } else {
-    setSent(true);
+  if (missingEnv.length || !supabase) {
+    return (
+      <MissingEnvNotice
+        missing={missingEnv.length ? missingEnv : ['supabaseUrl', 'supabaseAnonKey']}
+        title="Supabase environment variables are missing"
+        description="Magic link sign-in requires Supabase credentials. Configure them and redeploy to enable authentication."
+      />
+    );
   }
-};
 
+  const handleMagicLinkSignIn = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError(null);
+    setIsLoading(true);
+
+    const { error } = await supabase.auth.signInWithOtp({
+      email,
+      options: {
+        // Use the page you want users to land on after clicking the email link.
+        // If you don't have /auth/callback implemented, use the site root:
+        emailRedirectTo: `${window.location.origin}/`,
+      },
+    });
+
+    setIsLoading(false);
+    if (error) {
+      setError(error.message);
+    } else {
+      setSent(true);
+    }
+  };
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50 p-4">
@@ -76,7 +87,7 @@ export default function LoginPage({ searchParams }: { searchParams: { message: s
                 </div>
               </form>
             )}
-            
+
             {(error || searchParams?.message) && (
               <p className={`mt-4 p-3 text-center text-sm rounded-lg ${
                 error ? 'bg-red-100 text-red-800' : 'bg-gray-100 text-gray-800'
