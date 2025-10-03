@@ -1,14 +1,14 @@
+// app/api/ai/posts/route.ts
 import { NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
-
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-);
+import { supabaseServer } from '@/lib/supabaseServer';
 
 export async function GET() {
+  const supabase = supabaseServer();
+
+  // You can’t read user_id in a simple route without a cookie/session;
+  // but for simplicity we’ll return all (for your own dev account) or filter later.
   const { data, error } = await supabase
-    .from('posts')
+    .from('scheduled_posts')
     .select('*')
     .order('scheduled_at', { ascending: true });
 
@@ -17,12 +17,17 @@ export async function GET() {
 }
 
 export async function POST(req: Request) {
+  const supabase = supabaseServer();
   const body = await req.json();
-  const { platform, content, scheduled_at } = body;
+  const { platform, caption, image_url, scheduled_at, user_id } = body;
+
+  if (!platform || !caption || !scheduled_at || !user_id) {
+    return NextResponse.json({ ok: false, error: 'Missing required fields' }, { status: 400 });
+  }
 
   const { data, error } = await supabase
-    .from('posts')
-    .insert([{ platform, content, scheduled_at }])
+    .from('scheduled_posts')
+    .insert([{ platform, caption, image_url: image_url ?? null, scheduled_at, user_id }])
     .select()
     .single();
 
