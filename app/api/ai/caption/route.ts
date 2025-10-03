@@ -1,7 +1,7 @@
 // app/api/ai/caption/route.ts
 import { NextResponse } from 'next/server';
 import { GoogleGenAI } from '@google/genai';
-import { env } from '@/lib/env';
+import { env, getMissingEnvVars } from '@/lib/env';
 
 const systemInstruction = `You are an expert social media marketer helping small businesses craft compelling social media content.
 When given a topic, generate:
@@ -13,6 +13,11 @@ Format exactly:
 #tag1 #tag2 #tag3 ...`;
 
 export async function POST(req: Request) {
+  const missingGemini = getMissingEnvVars(['geminiApiKey']);
+  if (missingGemini.length) {
+    return NextResponse.json({ ok: false, error: `Missing environment variables: ${missingGemini.join(', ')}` }, { status: 500 });
+  }
+
   try {
     const { topic } = await req.json();
     if (!topic || typeof topic !== 'string') {
@@ -21,7 +26,7 @@ export async function POST(req: Request) {
 
     // Init client
     const ai = new GoogleGenAI({
-      apiKey: env.geminiApiKey,
+      apiKey: env.geminiApiKey as string,
     });
 
     // The v1+ SDK uses .models.generateContent with model names like 'gemini-2.0-flash' or 'gemini-2.5-flash'

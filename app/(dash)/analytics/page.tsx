@@ -1,6 +1,8 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { createServerComponentClient } from "@supabase/auth-helpers-nextjs";
 import { cookies } from "next/headers";
+import { getMissingEnvVars } from "@/lib/env";
+import { MissingEnvNotice } from "@/components/MissingEnvNotice";
 
 export const revalidate = 3600; // Revalidate hourly
 
@@ -17,6 +19,18 @@ type SnapshotTotals = {
 };
 
 export default async function AnalyticsPage() {
+  const missingSupabase = getMissingEnvVars(['supabaseUrl', 'supabaseAnonKey']);
+
+  if (missingSupabase.length) {
+    return (
+      <MissingEnvNotice
+        missing={missingSupabase}
+        title="Supabase environment variables are missing"
+        description="Analytics requires Supabase access to load engagement snapshots. Configure the credentials and redeploy."
+      />
+    );
+  }
+
   const supabase = createServerComponentClient({ cookies });
   const { data } = await supabase
     .from('analytics_snapshots')

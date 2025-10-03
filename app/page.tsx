@@ -3,8 +3,22 @@ import { Button } from "@/components/ui/button";
 import { createServerComponentClient } from "@supabase/auth-helpers-nextjs";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
+import { getMissingEnvVars } from "@/lib/env";
+import { MissingEnvNotice } from "@/components/MissingEnvNotice";
 
 export default async function HomePage() {
+  const missingSupabase = getMissingEnvVars(['supabaseUrl', 'supabaseAnonKey']);
+
+  if (missingSupabase.length) {
+    return (
+      <MissingEnvNotice
+        missing={missingSupabase}
+        title="Supabase environment variables are missing"
+        description="The landing page checks Supabase to determine whether to redirect authenticated users. Configure the variables to continue."
+      />
+    );
+  }
+
   const supabase = createServerComponentClient({ cookies });
   const { data: { session } } = await supabase.auth.getSession();
 

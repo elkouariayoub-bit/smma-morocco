@@ -13,17 +13,22 @@ const navLinks = [
 ];
 
 export function Navbar() {
-  const supabase = useSupabaseClient();
+  const { client: supabase } = useSupabaseClient();
   const [user, setUser] = useState<User | null>(null);
 
   useEffect(() => {
+    if (!supabase) {
+      setUser(null);
+      return;
+    }
+
     const fetchUser = async () => {
       const { data: { user } } = await supabase.auth.getUser();
       setUser(user);
     };
 
     fetchUser();
-    
+
     const { data: authListener } = supabase.auth.onAuthStateChange((_event: string, session: { user: User | null } | null) => {
       setUser(session?.user ?? null);
     });
@@ -31,9 +36,10 @@ export function Navbar() {
     return () => {
       authListener?.subscription.unsubscribe();
     };
-  }, []);
+  }, [supabase]);
 
   const handleSignOut = async () => {
+    if (!supabase) return;
     await supabase.auth.signOut();
   };
 

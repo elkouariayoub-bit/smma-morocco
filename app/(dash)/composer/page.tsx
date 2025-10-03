@@ -19,7 +19,7 @@ const Select = ({ className = '', ...props }: SelectProps) => (
 );
 
 export default function ComposerPage() {
-  const supabase = useSupabaseClient();
+  const { client: supabase, missingEnv } = useSupabaseClient();
   const [title, setTitle] = useState("");
   const [caption, setCaption] = useState("");
   const [image, setImage] = useState<File | null>(null);
@@ -29,19 +29,24 @@ export default function ComposerPage() {
   const [aiTopic, setAiTopic] = useState("");
   const [tone, setTone] = useState('friendly');
   const [length, setLength] = useState('medium');
-  
+
   const [isGenerating, setIsGenerating] = useState(false);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
-  
+
   const [userId, setUserId] = useState<string | null>(null);
 
   useEffect(() => {
+    if (!supabase) {
+      setUserId(null);
+      return;
+    }
+
     supabase.auth.getUser().then(({ data }: { data: { user: { id: string } | null } }) => {
       setUserId(data?.user?.id ?? null);
     });
-  }, []);
+  }, [supabase]);
 
   useEffect(() => {
     setMessage(null);
@@ -68,12 +73,16 @@ export default function ComposerPage() {
   };
 
   async function saveDraft() {
+    if (!supabase) {
+      setMessage('❌ Supabase credentials are missing');
+      return;
+    }
     if (!userId) return setMessage('❌ Sign in');
     setSaving(true);
     setMessage(null);
     try {
       const media_urls: string[] = []; // Image upload not implemented yet
-      const { error, data } = await supabase.from('drafts')
+      const { error } = await supabase.from('drafts')
         .insert({ title, caption, media_urls, user_id: userId, platform })
         .select('id').single();
       if (error) throw error;
@@ -83,6 +92,10 @@ export default function ComposerPage() {
   }
 
   async function schedulePost() {
+    if (!supabase) {
+      setMessage('❌ Supabase credentials are missing');
+      return;
+    }
     if (!userId) return setMessage('❌ Sign in');
     if (!when) { return setMessage('❌ Pick a date & time'); }
     setSaving(true);
@@ -90,7 +103,7 @@ export default function ComposerPage() {
     try {
       const scheduled_at = new Date(when).toISOString();
       const media_urls: string[] = []; // Image upload not implemented yet
-      const { error, data } = await supabase.from('scheduled_posts')
+      const { error } = await supabase.from('scheduled_posts')
         .insert({ platform, caption, media_urls, scheduled_at, user_id: userId, title })
         .select('id').single();
       if (error) throw error;
@@ -153,8 +166,8 @@ export default function ComposerPage() {
                 </div>
 
                 <div className="flex items-center gap-4 pt-2">
-                    <Button onClick={saveDraft} disabled={saving || isGenerating}>Save Draft</Button>
-                    <Button variant="secondary" onClick={schedulePost} disabled={saving || isGenerating}>Schedule</Button>
+                    <Button onClick={saveDraft} disabled={saving || isGenerating || !!missingEnv.length}>Save Draft</Button>
+                    <Button variant="secondary" onClick={schedulePost} disabled={saving || isGenerating || !!missingEnv.length}>Schedule</Button>
                     {message && <p className="text-sm text-gray-600">{message}</p>}
                 </div>
             </CardContent>
@@ -198,8 +211,8 @@ export default function ComposerPage() {
                 <Select id="ai-tone" value={tone} onChange={(event: ChangeEvent<HTMLSelectElement>) => setTone(event.target.value)}>
                     <option value="friendly">Friendly</option>
                     <option value="professional">Professional</option>
-                    <option value="witty">Witty</option>
-                    <option value="inspirational">Inspirational</option>
+                    <option value="playful">Playful</option>
+                    <option value="authoritative">Authoritative</option>
                 </Select>
               </div>
               <div>
@@ -210,14 +223,16 @@ export default function ComposerPage() {
                     <option value="long">Long</option>
                 </Select>
               </div>
-              <Button onClick={handleGenerateCaption} disabled={isGenerating || !aiTopic.trim()} className="w-full">
-                {isGenerating ? (
-                    <span className="animate-pulse">Generating...</span>
-                ) : (
-                    <><Wand2 className="w-4 h-4 mr-2" /> Generate & Append</>
-                )}
+              <Button
+                type="button"
+                onClick={handleGenerateCaption}
+                disabled={isGenerating || !aiTopic.trim()}
+                className="w-full"
+              >
+                <Wand2 className="w-4 h-4 mr-2" />
+                {isGenerating ? 'Generating…' : 'Generate Caption'}
               </Button>
-              {error && <p className="text-sm text-red-600 mt-2">{error}</p>}
+              {error && <p className="text-sm text-red-600">{error}</p>}
             </div>
             </CardContent>
         </Card>

@@ -2,17 +2,29 @@
 
 import { useState } from 'react';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import type { SupabaseClient } from '@supabase/supabase-js';
+import { getMissingEnvVars } from './env';
+
+type SupabaseHookResult = {
+  client: SupabaseClient | null;
+  missingEnv: ReturnType<typeof getMissingEnvVars>;
+};
 
 /**
  * Returns a memoized Supabase client for use inside client components.
- *
- * Supabase's `createBrowserSupabaseClient` helper has been deprecated in favour
- * of `createClientComponentClient`, which is safe to call during React render.
- * We wrap it in `useState` so every component instance receives a stable
- * reference without re-creating the client on every render.
+ * When the required environment variables are missing, the hook
+ * resolves to `null` and exposes the missing variables so callers can
+ * surface a helpful UI instead of crashing on render.
  */
-export function useSupabaseClient<Database = any>() {
-  const [client] = useState(() => createClientComponentClient<Database>());
+export function useSupabaseClient(): SupabaseHookResult {
+  const missingEnv = getMissingEnvVars(['supabaseUrl', 'supabaseAnonKey']);
 
-  return client;
+  const [client] = useState(() => {
+    if (missingEnv.length) {
+      return null;
+    }
+    return createClientComponentClient();
+  });
+
+  return { client: client as SupabaseClient | null, missingEnv };
 }
