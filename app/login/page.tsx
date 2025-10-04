@@ -1,8 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import { supabase } from '@/lib/supabase';
-import { env } from '@/lib/env';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -19,35 +17,27 @@ export default function LoginPage({ searchParams }: { searchParams: { message: s
     setError(null);
     setIsLoading(true);
 
-    const callbackUrl = (() => {
-      if (env.siteUrl) {
-        try {
-          return new URL('/auth/callback', env.siteUrl).toString();
-        } catch (error) {
-          console.error('Invalid NEXT_PUBLIC_SITE_URL value. Falling back to window origin.', error);
-        }
+    try {
+      const response = await fetch('/auth/magic-link', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email }),
+      });
+
+      if (!response.ok) {
+        const data = await response.json().catch(() => null);
+        const message = data?.error?.message || 'Failed to send magic link';
+        throw new Error(message);
       }
 
-      return `${window.location.origin}/auth/callback`;
-    })();
-
-    const { error } = await supabase.auth.signInWithOtp({
-      email,
-      options: {
-        // Use the page you want users to land on after clicking the email link.
-        // If you don't have /auth/callback implemented, use the site root:
-        // direct magic links to the client-side callback which will finish the
-        // sign-in flow (parse the token from the URL fragment and persist
-        // the session) and then redirect into the app.
-        emailRedirectTo: callbackUrl,
-      },
-    });
-
-    setIsLoading(false);
-    if (error) {
-      setError(error.message);
-    } else {
       setSent(true);
+    } catch (err) {
+      console.error('Error sending magic link', err);
+      setError(err instanceof Error ? err.message : 'Failed to send magic link');
+    } finally {
+      setIsLoading(false);
     }
   };
 
