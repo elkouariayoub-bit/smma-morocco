@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 // FIX: Use the correct 'sidebar' component with lowercase casing to resolve module ambiguity.
 // FIX: Use alias to resolve name collision with Next.js Sidebar component
-import { AppSidebar as Sidebar } from './components/sidebar';
+import { Sidebar } from './components/Sidebar';
 import { Composer } from './components/Composer';
 import { Queue } from './components/Queue';
 import { Analytics } from './components/Analytics';
