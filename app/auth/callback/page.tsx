@@ -6,25 +6,40 @@ import { supabase } from '@/lib/supabase';
 
 export default function AuthCallbackPage() {
   const router = useRouter();
-
   useEffect(() => {
     const finishSignIn = async () => {
       try {
+        const code = new URLSearchParams(window.location.search).get('code');
+        if (code) {
+          const { error } = await supabase.auth.exchangeCodeForSession(code);
+          if (error) {
+            console.error('Error exchanging auth code:', error);
+            router.replace('/login?message=' + encodeURIComponent(error.message || 'Sign-in failed'));
+            return;
+          }
+          router.replace('/composer');
+          return;
+        }
+
         // Supabase magic links include the access_token and refresh_token in the
         // URL fragment (window.location.hash). We'll parse the fragment and call
         // supabase.auth.setSession() to persist the session client-side.
         const hash = window.location.hash.replace(/^#/, '');
+        if (!hash) {
+          router.replace('/login?message=' + encodeURIComponent('No auth credentials found'));
+          return;
+        }
+
         const params = new URLSearchParams(hash);
         const access_token = params.get('access_token');
         const refresh_token = params.get('refresh_token');
 
         if (!access_token || !refresh_token) {
-          // Nothing to do — redirect back to login with message
           router.replace('/login?message=' + encodeURIComponent('No auth token in URL'));
           return;
         }
 
-        const { data, error } = await supabase.auth.setSession({ access_token, refresh_token });
+        const { error } = await supabase.auth.setSession({ access_token, refresh_token });
         if (error) {
           console.error('Error setting session after magic link:', error);
           router.replace('/login?message=' + encodeURIComponent(error.message || 'Sign-in failed'));
