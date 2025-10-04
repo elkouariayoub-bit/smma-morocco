@@ -2,11 +2,7 @@
   "builds": [
     {
       "src": "package.json",
-      "use": "@vercel/static-build",
-      "config": { "distDir": ".next" }
+      "use": "@vercel/next"
     }
-  ],
-  "build": {
-    "env": {}
-  }
+  ]
 }
