@@ -1,6 +1,12 @@
 'use client';
 
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { Auth } from '@supabase/auth-ui-react';
+import { ThemeSupa } from '@supabase/auth-ui-shared';
+import { supabase } from '@/lib/supabase';
+import { env } from '@/lib/env';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -10,55 +16,34 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import Link from 'next/link';
-import { useRouter } from 'next/navigation';
 
 type LoginSearchParams = {
   message?: string;
 };
 
+const trimTrailingSlash = (value: string | null | undefined) =>
+  value ? value.replace(/\/$/, '') : null;
+
 export default function LoginPage({ searchParams }: { searchParams?: LoginSearchParams }) {
-  const [email, setEmail] = useState('');
-  const [sent, setSent] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
+  const router = useRouter();
   const [code, setCode] = useState('');
   const [codeError, setCodeError] = useState<string | null>(null);
+  const [codeSuccess, setCodeSuccess] = useState<string | null>(null);
   const [isCodeLoading, setIsCodeLoading] = useState(false);
-  const router = useRouter();
 
-  const handleMagicLinkSignIn = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError(null);
-    setIsLoading(true);
+  const redirectTo = useMemo(() => {
+    const canonical =
+      typeof window !== 'undefined'
+        ? window.location.origin
+        : trimTrailingSlash(env.siteUrl);
 
-    try {
-      const response = await fetch('/auth/magic-link', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email }),
-      });
-
-      if (!response.ok) {
-        const data = await response.json().catch(() => null);
-        const message = data?.error?.message || 'Failed to send magic link';
-        throw new Error(message);
-      }
-
-      setSent(true);
-    } catch (err) {
-      console.error('Error sending magic link', err);
-      setError(err instanceof Error ? err.message : 'Failed to send magic link');
-    } finally {
-      setIsLoading(false);
-    }
-  };
+    return canonical ? `${canonical}/auth/callback` : undefined;
+  }, []);
 
   const handleCodeSignIn = async (event: React.FormEvent) => {
     event.preventDefault();
     setCodeError(null);
+    setCodeSuccess(null);
     setIsCodeLoading(true);
 
     try {
@@ -71,20 +56,20 @@ export default function LoginPage({ searchParams }: { searchParams?: LoginSearch
       });
 
       if (!response.ok) {
-        const data = await response.json().catch(() => null);
-        const message = data?.error?.message || 'Invalid access code';
+        const payload = await response.json().catch(() => null);
+        const message = payload?.error?.message ?? 'Invalid access code';
         throw new Error(message);
       }
 
+      setCodeSuccess('Code accepted. Redirecting…');
       router.push('/composer');
     } catch (err) {
-      console.error('Error verifying access code', err);
-      setCodeError(err instanceof Error ? err.message : 'Invalid access code');
+      const message = err instanceof Error ? err.message : 'Invalid access code';
+      setCodeError(message);
     } finally {
       setIsCodeLoading(false);
     }
   };
-
 
   const searchMessage = searchParams?.message ?? null;
 
@@ -105,14 +90,14 @@ export default function LoginPage({ searchParams }: { searchParams?: LoginSearch
             <p className="text-sm uppercase tracking-[0.3em] text-slate-400">SMMA Morocco</p>
             <h1 className="mt-3 text-4xl font-semibold tracking-tight sm:text-5xl">Access your social media command center</h1>
             <p className="mt-4 text-base text-slate-300">
-              Choose the login method that suits you—receive a secure magic link in your inbox or unlock instant
-              access with your one-time partner code.
+              Use our official Supabase authentication experience to sign in with your preferred method or unlock direct access
+              with the partner code.
             </p>
           </div>
           <div className="grid gap-4 text-sm text-slate-300 sm:grid-cols-2">
             <div className="rounded-2xl border border-white/10 bg-white/5 p-5 backdrop-blur">
-              <p className="font-medium text-white">Email magic links</p>
-              <p className="mt-2 leading-6 text-slate-300">Secure sign-in without remembering passwords.</p>
+              <p className="font-medium text-white">Supabase Auth UI</p>
+              <p className="mt-2 leading-6 text-slate-300">Pre-built email, password, magic link, and OAuth sign-in powered by Supabase.</p>
             </div>
             <div className="rounded-2xl border border-white/10 bg-white/5 p-5 backdrop-blur">
               <p className="font-medium text-white">Access code entry</p>
@@ -124,112 +109,59 @@ export default function LoginPage({ searchParams }: { searchParams?: LoginSearch
         <div className="w-full max-w-md space-y-6">
           <Card className="border-none shadow-xl shadow-slate-900/20">
             <CardHeader className="space-y-2 text-center">
-              <CardTitle className="text-2xl font-semibold text-slate-900">
-                {sent ? 'Check your inbox' : 'Sign in with magic link'}
-              </CardTitle>
+              <CardTitle className="text-2xl font-semibold text-slate-900">Sign in to SMMA Morocco</CardTitle>
               <CardDescription className="text-base text-slate-600">
-                {sent
-                  ? `We've sent a secure login link to ${email}. Open it on this device to continue.`
-                  : 'Enter your email address and we will email you a secure, one-click sign in link.'}
+                Choose your preferred authentication method, including Google, GitHub, email/password, or a secure magic link.
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
-              {!sent ? (
-                <form onSubmit={handleMagicLinkSignIn} className="space-y-4">
-                  <div className="text-left">
-                    <label className="text-sm font-medium text-slate-700" htmlFor="email">
-                      Work email
-                    </label>
-                    <Input
-                      className="mt-2 h-11 rounded-lg border-slate-200 text-base"
-                      id="email"
-                      name="email"
-                      type="email"
-                      placeholder="you@example.com"
-                      required
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                    />
-                  </div>
-                  <Button
-                    type="submit"
-                    disabled={isLoading || !email}
-                    className="h-11 rounded-lg bg-slate-900 text-base font-semibold text-white hover:bg-slate-800"
-                  >
-                    {isLoading ? 'Sending…' : 'Send me a magic link'}
-                  </Button>
-                </form>
-              ) : (
-                <div className="space-y-4 text-sm text-slate-600">
-                  <p>
-                    Didn&apos;t receive the message? Check your spam folder or resend the link by submitting your email
-                    again.
-                  </p>
-                  <Button
-                    type="button"
-                    onClick={() => setSent(false)}
-                    className="h-11 rounded-lg border border-slate-200 bg-white text-base font-semibold text-slate-800 hover:bg-slate-100"
-                  >
-                    Send a new link
-                  </Button>
-                </div>
-              )}
-
-              {(error || searchMessage) && (
-                <p
-                  className={`rounded-lg border p-3 text-sm font-medium ${
-                    error
-                      ? 'border-red-200 bg-red-50 text-red-700'
-                      : 'border-amber-200 bg-amber-50 text-amber-700'
-                  }`}
-                >
-                  {error || searchMessage}
+              {searchMessage && (
+                <p className="rounded-lg bg-amber-50 px-3 py-2 text-sm text-amber-700" role="status">
+                  {searchMessage}
                 </p>
               )}
+              <Auth
+                supabaseClient={supabase}
+                appearance={{ theme: ThemeSupa }}
+                providers={['google', 'github']}
+                redirectTo={redirectTo}
+              />
             </CardContent>
           </Card>
 
-          <div className="relative flex items-center gap-3 text-sm font-medium text-slate-400">
-            <span className="h-px flex-1 bg-white/20" />
-            or
-            <span className="h-px flex-1 bg-white/20" />
-          </div>
-
-          <Card className="border-none shadow-xl shadow-slate-900/20">
-            <CardHeader className="space-y-2 text-center">
-              <CardTitle className="text-2xl font-semibold text-slate-900">Sign in with access code</CardTitle>
-              <CardDescription className="text-base text-slate-600">
-                Enter the shared code from your onboarding email to jump straight into the dashboard.
+          <Card className="border border-dashed border-slate-300/70 bg-white/80 shadow-none backdrop-blur">
+            <CardHeader>
+              <CardTitle className="text-xl font-semibold text-slate-900">Sign in with access code</CardTitle>
+              <CardDescription className="text-sm text-slate-600">
+                Enter <span className="font-semibold tracking-[0.3em] text-slate-900">AYOUB</span> to jump straight into your dashboard.
               </CardDescription>
             </CardHeader>
             <CardContent>
               <form onSubmit={handleCodeSignIn} className="space-y-4">
-                <div className="text-left">
+                <div>
                   <label className="text-sm font-medium text-slate-700" htmlFor="access-code">
                     Access code
                   </label>
                   <Input
                     id="access-code"
-                    name="access-code"
-                    type="text"
-                    required
+                    name="code"
                     value={code}
                     onChange={(event) => setCode(event.target.value)}
-                    placeholder="Enter “AYOUB”"
-                    className="mt-2 h-11 rounded-lg border-slate-200 text-base tracking-[0.4em] uppercase"
-                    autoComplete="off"
+                    placeholder="AYOUB"
+                    className="mt-2 h-11 rounded-lg border-slate-200 text-base uppercase tracking-[0.5em]"
+                    required
                   />
                 </div>
                 <Button
                   type="submit"
-                  disabled={isCodeLoading || !code.trim()}
-                  className="h-11 rounded-lg bg-slate-900 text-base font-semibold text-white hover:bg-slate-800"
+                  disabled={isCodeLoading || !code}
+                  className="h-11 w-full rounded-lg bg-slate-900 text-base font-semibold text-white hover:bg-slate-800"
                 >
-                  {isCodeLoading ? 'Verifying…' : 'Unlock my workspace'}
+                  {isCodeLoading ? 'Verifying…' : 'Unlock workspace'}
                 </Button>
-                {codeError && (
-                  <p className="rounded-lg border border-red-200 bg-red-50 p-3 text-center text-sm font-medium text-red-700">
-                    {codeError}
+                {(codeError || codeSuccess) && (
+                  <p className={`text-sm ${codeError ? 'text-red-600' : 'text-emerald-600'}`} role={codeError ? 'alert' : 'status'}>
+                    {codeError ?? codeSuccess}
                   </p>
                 )}
               </form>
