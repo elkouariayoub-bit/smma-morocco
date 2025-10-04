@@ -6,7 +6,8 @@ import { supabase } from '@/lib/supabase';
 import { User, type Session } from '@supabase/supabase-js';
 import { useEffect, useState, type Dispatch, type SetStateAction } from 'react';
 import type { Page } from '../types';
-import { PenSquare, Clock, Archive, BarChart2, LogOut } from 'lucide-react';
+import { PenSquare, Clock, Archive, BarChart2 } from 'lucide-react';
+import { UserButton } from '@daveyplate/better-auth-ui';
 
 const navItems = [
   { href: '/composer', label: 'Composer', icon: PenSquare },
@@ -86,23 +87,7 @@ export function Sidebar({ currentPage, setCurrentPage, hasCodeSession = false }:
       </nav>
       {(user || codeSession) && (
         <div className="p-4 border-t border-gray-200">
-          <div className="flex items-center space-x-3">
-            <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center font-bold text-gray-600">
-              {(user?.email?.[0] || 'A').toUpperCase()}
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-semibold text-gray-800 truncate">
-                {user?.email ?? 'Access code user'}
-              </p>
-              <button
-                onClick={handleSignOut}
-                className="text-xs text-gray-500 hover:underline flex items-center gap-1"
-              >
-                <LogOut className="w-3 h-3" />
-                Sign Out
-              </button>
-            </div>
-          </div>
+          <UserButton onSignOut={handleSignOut} hasCodeSession={codeSession} />
         </div>
       )}
     </aside>

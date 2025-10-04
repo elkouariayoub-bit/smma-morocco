@@ -3,9 +3,7 @@
 import { useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Auth } from '@supabase/auth-ui-react';
-import { ThemeSupa } from '@supabase/auth-ui-shared';
-import { supabase } from '@/lib/supabase';
+import { SignIn, SignUp } from '@daveyplate/better-auth-ui';
 import { env } from '@/lib/env';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -90,14 +88,14 @@ export default function LoginPage({ searchParams }: { searchParams?: LoginSearch
             <p className="text-sm uppercase tracking-[0.3em] text-slate-400">SMMA Morocco</p>
             <h1 className="mt-3 text-4xl font-semibold tracking-tight sm:text-5xl">Access your social media command center</h1>
             <p className="mt-4 text-base text-slate-300">
-              Use our official Supabase authentication experience to sign in with your preferred method or unlock direct access
-              with the partner code.
+              Enjoy a refined authentication experience powered by Better Auth UI with email, password, and Google sign-in,
+              or unlock direct access with the partner code.
             </p>
           </div>
           <div className="grid gap-4 text-sm text-slate-300 sm:grid-cols-2">
             <div className="rounded-2xl border border-white/10 bg-white/5 p-5 backdrop-blur">
-              <p className="font-medium text-white">Supabase Auth UI</p>
-              <p className="mt-2 leading-6 text-slate-300">Pre-built email, password, magic link, and OAuth sign-in powered by Supabase.</p>
+              <p className="font-medium text-white">Better Auth UI</p>
+              <p className="mt-2 leading-6 text-slate-300">Drop-in email, password, and Google authentication styled with shadcn/ui.</p>
             </div>
             <div className="rounded-2xl border border-white/10 bg-white/5 p-5 backdrop-blur">
               <p className="font-medium text-white">Access code entry</p>
@@ -106,26 +104,33 @@ export default function LoginPage({ searchParams }: { searchParams?: LoginSearch
           </div>
         </div>
 
-        <div className="w-full max-w-md space-y-6">
+        <div className="w-full max-w-xl space-y-6">
           <Card className="border-none shadow-xl shadow-slate-900/20">
             <CardHeader className="space-y-2 text-center">
               <CardTitle className="text-2xl font-semibold text-slate-900">Sign in to SMMA Morocco</CardTitle>
               <CardDescription className="text-base text-slate-600">
-                Choose your preferred authentication method, including Google, GitHub, email/password, or a secure magic link.
+                Access your workspace with polished, production-ready authentication flows.
               </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-6">
+            <CardContent className="space-y-8">
               {searchMessage && (
                 <p className="rounded-lg bg-amber-50 px-3 py-2 text-sm text-amber-700" role="status">
                   {searchMessage}
                 </p>
               )}
-              <Auth
-                supabaseClient={supabase}
-                appearance={{ theme: ThemeSupa }}
-                providers={['google', 'github']}
-                redirectTo={redirectTo}
-              />
+              <SignIn redirectTo={redirectTo} />
+            </CardContent>
+          </Card>
+
+          <Card className="border border-slate-200/80 bg-white/90 shadow-lg shadow-slate-900/10 backdrop-blur">
+            <CardHeader className="space-y-2 text-center">
+              <CardTitle className="text-xl font-semibold text-slate-900">Create a new account</CardTitle>
+              <CardDescription className="text-sm text-slate-600">
+                Spin up a profile in seconds and manage everything from your dashboard.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <SignUp redirectTo={redirectTo} />
             </CardContent>
           </Card>
 

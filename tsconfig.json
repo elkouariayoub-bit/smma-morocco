@@ -22,8 +22,7 @@
     "paths": {
       "@/components/*": ["./components/*"],
       "@/lib/*": ["./lib/*"],
-      "@supabase/auth-ui-react": ["./supabase/auth-ui-react"],
-      "@supabase/auth-ui-shared": ["./supabase/auth-ui-shared"]
+      "@daveyplate/better-auth-ui": ["./better-auth-ui"]
     }
   },
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
