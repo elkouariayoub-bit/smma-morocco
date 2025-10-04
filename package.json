@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "typecheck": "tsc --noEmit",
-    "vercel-build": "next build && ls -la .next/server/app/(dash) || true"
+    "vercel-build": "next build && ls -la '.next/server/app/(dash)' || true"
   },
   "engines": {
     "node": "20.x"
