@@ -72,106 +72,97 @@ export default function LoginPage({ searchParams }: { searchParams?: LoginSearch
   const searchMessage = searchParams?.message ?? null;
 
   return (
-    <div className="relative isolate flex min-h-screen flex-col justify-center overflow-hidden bg-slate-950 px-6 py-16 sm:px-8">
-      <div className="pointer-events-none absolute inset-0 -z-10">
-        <div className="absolute -left-1/3 top-1/4 h-96 w-96 rounded-full bg-gradient-to-br from-blue-400/40 via-cyan-300/30 to-purple-500/30 blur-3xl" />
-        <div className="absolute -right-24 bottom-0 h-80 w-80 rounded-full bg-gradient-to-tr from-purple-500/40 via-indigo-400/30 to-sky-400/30 blur-3xl" />
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_#1e293b_0,_transparent_55%)]" />
-      </div>
+    <div className="min-h-screen bg-slate-100">
+      <div className="mx-auto flex min-h-screen w-full max-w-6xl flex-col items-center justify-center px-6 py-16 sm:px-8">
+        <div className="w-full space-y-12">
+          <div className="flex items-center justify-between">
+            <Link
+              href="/"
+              className="inline-flex items-center gap-2 text-sm font-semibold text-blue-600 transition-colors duration-200 hover:text-blue-500"
+            >
+              ← Back to site
+            </Link>
+            <span className="text-xs font-semibold uppercase tracking-[0.28em] text-slate-400">SMMA Morocco</span>
+          </div>
 
-      <div className="mx-auto flex w-full max-w-6xl flex-col gap-16 lg:flex-row lg:items-center">
-        <div className="max-w-xl space-y-6 text-slate-100">
-          <Link href="/" className="inline-flex items-center text-sm font-semibold tracking-wide text-slate-200">
-            ← Back to site
-          </Link>
-          <div>
-            <p className="text-sm uppercase tracking-[0.3em] text-slate-400">SMMA Morocco</p>
-            <h1 className="mt-3 text-4xl font-semibold tracking-tight sm:text-5xl">Access your social media command center</h1>
-            <p className="mt-4 text-base text-slate-300">
-              Enjoy a refined authentication experience powered by Better Auth UI with email, password, and Google sign-in,
-              or unlock direct access with the partner code.
+          <div className="space-y-4 text-center">
+            <h1 className="text-4xl font-semibold text-slate-900 sm:text-5xl">Sign in to your workspace</h1>
+            <p className="mx-auto max-w-2xl text-base text-slate-500">
+              Enjoy a polished authentication experience with email, password, Google, GitHub, and direct partner access. Every
+              element is tuned for clarity, focus, and effortless onboarding.
             </p>
           </div>
-          <div className="grid gap-4 text-sm text-slate-300 sm:grid-cols-2">
-            <div className="rounded-2xl border border-white/10 bg-white/5 p-5 backdrop-blur">
-              <p className="font-medium text-white">Better Auth UI</p>
-              <p className="mt-2 leading-6 text-slate-300">Drop-in email, password, and Google authentication styled with shadcn/ui.</p>
-            </div>
-            <div className="rounded-2xl border border-white/10 bg-white/5 p-5 backdrop-blur">
-              <p className="font-medium text-white">Access code entry</p>
-              <p className="mt-2 leading-6 text-slate-300">Use your “AYOUB” code for immediate workspace access.</p>
-            </div>
-          </div>
-        </div>
 
-        <div className="w-full max-w-xl space-y-6">
-          <Card className="border-none shadow-xl shadow-slate-900/20">
-            <CardHeader className="space-y-2 text-center">
-              <CardTitle className="text-2xl font-semibold text-slate-900">Sign in to SMMA Morocco</CardTitle>
-              <CardDescription className="text-base text-slate-600">
-                Access your workspace with polished, production-ready authentication flows.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-8">
-              {searchMessage && (
-                <p className="rounded-lg bg-amber-50 px-3 py-2 text-sm text-amber-700" role="status">
-                  {searchMessage}
-                </p>
-              )}
-              <SignIn redirectTo={redirectTo} />
-            </CardContent>
-          </Card>
-
-          <Card className="border border-slate-200/80 bg-white/90 shadow-lg shadow-slate-900/10 backdrop-blur">
-            <CardHeader className="space-y-2 text-center">
-              <CardTitle className="text-xl font-semibold text-slate-900">Create a new account</CardTitle>
-              <CardDescription className="text-sm text-slate-600">
-                Spin up a profile in seconds and manage everything from your dashboard.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <SignUp redirectTo={redirectTo} />
-            </CardContent>
-          </Card>
-
-          <Card className="border border-dashed border-slate-300/70 bg-white/80 shadow-none backdrop-blur">
-            <CardHeader>
-              <CardTitle className="text-xl font-semibold text-slate-900">Sign in with access code</CardTitle>
-              <CardDescription className="text-sm text-slate-600">
-                Enter <span className="font-semibold tracking-[0.3em] text-slate-900">AYOUB</span> to jump straight into your dashboard.
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <form onSubmit={handleCodeSignIn} className="space-y-4">
-                <div>
-                  <label className="text-sm font-medium text-slate-700" htmlFor="access-code">
-                    Access code
-                  </label>
-                  <Input
-                    id="access-code"
-                    name="code"
-                    value={code}
-                    onChange={(event) => setCode(event.target.value)}
-                    placeholder="AYOUB"
-                    className="mt-2 h-11 rounded-lg border-slate-200 text-base uppercase tracking-[0.5em]"
-                    required
-                  />
-                </div>
-                <Button
-                  type="submit"
-                  disabled={isCodeLoading || !code}
-                  className="h-11 w-full rounded-lg bg-slate-900 text-base font-semibold text-white hover:bg-slate-800"
-                >
-                  {isCodeLoading ? 'Verifying…' : 'Unlock workspace'}
-                </Button>
-                {(codeError || codeSuccess) && (
-                  <p className={`text-sm ${codeError ? 'text-red-600' : 'text-emerald-600'}`} role={codeError ? 'alert' : 'status'}>
-                    {codeError ?? codeSuccess}
+          <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,360px)]">
+            <Card className="border-0 bg-white shadow-[0_20px_60px_-32px_rgba(15,23,42,0.35)]">
+              <CardHeader className="space-y-3 text-left">
+                <CardTitle className="text-2xl font-semibold text-slate-900">Welcome back</CardTitle>
+                <CardDescription className="text-sm text-slate-500">
+                  Continue with your preferred method and jump back into campaign management.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-8">
+                {searchMessage && (
+                  <p className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-700" role="status">
+                    {searchMessage}
                   </p>
                 )}
-              </form>
-            </CardContent>
-          </Card>
+                <SignIn redirectTo={redirectTo} />
+              </CardContent>
+            </Card>
+
+            <div className="grid gap-6">
+              <Card className="border-0 bg-white shadow-[0_20px_60px_-32px_rgba(15,23,42,0.2)]">
+                <CardHeader className="space-y-2 text-left">
+                  <CardTitle className="text-xl font-semibold text-slate-900">Create a new account</CardTitle>
+                  <CardDescription className="text-sm text-slate-500">
+                    Set up your profile in minutes and access your performance toolkit instantly.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  <SignUp redirectTo={redirectTo} />
+                </CardContent>
+              </Card>
+
+              <Card className="border border-slate-200 bg-white shadow-[0_12px_40px_-24px_rgba(15,23,42,0.25)]">
+                <CardHeader className="space-y-2 text-left">
+                  <CardTitle className="text-xl font-semibold text-slate-900">Partner access code</CardTitle>
+                  <CardDescription className="text-sm text-slate-500">
+                    Enter the exclusive code to unlock full access without additional steps.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <form onSubmit={handleCodeSignIn} className="space-y-4">
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium text-slate-700" htmlFor="access-code">
+                        Access code
+                      </label>
+                      <Input
+                        id="access-code"
+                        name="code"
+                        value={code}
+                        onChange={(event) => setCode(event.target.value.toUpperCase())}
+                        placeholder="AYOUB"
+                        className="tracking-[0.5em]"
+                        required
+                      />
+                    </div>
+                    <Button type="submit" disabled={isCodeLoading || !code.trim()}>
+                      {isCodeLoading ? 'Verifying…' : 'Unlock workspace'}
+                    </Button>
+                    {(codeError || codeSuccess) && (
+                      <p
+                        className={`text-sm transition-opacity duration-200 ${codeError ? 'text-red-600' : 'text-emerald-600'}`}
+                        role={codeError ? 'alert' : 'status'}
+                      >
+                        {codeError ?? codeSuccess}
+                      </p>
+                    )}
+                  </form>
+                </CardContent>
+              </Card>
+            </div>
+          </div>
         </div>
       </div>
     </div>

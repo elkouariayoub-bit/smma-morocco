@@ -3,17 +3,19 @@ import { cva } from './cva';
 import { cn } from '@/lib/utils';
 
 const buttonStyles = cva(
-  'inline-flex items-center justify-center rounded-2xl text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none',
+  'inline-flex items-center justify-center rounded-xl text-sm font-semibold transition-colors duration-200 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-blue-200 focus-visible:ring-offset-0 disabled:pointer-events-none disabled:opacity-60',
   {
     variants: {
       variant: {
-        default: 'bg-black text-white hover:bg-gray-800',
-        secondary: 'bg-gray-100 text-gray-900 hover:bg-gray-200',
-        ghost: 'hover:bg-gray-100',
+        default: 'bg-blue-500 text-white shadow-sm hover:bg-blue-600',
+        secondary: 'bg-slate-900 text-white shadow-sm hover:bg-slate-800',
+        outline: 'border border-slate-200 bg-white text-slate-700 shadow-sm hover:border-blue-400 hover:bg-blue-50 hover:text-slate-900',
+        ghost: 'text-slate-600 hover:bg-slate-100',
       },
       size: {
-        default: 'h-9 px-4',
-        sm: 'h-8 px-3'
+        default: 'h-12 px-6',
+        sm: 'h-10 px-4',
+        lg: 'h-14 px-8 text-base',
       }
     },
     defaultVariants: { variant: 'default', size: 'default' },
@@ -21,8 +23,8 @@ const buttonStyles = cva(
 );
 
 export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: 'default' | 'secondary' | 'ghost';
-  size?: 'default' | 'sm';
+  variant?: 'default' | 'secondary' | 'outline' | 'ghost';
+  size?: 'default' | 'sm' | 'lg';
 }
 
 export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
