@@ -18,12 +18,14 @@ const navItems = [
 interface SidebarProps {
   currentPage?: Page;
   setCurrentPage?: Dispatch<SetStateAction<Page>>;
+  hasCodeSession?: boolean;
 }
 
-export function Sidebar({ currentPage, setCurrentPage }: SidebarProps) {
+export function Sidebar({ currentPage, setCurrentPage, hasCodeSession = false }: SidebarProps) {
   const pathname = usePathname();
   const router = useRouter();
   const [user, setUser] = useState<User | null>(null);
+  const [codeSession, setCodeSession] = useState(hasCodeSession);
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -42,8 +44,16 @@ export function Sidebar({ currentPage, setCurrentPage }: SidebarProps) {
     };
   }, []);
 
+  useEffect(() => {
+    setCodeSession(hasCodeSession);
+  }, [hasCodeSession]);
+
   const handleSignOut = async () => {
-    await supabase.auth.signOut();
+    await Promise.allSettled([
+      supabase.auth.signOut(),
+      fetch('/auth/code', { method: 'DELETE' }),
+    ]);
+    setCodeSession(false);
     router.push('/login');
   };
 
@@ -74,21 +84,26 @@ export function Sidebar({ currentPage, setCurrentPage }: SidebarProps) {
           );
         })}
       </nav>
-      {user && (
-         <div className="p-4 border-t border-gray-200">
-            <div className="flex items-center space-x-3">
-                <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center font-bold text-gray-600">
-                    {user.email?.[0].toUpperCase()}
-                </div>
-                <div className="flex-1 min-w-0">
-                    <p className="text-sm font-semibold text-gray-800 truncate">{user.email}</p>
-                    <button onClick={handleSignOut} className="text-xs text-gray-500 hover:underline flex items-center gap-1">
-                        <LogOut className="w-3 h-3"/>
-                        Sign Out
-                    </button>
-                </div>
+      {(user || codeSession) && (
+        <div className="p-4 border-t border-gray-200">
+          <div className="flex items-center space-x-3">
+            <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center font-bold text-gray-600">
+              {(user?.email?.[0] || 'A').toUpperCase()}
             </div>
-         </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-semibold text-gray-800 truncate">
+                {user?.email ?? 'Access code user'}
+              </p>
+              <button
+                onClick={handleSignOut}
+                className="text-xs text-gray-500 hover:underline flex items-center gap-1"
+              >
+                <LogOut className="w-3 h-3" />
+                Sign Out
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </aside>
   );
