@@ -5,6 +5,7 @@
 export const env = {
   // Server-only (do NOT expose to client)
   geminiApiKey: process.env.GEMINI_API_KEY,
+  supabaseServiceRoleKey: process.env.SUPABASE_SERVICE_ROLE_KEY,
 
   // Client (NEXT_PUBLIC_*) — safe to bundle for browser
   supabaseUrl: process.env.NEXT_PUBLIC_SUPABASE_URL,
@@ -21,6 +22,10 @@ function assertEnv() {
   // Only assert server-only variables when running on the server.
   if (typeof window === 'undefined') {
     if (!env.geminiApiKey) missing.push('geminiApiKey');
+    // service role key is optional but recommended for server DB actions
+    if (!env.supabaseServiceRoleKey) {
+      // don't force it, but log a note in the thrown message if other things missing
+    }
   }
 
   if (missing.length) {
