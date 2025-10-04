@@ -23,7 +23,10 @@ export default function LoginPage({ searchParams }: { searchParams: { message: s
     options: {
       // Use the page you want users to land on after clicking the email link.
       // If you don't have /auth/callback implemented, use the site root:
-      emailRedirectTo: `${window.location.origin}/`,
+      // direct magic links to the client-side callback which will finish the
+      // sign-in flow (parse the token from the URL fragment and persist
+      // the session) and then redirect into the app.
+      emailRedirectTo: `${window.location.origin}/auth/callback`,
     },
   });
 
