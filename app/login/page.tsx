@@ -83,31 +83,28 @@ export default function LoginPage({ searchParams }: { searchParams?: LoginSearch
 
         <Card className="w-full max-w-md border border-slate-200 bg-white shadow-[0_18px_48px_-24px_rgba(15,23,42,0.3)]">
           <CardHeader className="space-y-3 text-center">
-            <CardTitle className="text-3xl font-semibold text-slate-900">Welcome back</CardTitle>
+            <CardTitle className="text-3xl font-semibold text-slate-900">Sign in to SMMA Morocco</CardTitle>
             <CardDescription className="text-sm text-slate-500">
-              Sign in or create an account to continue. You can also unlock access instantly with your partner code.
+              Welcome back! Please sign in to your account.
             </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-8">
+          <CardContent className="space-y-10">
             {searchMessage && (
               <p className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-700" role="status">
                 {searchMessage}
               </p>
             )}
 
-            <div className="space-y-6">
-              <div className="space-y-4">
-                <h2 className="text-left text-sm font-semibold uppercase tracking-[0.18em] text-slate-400">Sign in</h2>
-                <SignIn redirectTo={redirectTo} />
-              </div>
+            <SignIn redirectTo={redirectTo} />
 
-              <div className="space-y-4">
-                <h2 className="text-left text-sm font-semibold uppercase tracking-[0.18em] text-slate-400">Create account</h2>
+            <div className="space-y-6">
+              <div className="space-y-3 text-left">
+                <h2 className="text-sm font-semibold uppercase tracking-[0.18em] text-slate-400">Create account</h2>
                 <SignUp redirectTo={redirectTo} />
               </div>
 
-              <div className="space-y-4">
-                <h2 className="text-left text-sm font-semibold uppercase tracking-[0.18em] text-slate-400">Partner access code</h2>
+              <div className="space-y-3 text-left">
+                <h2 className="text-sm font-semibold uppercase tracking-[0.18em] text-slate-400">Partner access code</h2>
                 <form onSubmit={handleCodeSignIn} className="space-y-4">
                   <div className="space-y-2">
                     <label className="text-sm font-medium text-slate-700" htmlFor="access-code">

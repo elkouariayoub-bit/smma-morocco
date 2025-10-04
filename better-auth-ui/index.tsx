@@ -160,11 +160,6 @@ export function SignIn({ redirectTo }: AuthComponentProps) {
 
   return (
     <div className="space-y-8">
-      <div className="space-y-1 text-left">
-        <h2 className="text-2xl font-semibold text-slate-900">Welcome back</h2>
-        <p className="text-sm text-slate-500">Sign in with your credentials or continue with a connected provider.</p>
-      </div>
-
       <OAuthButtons onOAuth={handleOAuth} isLoading={state.isLoading} />
 
       <div className="relative" aria-hidden="true">
@@ -172,7 +167,7 @@ export function SignIn({ redirectTo }: AuthComponentProps) {
           <span className="w-full border-t border-slate-200" />
         </div>
         <div className="relative flex justify-center">
-          <span className="bg-white px-3 text-xs font-medium uppercase tracking-[0.32em] text-slate-400">Or with email</span>
+          <span className="bg-white px-3 text-xs font-medium text-slate-500">or continue with email</span>
         </div>
       </div>
 
@@ -310,7 +305,7 @@ export function SignUp({ redirectTo }: AuthComponentProps) {
           <span className="w-full border-t border-slate-200" />
         </div>
         <div className="relative flex justify-center">
-          <span className="bg-white px-3 text-xs font-medium uppercase tracking-[0.32em] text-slate-400">Or with email</span>
+          <span className="bg-white px-3 text-xs font-medium text-slate-500">or continue with email</span>
         </div>
       </div>
 
