@@ -23,7 +23,7 @@ export default function DashLayout({ children }: { children: React.ReactNode }) 
 
     checkSession();
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event: string, session: any) => {
       if (!session) {
         router.replace('/login');
       }

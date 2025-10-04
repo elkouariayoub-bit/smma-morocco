@@ -3,8 +3,9 @@
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
-import { User } from '@supabase/supabase-js';
-import { useEffect, useState } from 'react';
+import { User, type Session } from '@supabase/supabase-js';
+import { useEffect, useState, type Dispatch, type SetStateAction } from 'react';
+import type { Page } from '../types';
 import { PenSquare, Clock, Archive, BarChart2, LogOut } from 'lucide-react';
 
 const navItems = [
@@ -14,7 +15,12 @@ const navItems = [
   { href: '/analytics', label: 'Analytics', icon: BarChart2 },
 ];
 
-export function Sidebar() {
+interface SidebarProps {
+  currentPage?: Page;
+  setCurrentPage?: Dispatch<SetStateAction<Page>>;
+}
+
+export function Sidebar({ currentPage, setCurrentPage }: SidebarProps) {
   const pathname = usePathname();
   const router = useRouter();
   const [user, setUser] = useState<User | null>(null);
@@ -27,7 +33,7 @@ export function Sidebar() {
 
     fetchUser();
     
-    const { data: authListener } = supabase.auth.onAuthStateChange((_event, session) => {
+    const { data: authListener } = supabase.auth.onAuthStateChange((event: string, session: Session | null) => {
       setUser(session?.user ?? null);
     });
 
@@ -49,11 +55,13 @@ export function Sidebar() {
       </div>
       <nav className="flex-1 p-4 space-y-1">
         {navItems.map((item) => {
-          const isActive = pathname === item.href;
+          const pageFromHref = item.href.replace(/^\//, '') as Page;
+          const isActive = pathname === item.href || currentPage === pageFromHref;
           return (
             <Link
               key={item.href}
               href={item.href}
+              onClick={() => setCurrentPage?.(pageFromHref)}
               className={`w-full flex items-center space-x-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
                 isActive
                   ? 'bg-gray-900 text-white'

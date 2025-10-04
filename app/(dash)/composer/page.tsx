@@ -34,7 +34,10 @@ export default function ComposerPage() {
   const [userId, setUserId] = useState<string | null>(null);
 
   useEffect(() => {
-    supabase.auth.getUser().then(({ data }) => setUserId(data.user?.id ?? null));
+    (async () => {
+      const { data } = await supabase.auth.getUser();
+      setUserId(data.user?.id ?? null);
+    })();
   }, []);
 
   useEffect(() => {
@@ -62,7 +65,7 @@ export default function ComposerPage() {
 };
 
 const handleSchedule = async () => {
-  setIsSaving(true);
+  setSaving(true);
   setError(null);
   try {
     // You need the current user_id; simplest is to fetch it from Supabase auth
@@ -89,7 +92,7 @@ const handleSchedule = async () => {
   } catch (e: any) {
     setError(e?.message || 'Failed to save');
   } finally {
-    setIsSaving(false);
+    setSaving(false);
   }
 };
 
