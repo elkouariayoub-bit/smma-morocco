@@ -12,6 +12,14 @@ type AuthComponentProps = {
   redirectTo?: string;
 };
 
+type SignInProps = AuthComponentProps & {
+  onSwitchToSignUp?: () => void;
+};
+
+type SignUpProps = AuthComponentProps & {
+  onSwitchToSignIn?: () => void;
+};
+
 type AuthState = {
   email: string;
   password: string;
@@ -87,26 +95,47 @@ function OAuthButtons({ onOAuth, isLoading }: { onOAuth: (provider: Provider) =>
   );
 }
 
-export function SignIn({ redirectTo }: AuthComponentProps) {
+const LoadingSpinner = ({ className = 'h-4 w-4 border-2' }: { className?: string }) => (
+  <span className={`inline-flex ${className} animate-spin rounded-full border-white/60 border-t-white`} aria-hidden="true" />
+);
+
+export function SignIn({ redirectTo, onSwitchToSignUp }: SignInProps) {
   const router = useRouter();
   const [state, setState] = useState<AuthState>(initialState);
   const [mode, setMode] = useState<'signin' | 'reset'>('signin');
+  const [fieldErrors, setFieldErrors] = useState<{
+    email?: string;
+    password?: string;
+  }>({});
   const canonicalRedirect = useRedirect(redirectTo);
 
   const updateState = (patch: Partial<AuthState>) => setState((prev) => ({ ...prev, ...patch }));
 
   useEffect(() => {
     setState((prev) => ({ ...prev, error: null, message: null, isLoading: false }));
+    setFieldErrors({});
   }, [mode]);
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     updateState({ isLoading: true, error: null, message: null });
+    setFieldErrors({});
 
     const { email, password } = state;
 
-    if (!email) {
-      updateState({ error: 'Please provide your email address.', isLoading: false });
+    const nextFieldErrors: typeof fieldErrors = {};
+
+    if (!email.trim()) {
+      nextFieldErrors.email = 'Please enter your email address.';
+    }
+
+    if (mode === 'signin' && !password.trim()) {
+      nextFieldErrors.password = 'Please enter your password.';
+    }
+
+    if (Object.keys(nextFieldErrors).length > 0) {
+      setFieldErrors(nextFieldErrors);
+      updateState({ isLoading: false });
       return;
     }
 
@@ -123,12 +152,6 @@ export function SignIn({ redirectTo }: AuthComponentProps) {
       updateState({ message: 'Password reset email sent. Check your inbox!', isLoading: false });
       return;
     }
-
-    if (!password) {
-      updateState({ error: 'Please enter your password.', isLoading: false });
-      return;
-    }
-
     const { error } = await supabase.auth.signInWithPassword({ email, password });
 
     if (error) {
@@ -149,13 +172,13 @@ export function SignIn({ redirectTo }: AuthComponentProps) {
       });
 
       if (error) {
-        updateState({ error: error.message, isLoading: false });
-        return;
-      }
+      updateState({ error: error.message, isLoading: false });
+      return;
+    }
 
-      updateState({ message: 'Redirecting to provider…' });
-    },
-    [canonicalRedirect]
+    updateState({ message: 'Redirecting to provider…' });
+  },
+  [canonicalRedirect]
   );
 
   return (
@@ -171,7 +194,12 @@ export function SignIn({ redirectTo }: AuthComponentProps) {
         </div>
       </div>
 
-      <form className="space-y-4" onSubmit={handleSubmit}>
+      <form className="space-y-4" onSubmit={handleSubmit} noValidate>
+        {mode === 'reset' && (
+          <p className="rounded-lg bg-blue-50 px-3 py-2 text-sm text-blue-600">
+            Enter your email address and we&apos;ll send you a secure reset link.
+          </p>
+        )}
         <div className="space-y-2">
           <label htmlFor="signin-email" className="text-sm font-medium text-slate-700">
             Email address
@@ -181,10 +209,22 @@ export function SignIn({ redirectTo }: AuthComponentProps) {
             type="email"
             autoComplete="email"
             value={state.email}
-            onChange={(event) => updateState({ email: event.target.value })}
+            onChange={(event) => {
+              updateState({ email: event.target.value });
+              if (fieldErrors.email) {
+                setFieldErrors((prev) => ({ ...prev, email: undefined }));
+              }
+            }}
             placeholder="you@example.com"
+            aria-invalid={Boolean(fieldErrors.email)}
+            aria-describedby={fieldErrors.email ? 'signin-email-error' : undefined}
             required
           />
+          {fieldErrors.email && (
+            <p id="signin-email-error" className="text-sm text-red-600" role="alert">
+              {fieldErrors.email}
+            </p>
+          )}
         </div>
 
         {mode === 'signin' && (
@@ -197,26 +237,58 @@ export function SignIn({ redirectTo }: AuthComponentProps) {
               type="password"
               autoComplete="current-password"
               value={state.password}
-              onChange={(event) => updateState({ password: event.target.value })}
+              onChange={(event) => {
+                updateState({ password: event.target.value });
+                if (fieldErrors.password) {
+                  setFieldErrors((prev) => ({ ...prev, password: undefined }));
+                }
+              }}
               placeholder="Enter your password"
+              aria-invalid={Boolean(fieldErrors.password)}
+              aria-describedby={fieldErrors.password ? 'signin-password-error' : undefined}
               required
             />
+            {fieldErrors.password && (
+              <p id="signin-password-error" className="text-sm text-red-600" role="alert">
+                {fieldErrors.password}
+              </p>
+            )}
+            <div className="flex justify-end">
+              <button
+                type="button"
+                onClick={() => setMode('reset')}
+                className="text-sm font-medium text-blue-600 transition-colors duration-200 hover:text-blue-500"
+              >
+                Forgot password?
+              </button>
+            </div>
           </div>
         )}
 
-        <div className="flex items-center justify-between text-sm">
-          <button
-            type="button"
-            onClick={() => setMode(mode === 'signin' ? 'reset' : 'signin')}
-            className="font-medium text-blue-600 transition-colors duration-200 hover:text-blue-500"
-          >
-            {mode === 'signin' ? 'Forgot password?' : 'Back to sign in'}
-          </button>
-          <span className="text-xs font-medium uppercase tracking-[0.26em] text-slate-400">Secure access</span>
-        </div>
+        {mode === 'reset' && (
+          <div className="flex justify-between text-sm">
+            <button
+              type="button"
+              onClick={() => setMode('signin')}
+              className="font-medium text-blue-600 transition-colors duration-200 hover:text-blue-500"
+            >
+              Back to sign in
+            </button>
+            <span className="text-xs font-medium uppercase tracking-[0.26em] text-slate-400">Secure access</span>
+          </div>
+        )}
 
         <Button type="submit" disabled={state.isLoading}>
-          {state.isLoading ? (mode === 'reset' ? 'Sending reset link…' : 'Signing in…') : mode === 'reset' ? 'Send reset link' : 'Continue'}
+          {state.isLoading ? (
+            <span className="flex items-center justify-center gap-2">
+              <LoadingSpinner />
+              {mode === 'reset' ? 'Sending reset link…' : 'Signing in…'}
+            </span>
+          ) : mode === 'reset' ? (
+            'Send reset link'
+          ) : (
+            'Continue'
+          )}
         </Button>
       </form>
 
@@ -228,13 +300,28 @@ export function SignIn({ redirectTo }: AuthComponentProps) {
           {state.error ?? state.message}
         </p>
       )}
+      <p className="text-center text-sm text-slate-500">
+        Don&apos;t have an account?{' '}
+        <button
+          type="button"
+          onClick={onSwitchToSignUp}
+          className="font-medium text-blue-600 transition-colors duration-200 hover:text-blue-500"
+        >
+          Sign up
+        </button>
+      </p>
     </div>
   );
 }
 
-export function SignUp({ redirectTo }: AuthComponentProps) {
+export function SignUp({ redirectTo, onSwitchToSignIn }: SignUpProps) {
   const router = useRouter();
   const [state, setState] = useState<AuthState>({ ...initialState, confirmPassword: '' });
+  const [fieldErrors, setFieldErrors] = useState<{
+    email?: string;
+    password?: string;
+    confirmPassword?: string;
+  }>({});
   const canonicalRedirect = useRedirect(redirectTo);
 
   const updateState = (patch: Partial<AuthState>) =>
@@ -243,15 +330,29 @@ export function SignUp({ redirectTo }: AuthComponentProps) {
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     updateState({ isLoading: true, error: null, message: null });
+    setFieldErrors({});
 
     const { email, password, confirmPassword } = state;
-    if (!email || !password) {
-      updateState({ error: 'Please provide both email and password.', isLoading: false });
-      return;
+
+    const nextFieldErrors: typeof fieldErrors = {};
+
+    if (!email.trim()) {
+      nextFieldErrors.email = 'Please enter your email address.';
     }
 
-    if (password !== confirmPassword) {
-      updateState({ error: 'Passwords do not match.', isLoading: false });
+    if (!password.trim()) {
+      nextFieldErrors.password = 'Please create a password.';
+    }
+
+    if (!confirmPassword?.trim()) {
+      nextFieldErrors.confirmPassword = 'Please confirm your password.';
+    } else if (password.trim() && confirmPassword.trim() && password !== confirmPassword) {
+      nextFieldErrors.confirmPassword = 'Passwords do not match.';
+    }
+
+    if (Object.keys(nextFieldErrors).length > 0) {
+      setFieldErrors(nextFieldErrors);
+      updateState({ isLoading: false });
       return;
     }
 
@@ -282,13 +383,13 @@ export function SignUp({ redirectTo }: AuthComponentProps) {
       });
 
       if (error) {
-        updateState({ error: error.message, isLoading: false });
-        return;
-      }
+      updateState({ error: error.message, isLoading: false });
+      return;
+    }
 
-      updateState({ message: 'Redirecting to provider…' });
-    },
-    [canonicalRedirect]
+    updateState({ message: 'Redirecting to provider…' });
+  },
+  [canonicalRedirect]
   );
 
   return (
@@ -309,7 +410,7 @@ export function SignUp({ redirectTo }: AuthComponentProps) {
         </div>
       </div>
 
-      <form className="space-y-4" onSubmit={handleSubmit}>
+      <form className="space-y-4" onSubmit={handleSubmit} noValidate>
         <div className="space-y-2">
           <label htmlFor="signup-email" className="text-sm font-medium text-slate-700">
             Email address
@@ -319,10 +420,22 @@ export function SignUp({ redirectTo }: AuthComponentProps) {
             type="email"
             autoComplete="email"
             value={state.email}
-            onChange={(event) => updateState({ email: event.target.value })}
+            onChange={(event) => {
+              updateState({ email: event.target.value });
+              if (fieldErrors.email) {
+                setFieldErrors((prev) => ({ ...prev, email: undefined }));
+              }
+            }}
             placeholder="you@example.com"
+            aria-invalid={Boolean(fieldErrors.email)}
+            aria-describedby={fieldErrors.email ? 'signup-email-error' : undefined}
             required
           />
+          {fieldErrors.email && (
+            <p id="signup-email-error" className="text-sm text-red-600" role="alert">
+              {fieldErrors.email}
+            </p>
+          )}
         </div>
         <div className="space-y-2">
           <label htmlFor="signup-password" className="text-sm font-medium text-slate-700">
@@ -333,10 +446,22 @@ export function SignUp({ redirectTo }: AuthComponentProps) {
             type="password"
             autoComplete="new-password"
             value={state.password}
-            onChange={(event) => updateState({ password: event.target.value })}
+            onChange={(event) => {
+              updateState({ password: event.target.value });
+              if (fieldErrors.password) {
+                setFieldErrors((prev) => ({ ...prev, password: undefined }));
+              }
+            }}
             placeholder="Create a secure password"
+            aria-invalid={Boolean(fieldErrors.password)}
+            aria-describedby={fieldErrors.password ? 'signup-password-error' : undefined}
             required
           />
+          {fieldErrors.password && (
+            <p id="signup-password-error" className="text-sm text-red-600" role="alert">
+              {fieldErrors.password}
+            </p>
+          )}
         </div>
         <div className="space-y-2">
           <label htmlFor="signup-confirm" className="text-sm font-medium text-slate-700">
@@ -347,13 +472,32 @@ export function SignUp({ redirectTo }: AuthComponentProps) {
             type="password"
             autoComplete="new-password"
             value={state.confirmPassword ?? ''}
-            onChange={(event) => updateState({ confirmPassword: event.target.value })}
+            onChange={(event) => {
+              updateState({ confirmPassword: event.target.value });
+              if (fieldErrors.confirmPassword) {
+                setFieldErrors((prev) => ({ ...prev, confirmPassword: undefined }));
+              }
+            }}
             placeholder="Re-enter your password"
+            aria-invalid={Boolean(fieldErrors.confirmPassword)}
+            aria-describedby={fieldErrors.confirmPassword ? 'signup-confirm-error' : undefined}
             required
           />
+          {fieldErrors.confirmPassword && (
+            <p id="signup-confirm-error" className="text-sm text-red-600" role="alert">
+              {fieldErrors.confirmPassword}
+            </p>
+          )}
         </div>
         <Button type="submit" disabled={state.isLoading}>
-          {state.isLoading ? 'Creating account…' : 'Create account'}
+          {state.isLoading ? (
+            <span className="flex items-center justify-center gap-2">
+              <LoadingSpinner />
+              Creating account…
+            </span>
+          ) : (
+            'Create account'
+          )}
         </Button>
       </form>
 
@@ -365,6 +509,16 @@ export function SignUp({ redirectTo }: AuthComponentProps) {
           {state.error ?? state.message}
         </p>
       )}
+      <p className="text-center text-sm text-slate-500">
+        Already have an account?{' '}
+        <button
+          type="button"
+          onClick={onSwitchToSignIn}
+          className="font-medium text-blue-600 transition-colors duration-200 hover:text-blue-500"
+        >
+          Sign in
+        </button>
+      </p>
     </div>
   );
 }

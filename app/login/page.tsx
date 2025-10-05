@@ -28,6 +28,7 @@ export default function LoginPage({ searchParams }: { searchParams?: LoginSearch
   const [codeError, setCodeError] = useState<string | null>(null);
   const [codeSuccess, setCodeSuccess] = useState<string | null>(null);
   const [isCodeLoading, setIsCodeLoading] = useState(false);
+  const [activeTab, setActiveTab] = useState<'signin' | 'signup'>('signin');
 
   const redirectTo = useMemo(() => {
     const canonical =
@@ -95,12 +96,53 @@ export default function LoginPage({ searchParams }: { searchParams?: LoginSearch
               </p>
             )}
 
-            <SignIn redirectTo={redirectTo} />
-
             <div className="space-y-5">
-              <div className="space-y-2 text-left">
-                <h2 className="text-sm font-semibold uppercase tracking-[0.18em] text-slate-400">Create account</h2>
-                <SignUp redirectTo={redirectTo} />
+              <div className="rounded-xl bg-slate-100 p-1 text-sm font-medium text-slate-500">
+                <div className="grid grid-cols-2 gap-1">
+                  <button
+                    type="button"
+                    onClick={() => setActiveTab('signin')}
+                    className={`rounded-lg px-3 py-2 transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 ${
+                      activeTab === 'signin'
+                        ? 'bg-white text-slate-900 shadow-sm'
+                        : 'hover:text-slate-700'
+                    }`}
+                  >
+                    Sign In
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setActiveTab('signup')}
+                    className={`rounded-lg px-3 py-2 transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 ${
+                      activeTab === 'signup'
+                        ? 'bg-white text-slate-900 shadow-sm'
+                        : 'hover:text-slate-700'
+                    }`}
+                  >
+                    Sign Up
+                  </button>
+                </div>
+              </div>
+
+              <div className="relative">
+                <div
+                  className={`transition-all duration-300 ${
+                    activeTab === 'signin'
+                      ? 'relative translate-y-0 opacity-100'
+                      : 'pointer-events-none absolute inset-0 -translate-y-3 opacity-0'
+                  }`}
+                >
+                  <SignIn redirectTo={redirectTo} onSwitchToSignUp={() => setActiveTab('signup')} />
+                </div>
+                <div
+                  className={`transition-all duration-300 ${
+                    activeTab === 'signup'
+                      ? 'relative translate-y-0 opacity-100'
+                      : 'pointer-events-none absolute inset-0 -translate-y-3 opacity-0'
+                  }`}
+                >
+                  <SignUp redirectTo={redirectTo} onSwitchToSignIn={() => setActiveTab('signin')} />
+                </div>
               </div>
 
               <div className="space-y-2 text-left">
@@ -119,18 +161,20 @@ export default function LoginPage({ searchParams }: { searchParams?: LoginSearch
                       className="tracking-[0.5em]"
                       required
                     />
+                    {codeError && (
+                      <p className="text-sm text-red-600" role="alert">
+                        {codeError}
+                      </p>
+                    )}
+                    {codeSuccess && !codeError && (
+                      <p className="text-sm text-emerald-600" role="status">
+                        {codeSuccess}
+                      </p>
+                    )}
                   </div>
                   <Button type="submit" disabled={isCodeLoading || !code.trim()}>
                     {isCodeLoading ? 'Verifying…' : 'Unlock workspace'}
                   </Button>
-                  {(codeError || codeSuccess) && (
-                    <p
-                      className={`text-sm transition-opacity duration-200 ${codeError ? 'text-red-600' : 'text-emerald-600'}`}
-                      role={codeError ? 'alert' : 'status'}
-                    >
-                      {codeError ?? codeSuccess}
-                    </p>
-                  )}
                 </form>
               </div>
             </div>
