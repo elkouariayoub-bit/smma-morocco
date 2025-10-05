@@ -81,7 +81,7 @@ export default function LoginPage({ searchParams }: { searchParams?: LoginSearch
           ← Back to site
         </Link>
 
-        <Card className="w-full max-w-md border border-slate-200 bg-white shadow-[0_18px_48px_-24px_rgba(15,23,42,0.3)]">
+        <Card className="w-full max-w-md">
           <CardHeader className="space-y-3 text-center">
             <CardTitle className="text-3xl font-semibold text-slate-900">Sign in to SMMA Morocco</CardTitle>
             <CardDescription className="text-sm text-slate-500">
@@ -89,8 +89,8 @@ export default function LoginPage({ searchParams }: { searchParams?: LoginSearch
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-10">
-            {searchMessage && (
-              <p className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-700" role="status">
+              {searchMessage && (
+                <p className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-700" role="status">
                 {searchMessage}
               </p>
             )}

@@ -65,7 +65,7 @@ function OAuthButtons({ onOAuth, isLoading }: { onOAuth: (provider: Provider) =>
     <div className="grid gap-3">
       <Button
         type="button"
-        variant="outline"
+        variant="social"
         className="w-full gap-3 text-sm font-semibold"
         onClick={() => onOAuth('google')}
         disabled={isLoading}
@@ -75,7 +75,7 @@ function OAuthButtons({ onOAuth, isLoading }: { onOAuth: (provider: Provider) =>
       </Button>
       <Button
         type="button"
-        variant="outline"
+        variant="social"
         className="w-full gap-3 text-sm font-semibold"
         onClick={() => onOAuth('github')}
         disabled={isLoading}
