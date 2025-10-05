@@ -170,16 +170,30 @@ function OAuthButtons({ onOAuth, isLoading }: { onOAuth: (provider: OAuthProvide
         className="w-full gap-2"
         onClick={() => onOAuth('google')}
         disabled={isLoading}
+        aria-busy={isLoading}
       >
-        <GoogleIcon />
-        Continue with Google
+        {isLoading ? (
+          <span className="flex w-full items-center justify-center gap-2">
+            <LoadingSpinner className="h-4 w-4 border-2 border-blue-500/30 border-t-blue-500" />
+            Connecting to Google…
+          </span>
+        ) : (
+          <>
+            <GoogleIcon />
+            Continue with Google
+          </>
+        )}
       </Button>
     </div>
   );
 }
 
-const LoadingSpinner = ({ className = 'h-4 w-4 border-2' }: { className?: string }) => (
-  <span className={`inline-flex ${className} animate-spin rounded-full border-white/60 border-t-white`} aria-hidden="true" />
+const LoadingSpinner = ({
+  className = 'h-4 w-4 border-2 border-white/60 border-t-white',
+}: {
+  className?: string;
+}) => (
+  <span className={`inline-flex animate-spin rounded-full ${className}`} aria-hidden="true" />
 );
 
 export function SignIn({ redirectTo, oauthRedirectTo, onSwitchToSignUp }: SignInProps) {
@@ -322,7 +336,7 @@ export function SignIn({ redirectTo, oauthRedirectTo, onSwitchToSignUp }: SignIn
           <span className="w-full border-t border-slate-200" />
         </div>
         <div className="relative flex justify-center">
-          <span className="bg-white px-4 text-sm font-medium text-[#6b7280]">or continue with email</span>
+          <span className="bg-white px-4 text-sm font-medium text-[#6b7280]">or sign in with email</span>
         </div>
       </div>
 
@@ -588,7 +602,7 @@ export function SignUp({ redirectTo, oauthRedirectTo, onSwitchToSignIn }: SignUp
           <span className="w-full border-t border-slate-200" />
         </div>
         <div className="relative flex justify-center">
-          <span className="bg-white px-4 text-sm font-medium text-[#6b7280]">or continue with email</span>
+          <span className="bg-white px-4 text-sm font-medium text-[#6b7280]">or create an account with email</span>
         </div>
       </div>
 
