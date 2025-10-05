@@ -21,6 +21,7 @@ type SignUpProps = AuthComponentProps & {
 };
 
 type AuthState = {
+  name?: string;
   email: string;
   password: string;
   confirmPassword?: string;
@@ -30,6 +31,7 @@ type AuthState = {
 };
 
 const initialState: AuthState = {
+  name: '',
   email: '',
   password: '',
   confirmPassword: undefined,
@@ -172,13 +174,13 @@ export function SignIn({ redirectTo, onSwitchToSignUp }: SignInProps) {
       });
 
       if (error) {
-      updateState({ error: error.message, isLoading: false });
-      return;
-    }
+        updateState({ error: error.message, isLoading: false });
+        return;
+      }
 
-    updateState({ message: 'Redirecting to provider…' });
-  },
-  [canonicalRedirect]
+      updateState({ message: 'Redirecting to provider…' });
+    },
+    [canonicalRedirect]
   );
 
   return (
@@ -287,7 +289,7 @@ export function SignIn({ redirectTo, onSwitchToSignUp }: SignInProps) {
           ) : mode === 'reset' ? (
             'Send reset link'
           ) : (
-            'Continue'
+            'Sign In'
           )}
         </Button>
       </form>
@@ -318,6 +320,7 @@ export function SignUp({ redirectTo, onSwitchToSignIn }: SignUpProps) {
   const router = useRouter();
   const [state, setState] = useState<AuthState>({ ...initialState, confirmPassword: '' });
   const [fieldErrors, setFieldErrors] = useState<{
+    name?: string;
     email?: string;
     password?: string;
     confirmPassword?: string;
@@ -332,9 +335,13 @@ export function SignUp({ redirectTo, onSwitchToSignIn }: SignUpProps) {
     updateState({ isLoading: true, error: null, message: null });
     setFieldErrors({});
 
-    const { email, password, confirmPassword } = state;
+    const { name, email, password, confirmPassword } = state;
 
     const nextFieldErrors: typeof fieldErrors = {};
+
+    if (!name?.trim()) {
+      nextFieldErrors.name = 'Please enter your name.';
+    }
 
     if (!email.trim()) {
       nextFieldErrors.email = 'Please enter your email address.';
@@ -356,10 +363,19 @@ export function SignUp({ redirectTo, onSwitchToSignIn }: SignUpProps) {
       return;
     }
 
+    const metadata = name?.trim() ? { full_name: name.trim() } : undefined;
+    const options =
+      canonicalRedirect || metadata
+        ? {
+            ...(canonicalRedirect ? { emailRedirectTo: canonicalRedirect } : {}),
+            ...(metadata ? { data: metadata } : {}),
+          }
+        : undefined;
+
     const { error } = await supabase.auth.signUp({
       email,
       password,
-      options: canonicalRedirect ? { emailRedirectTo: canonicalRedirect } : undefined,
+      options,
     });
 
     if (error) {
@@ -383,13 +399,13 @@ export function SignUp({ redirectTo, onSwitchToSignIn }: SignUpProps) {
       });
 
       if (error) {
-      updateState({ error: error.message, isLoading: false });
-      return;
-    }
+        updateState({ error: error.message, isLoading: false });
+        return;
+      }
 
-    updateState({ message: 'Redirecting to provider…' });
-  },
-  [canonicalRedirect]
+      updateState({ message: 'Redirecting to provider…' });
+    },
+    [canonicalRedirect]
   );
 
   return (
@@ -411,6 +427,32 @@ export function SignUp({ redirectTo, onSwitchToSignIn }: SignUpProps) {
       </div>
 
       <form className="space-y-4" onSubmit={handleSubmit} noValidate>
+        <div className="space-y-2">
+          <label htmlFor="signup-name" className="text-sm font-medium text-slate-700">
+            Name
+          </label>
+          <Input
+            id="signup-name"
+            type="text"
+            autoComplete="name"
+            value={state.name ?? ''}
+            onChange={(event) => {
+              updateState({ name: event.target.value });
+              if (fieldErrors.name) {
+                setFieldErrors((prev) => ({ ...prev, name: undefined }));
+              }
+            }}
+            placeholder="Your full name"
+            aria-invalid={Boolean(fieldErrors.name)}
+            aria-describedby={fieldErrors.name ? 'signup-name-error' : undefined}
+            required
+          />
+          {fieldErrors.name && (
+            <p id="signup-name-error" className="text-sm text-red-600" role="alert">
+              {fieldErrors.name}
+            </p>
+          )}
+        </div>
         <div className="space-y-2">
           <label htmlFor="signup-email" className="text-sm font-medium text-slate-700">
             Email address
@@ -496,7 +538,7 @@ export function SignUp({ redirectTo, onSwitchToSignIn }: SignUpProps) {
               Creating account…
             </span>
           ) : (
-            'Create account'
+            'Create Account'
           )}
         </Button>
       </form>
