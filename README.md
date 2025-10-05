@@ -24,6 +24,18 @@ Open http://localhost:3000
 - Get `SUPABASE_JWT_SECRET` from **Project Settings → API → JWT Settings**.
 - Get `GEMINI_API_KEY` from Google AI Studio.
 
+### Google OAuth setup
+1. Open the [Google Cloud Console](https://console.cloud.google.com) and create a new project (or select an existing one).
+2. Enable the **Google+ API** for the project.
+3. Navigate to **APIs & Services → Credentials** and choose **Create Credentials → OAuth client ID**.
+4. Select **Web application** as the application type and add the authorized redirect URIs:
+   - Development: `http://localhost:3000/api/auth/callback/google`
+   - Production: `https://yourdomain.com/api/auth/callback/google`
+5. Copy the generated **Client ID** and **Client Secret** into your environment variables:
+   - `GOOGLE_CLIENT_ID`
+   - `GOOGLE_CLIENT_SECRET`
+6. Redeploy (or restart) the app so the Better Auth Google integration can pick up the new credentials.
+
 ### Deploy on Vercel
 1. Push to GitHub.
 2. Import repo in Vercel.

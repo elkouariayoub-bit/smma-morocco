@@ -6,10 +6,15 @@ export const env = {
   // Server-only (do NOT expose to client)
   geminiApiKey: process.env.GEMINI_API_KEY,
   supabaseServiceRoleKey: process.env.SUPABASE_SERVICE_ROLE_KEY,
+  googleClientId: process.env.GOOGLE_CLIENT_ID,
+  googleClientSecret: process.env.GOOGLE_CLIENT_SECRET,
+  betterAuthUrl: process.env.BETTER_AUTH_URL,
 
   // Client (NEXT_PUBLIC_*) — safe to bundle for browser
   supabaseUrl: process.env.NEXT_PUBLIC_SUPABASE_URL,
   supabaseAnonKey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+  // Optional canonical origin for constructing redirect URLs
+  siteUrl: process.env.NEXT_PUBLIC_SITE_URL,
 };
 
 function assertEnv() {
