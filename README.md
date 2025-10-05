@@ -36,6 +36,11 @@ Open http://localhost:3000
    - `GOOGLE_CLIENT_SECRET`
 6. Redeploy (or restart) the app so the Better Auth Google integration can pick up the new credentials.
 
+#### Debugging Google provider availability
+- After updating credentials, restart your dev server (or redeploy) and clear cached cookies before testing again.
+- Visit [`/auth/better`](http://localhost:3000/auth/better) to inspect the live Better Auth configuration. The JSON response lists the enabled providers and whether each required environment variable is loaded.
+- The server logs now emit `[better-auth]` messages every time the Google flow is initialised. If Supabase reports `provider is not enabled`, make sure Google is toggled on inside **Supabase → Authentication → Providers** and that its Client ID/Secret match the values in `.env.local`.
+
 ### Deploy on Vercel
 1. Push to GitHub.
 2. Import repo in Vercel.

@@ -51,6 +51,30 @@ const getRedirectTarget = (
 const invalidRequest = (message: string, status = 400) =>
   NextResponse.json({ error: message }, { status });
 
+export async function GET() {
+  try {
+    const auth = getBetterAuth();
+    const providers = Object.keys(auth.providers);
+
+    return NextResponse.json({
+      success: true,
+      providers,
+      env: {
+        googleClientId: Boolean(env.googleClientId),
+        googleClientSecret: Boolean(env.googleClientSecret),
+        betterAuthSecret: Boolean(env.betterAuthSecret),
+        betterAuthUrl: env.betterAuthUrl ?? null,
+      },
+    });
+  } catch (error) {
+    const message =
+      error instanceof Error ? error.message : 'Unable to initialize Better Auth.';
+
+    console.error('[better-auth] Failed to resolve configuration', error);
+    return NextResponse.json({ success: false, error: message }, { status: 500 });
+  }
+}
+
 export async function POST(request: Request) {
   let payload: BetterAuthRequest;
 
@@ -162,22 +186,35 @@ export async function POST(request: Request) {
         return invalidRequest('Google OAuth is not available right now.');
       }
 
+      const redirectTarget = getRedirectTarget(redirectTo, request, { provider });
+      console.info('[better-auth] Starting OAuth flow', {
+        provider,
+        redirectTarget,
+        configuredProviders: Object.keys(auth.providers),
+      });
+
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider,
         options: {
-          redirectTo: getRedirectTarget(redirectTo, request, { provider }),
+          redirectTo: redirectTarget,
           skipBrowserRedirect: true,
         },
       });
 
       if (error) {
-        return invalidRequest(error.message, 400);
+        const normalizedMessage = error.message?.includes('provider is not enabled')
+          ? 'Google OAuth is disabled for your Supabase project. Enable it in Authentication → Providers and restart the application.'
+          : error.message;
+
+        console.error('[better-auth] OAuth request failed', error);
+        return invalidRequest(normalizedMessage ?? 'Unable to start OAuth flow.', 400);
       }
 
       if (!data.url) {
         return invalidRequest('Unable to start OAuth flow.', 500);
       }
 
+      console.info('[better-auth] OAuth redirect issued', { provider, redirect: data.url });
       return NextResponse.json({ success: true, redirect: data.url });
     }
 

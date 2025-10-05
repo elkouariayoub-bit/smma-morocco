@@ -32,5 +32,11 @@ export function getBetterAuth() {
     ],
   });
 
+  const providerIds = Object.keys(instance.providers);
+  console.info(
+    '[better-auth] Registered providers:',
+    providerIds.length ? providerIds.join(', ') : 'none'
+  );
+
   return instance;
 }
