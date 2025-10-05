@@ -40,7 +40,7 @@ const initialState: AuthState = {
   isLoading: false,
 };
 
-type BetterAuthIntent = 'signin' | 'signup' | 'reset';
+type BetterAuthIntent = 'signin' | 'signup' | 'reset' | 'oauth';
 
 type BetterAuthResponse = {
   success?: boolean;
@@ -291,17 +291,30 @@ export function SignIn({ redirectTo, onSwitchToSignUp }: SignInProps) {
   const handleOAuth = useCallback(
     async (provider: Provider) => {
       updateState({ isLoading: true, error: null, message: null });
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider,
-        options: canonicalRedirect ? { redirectTo: canonicalRedirect } : undefined,
-      });
 
-      if (error) {
-        updateState({ error: error.message, isLoading: false });
-        return;
+      try {
+        const result = await requestBetterAuth(
+          {
+            provider,
+            redirectTo: canonicalRedirect,
+          },
+          'oauth'
+        );
+
+        if (result.redirect) {
+          updateState({ message: 'Redirecting to provider…' });
+          window.location.href = result.redirect;
+          return;
+        }
+
+        updateState({
+          error: 'Unable to redirect to the selected provider. Please try again.',
+          isLoading: false,
+        });
+      } catch (error) {
+        const message = error instanceof Error ? error.message : 'Unable to start OAuth flow. Please try again.';
+        updateState({ error: message, isLoading: false });
       }
-
-      updateState({ message: 'Redirecting to provider…' });
     },
     [canonicalRedirect]
   );
@@ -531,17 +544,30 @@ export function SignUp({ redirectTo, onSwitchToSignIn }: SignUpProps) {
   const handleOAuth = useCallback(
     async (provider: Provider) => {
       updateState({ isLoading: true, error: null, message: null });
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider,
-        options: canonicalRedirect ? { redirectTo: canonicalRedirect } : undefined,
-      });
 
-      if (error) {
-        updateState({ error: error.message, isLoading: false });
-        return;
+      try {
+        const result = await requestBetterAuth(
+          {
+            provider,
+            redirectTo: canonicalRedirect,
+          },
+          'oauth'
+        );
+
+        if (result.redirect) {
+          updateState({ message: 'Redirecting to provider…' });
+          window.location.href = result.redirect;
+          return;
+        }
+
+        updateState({
+          error: 'Unable to redirect to the selected provider. Please try again.',
+          isLoading: false,
+        });
+      } catch (error) {
+        const message = error instanceof Error ? error.message : 'Unable to start OAuth flow. Please try again.';
+        updateState({ error: message, isLoading: false });
       }
-
-      updateState({ message: 'Redirecting to provider…' });
     },
     [canonicalRedirect]
   );

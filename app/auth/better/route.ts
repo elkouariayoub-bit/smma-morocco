@@ -1,14 +1,18 @@
 import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
 import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
+import type { Provider } from '@supabase/supabase-js';
 import { env } from '@/lib/env';
 
+type BetterAuthIntent = 'signin' | 'signup' | 'reset' | 'oauth';
+
 type BetterAuthRequest = {
-  intent?: 'signin' | 'signup' | 'reset';
+  intent?: BetterAuthIntent;
   email?: string;
   password?: string;
   name?: string;
   redirectTo?: string;
+  provider?: Provider;
 };
 
 const normalizeEmail = (email: string) => email.trim().toLowerCase();
@@ -39,7 +43,7 @@ export async function POST(request: Request) {
     return invalidRequest('Invalid request payload.');
   }
 
-  const { intent, email, password, name, redirectTo } = payload;
+  const { intent, email, password, name, redirectTo, provider } = payload;
 
   if (!intent) {
     return invalidRequest('Missing intent.');
@@ -117,6 +121,30 @@ export async function POST(request: Request) {
         requiresConfirmation,
         redirect: requiresConfirmation ? undefined : '/composer',
       });
+    }
+
+    case 'oauth': {
+      if (!provider) {
+        return invalidRequest('Provider is required.');
+      }
+
+      const { data, error } = await supabase.auth.signInWithOAuth({
+        provider,
+        options: {
+          redirectTo: getRedirectTarget(redirectTo, request),
+          skipBrowserRedirect: true,
+        },
+      });
+
+      if (error) {
+        return invalidRequest(error.message, 400);
+      }
+
+      if (!data.url) {
+        return invalidRequest('Unable to start OAuth flow.', 500);
+      }
+
+      return NextResponse.json({ success: true, redirect: data.url });
     }
 
     default:
