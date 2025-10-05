@@ -1,5 +1,6 @@
 import { betterAuth } from 'better-auth';
 import { google } from 'better-auth/providers';
+import { env } from './env';
 import { loadServerEnv } from './load-server-env';
 
 import type { BetterAuthInstance } from 'better-auth';
@@ -12,13 +13,8 @@ const mask = (value: string | null | undefined) => {
 
 let instance: BetterAuthInstance | null = null;
 
-export async function getBetterAuth(): Promise<BetterAuthInstance> {
-  if (instance) {
-    return instance;
-  }
-
+function createBetterAuth(): BetterAuthInstance {
   loadServerEnv();
-  const { env } = await import('./env');
 
   const missing: string[] = [];
 
@@ -39,7 +35,7 @@ export async function getBetterAuth(): Promise<BetterAuthInstance> {
     throw new Error(`Better Auth is missing configuration: ${missing.join(', ')}`);
   }
 
-  instance = betterAuth({
+  const auth = betterAuth({
     secret: env.betterAuthSecret!,
     baseURL: env.betterAuthUrl ?? null,
     providers: [
@@ -50,7 +46,7 @@ export async function getBetterAuth(): Promise<BetterAuthInstance> {
     ],
   });
 
-  const providerIds = Object.keys(instance.providers);
+  const providerIds = Object.keys(auth.providers);
   console.info('[better-auth] Configuration check', {
     googleClientId: mask(env.googleClientId),
     googleClientSecret: mask(env.googleClientSecret),
@@ -61,6 +57,16 @@ export async function getBetterAuth(): Promise<BetterAuthInstance> {
     '[better-auth] Registered providers:',
     providerIds.length ? providerIds.join(', ') : 'none'
   );
+
+  return auth;
+}
+
+export const auth: BetterAuthInstance = createBetterAuth();
+
+export async function getBetterAuth(): Promise<BetterAuthInstance> {
+  if (!instance) {
+    instance = auth;
+  }
 
   return instance;
 }
