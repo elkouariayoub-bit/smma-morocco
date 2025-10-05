@@ -14,6 +14,10 @@ const nextConfig = {
       process.cwd(),
       'better-auth/providers.ts'
     );
+    config.resolve.alias['better-auth/next-js'] = path.resolve(
+      process.cwd(),
+      'better-auth/next-js.ts'
+    );
     return config;
   },
 };

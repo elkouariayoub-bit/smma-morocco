@@ -24,7 +24,8 @@
       "@/lib/*": ["./lib/*"],
       "@daveyplate/better-auth-ui": ["./better-auth-ui"],
       "better-auth": ["./better-auth"],
-      "better-auth/providers": ["./better-auth/providers.ts"]
+      "better-auth/providers": ["./better-auth/providers.ts"],
+      "better-auth/next-js": ["./better-auth/next-js.ts"]
     }
   },
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
