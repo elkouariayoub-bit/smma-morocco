@@ -40,6 +40,66 @@ const initialState: AuthState = {
   isLoading: false,
 };
 
+const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+const validateEmail = (value: string) => {
+  if (!value.trim()) {
+    return 'Please enter your email address.';
+  }
+
+  if (!emailPattern.test(value.trim())) {
+    return 'Enter a valid email address.';
+  }
+
+  return undefined;
+};
+
+const validatePasswordPresence = (value: string) => {
+  if (!value.trim()) {
+    return 'Please enter your password.';
+  }
+
+  return undefined;
+};
+
+const validatePasswordStrength = (value: string) => {
+  if (!value.trim()) {
+    return 'Please create a password.';
+  }
+
+  const trimmed = value.trim();
+  const hasMinLength = trimmed.length >= 8;
+  const hasUppercase = /[A-Z]/.test(trimmed);
+  const hasLowercase = /[a-z]/.test(trimmed);
+  const hasNumber = /\d/.test(trimmed);
+
+  if (!hasMinLength || !hasUppercase || !hasLowercase || !hasNumber) {
+    return 'Password must be at least 8 characters and include upper and lower case letters and a number.';
+  }
+
+  return undefined;
+};
+
+const validateConfirmPassword = (password: string, confirm: string) => {
+  if (!confirm.trim()) {
+    return 'Please confirm your password.';
+  }
+
+  if (password.trim() && confirm.trim() && password !== confirm) {
+    return 'Passwords do not match.';
+  }
+
+  return undefined;
+};
+
+const validateName = (value?: string) => {
+  if (!value?.trim()) {
+    return 'Please enter your name.';
+  }
+
+  return undefined;
+};
+
 function useRedirect(redirectTo?: string) {
   return useMemo(() => {
     if (redirectTo) return redirectTo;
@@ -110,6 +170,13 @@ export function SignIn({ redirectTo, onSwitchToSignUp }: SignInProps) {
     password?: string;
   }>({});
   const canonicalRedirect = useRedirect(redirectTo);
+  const emailValidationMessage = validateEmail(state.email);
+  const passwordValidationMessage = mode === 'signin' ? validatePasswordPresence(state.password) : undefined;
+  const isSubmitDisabled =
+    state.isLoading ||
+    (mode === 'reset'
+      ? Boolean(emailValidationMessage)
+      : Boolean(emailValidationMessage) || Boolean(passwordValidationMessage));
 
   const updateState = (patch: Partial<AuthState>) => setState((prev) => ({ ...prev, ...patch }));
 
@@ -127,12 +194,16 @@ export function SignIn({ redirectTo, onSwitchToSignUp }: SignInProps) {
 
     const nextFieldErrors: typeof fieldErrors = {};
 
-    if (!email.trim()) {
-      nextFieldErrors.email = 'Please enter your email address.';
+    const emailError = validateEmail(email);
+    if (emailError) {
+      nextFieldErrors.email = emailError;
     }
 
-    if (mode === 'signin' && !password.trim()) {
-      nextFieldErrors.password = 'Please enter your password.';
+    if (mode === 'signin') {
+      const passwordError = validatePasswordPresence(password);
+      if (passwordError) {
+        nextFieldErrors.password = passwordError;
+      }
     }
 
     if (Object.keys(nextFieldErrors).length > 0) {
@@ -141,8 +212,10 @@ export function SignIn({ redirectTo, onSwitchToSignUp }: SignInProps) {
       return;
     }
 
+    const normalizedEmail = email.trim();
+
     if (mode === 'reset') {
-      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      const { error } = await supabase.auth.resetPasswordForEmail(normalizedEmail, {
         redirectTo: canonicalRedirect,
       });
 
@@ -154,7 +227,7 @@ export function SignIn({ redirectTo, onSwitchToSignUp }: SignInProps) {
       updateState({ message: 'Password reset email sent. Check your inbox!', isLoading: false });
       return;
     }
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    const { error } = await supabase.auth.signInWithPassword({ email: normalizedEmail, password });
 
     if (error) {
       updateState({ error: error.message, isLoading: false });
@@ -212,10 +285,9 @@ export function SignIn({ redirectTo, onSwitchToSignUp }: SignInProps) {
             autoComplete="email"
             value={state.email}
             onChange={(event) => {
-              updateState({ email: event.target.value });
-              if (fieldErrors.email) {
-                setFieldErrors((prev) => ({ ...prev, email: undefined }));
-              }
+              const value = event.target.value;
+              updateState({ email: value });
+              setFieldErrors((prev) => ({ ...prev, email: validateEmail(value) }));
             }}
             placeholder="you@example.com"
             aria-invalid={Boolean(fieldErrors.email)}
@@ -240,10 +312,9 @@ export function SignIn({ redirectTo, onSwitchToSignUp }: SignInProps) {
               autoComplete="current-password"
               value={state.password}
               onChange={(event) => {
-                updateState({ password: event.target.value });
-                if (fieldErrors.password) {
-                  setFieldErrors((prev) => ({ ...prev, password: undefined }));
-                }
+                const value = event.target.value;
+                updateState({ password: value });
+                setFieldErrors((prev) => ({ ...prev, password: validatePasswordPresence(value) }));
               }}
               placeholder="Enter your password"
               aria-invalid={Boolean(fieldErrors.password)}
@@ -280,7 +351,7 @@ export function SignIn({ redirectTo, onSwitchToSignUp }: SignInProps) {
           </div>
         )}
 
-        <Button type="submit" disabled={state.isLoading}>
+        <Button type="submit" disabled={isSubmitDisabled}>
           {state.isLoading ? (
             <span className="flex items-center justify-center gap-2">
               <LoadingSpinner />
@@ -326,6 +397,16 @@ export function SignUp({ redirectTo, onSwitchToSignIn }: SignUpProps) {
     confirmPassword?: string;
   }>({});
   const canonicalRedirect = useRedirect(redirectTo);
+  const nameValidationMessage = validateName(state.name);
+  const emailValidationMessage = validateEmail(state.email);
+  const passwordValidationMessage = validatePasswordStrength(state.password);
+  const confirmValidationMessage = validateConfirmPassword(state.password, state.confirmPassword ?? '');
+  const isSubmitDisabled =
+    state.isLoading ||
+    Boolean(nameValidationMessage) ||
+    Boolean(emailValidationMessage) ||
+    Boolean(passwordValidationMessage) ||
+    Boolean(confirmValidationMessage);
 
   const updateState = (patch: Partial<AuthState>) =>
     setState((prev) => ({ ...prev, ...patch }));
@@ -339,22 +420,24 @@ export function SignUp({ redirectTo, onSwitchToSignIn }: SignUpProps) {
 
     const nextFieldErrors: typeof fieldErrors = {};
 
-    if (!name?.trim()) {
-      nextFieldErrors.name = 'Please enter your name.';
+    const nameError = validateName(name);
+    if (nameError) {
+      nextFieldErrors.name = nameError;
     }
 
-    if (!email.trim()) {
-      nextFieldErrors.email = 'Please enter your email address.';
+    const emailError = validateEmail(email);
+    if (emailError) {
+      nextFieldErrors.email = emailError;
     }
 
-    if (!password.trim()) {
-      nextFieldErrors.password = 'Please create a password.';
+    const passwordError = validatePasswordStrength(password);
+    if (passwordError) {
+      nextFieldErrors.password = passwordError;
     }
 
-    if (!confirmPassword?.trim()) {
-      nextFieldErrors.confirmPassword = 'Please confirm your password.';
-    } else if (password.trim() && confirmPassword.trim() && password !== confirmPassword) {
-      nextFieldErrors.confirmPassword = 'Passwords do not match.';
+    const confirmError = validateConfirmPassword(password, confirmPassword ?? '');
+    if (confirmError) {
+      nextFieldErrors.confirmPassword = confirmError;
     }
 
     if (Object.keys(nextFieldErrors).length > 0) {
@@ -372,8 +455,10 @@ export function SignUp({ redirectTo, onSwitchToSignIn }: SignUpProps) {
           }
         : undefined;
 
+    const normalizedEmail = email.trim();
+
     const { error } = await supabase.auth.signUp({
-      email,
+      email: normalizedEmail,
       password,
       options,
     });
@@ -437,10 +522,9 @@ export function SignUp({ redirectTo, onSwitchToSignIn }: SignUpProps) {
             autoComplete="name"
             value={state.name ?? ''}
             onChange={(event) => {
-              updateState({ name: event.target.value });
-              if (fieldErrors.name) {
-                setFieldErrors((prev) => ({ ...prev, name: undefined }));
-              }
+              const value = event.target.value;
+              updateState({ name: value });
+              setFieldErrors((prev) => ({ ...prev, name: validateName(value) }));
             }}
             placeholder="Your full name"
             aria-invalid={Boolean(fieldErrors.name)}
@@ -463,10 +547,9 @@ export function SignUp({ redirectTo, onSwitchToSignIn }: SignUpProps) {
             autoComplete="email"
             value={state.email}
             onChange={(event) => {
-              updateState({ email: event.target.value });
-              if (fieldErrors.email) {
-                setFieldErrors((prev) => ({ ...prev, email: undefined }));
-              }
+              const value = event.target.value;
+              updateState({ email: value });
+              setFieldErrors((prev) => ({ ...prev, email: validateEmail(value) }));
             }}
             placeholder="you@example.com"
             aria-invalid={Boolean(fieldErrors.email)}
@@ -489,10 +572,15 @@ export function SignUp({ redirectTo, onSwitchToSignIn }: SignUpProps) {
             autoComplete="new-password"
             value={state.password}
             onChange={(event) => {
-              updateState({ password: event.target.value });
-              if (fieldErrors.password) {
-                setFieldErrors((prev) => ({ ...prev, password: undefined }));
-              }
+              const value = event.target.value;
+              updateState({ password: value });
+              setFieldErrors((prev) => ({
+                ...prev,
+                password: validatePasswordStrength(value),
+                ...(state.confirmPassword !== undefined
+                  ? { confirmPassword: validateConfirmPassword(value, state.confirmPassword ?? '') }
+                  : {}),
+              }));
             }}
             placeholder="Create a secure password"
             aria-invalid={Boolean(fieldErrors.password)}
@@ -515,10 +603,12 @@ export function SignUp({ redirectTo, onSwitchToSignIn }: SignUpProps) {
             autoComplete="new-password"
             value={state.confirmPassword ?? ''}
             onChange={(event) => {
-              updateState({ confirmPassword: event.target.value });
-              if (fieldErrors.confirmPassword) {
-                setFieldErrors((prev) => ({ ...prev, confirmPassword: undefined }));
-              }
+              const value = event.target.value;
+              updateState({ confirmPassword: value });
+              setFieldErrors((prev) => ({
+                ...prev,
+                confirmPassword: validateConfirmPassword(state.password, value),
+              }));
             }}
             placeholder="Re-enter your password"
             aria-invalid={Boolean(fieldErrors.confirmPassword)}
@@ -531,7 +621,7 @@ export function SignUp({ redirectTo, onSwitchToSignIn }: SignUpProps) {
             </p>
           )}
         </div>
-        <Button type="submit" disabled={state.isLoading}>
+        <Button type="submit" disabled={isSubmitDisabled}>
           {state.isLoading ? (
             <span className="flex items-center justify-center gap-2">
               <LoadingSpinner />
