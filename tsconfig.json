@@ -21,7 +21,10 @@
     ],
     "paths": {
       "@/components/*": ["./components/*"],
-      "@/lib/*": ["./lib/*"]
+      "@/lib/*": ["./lib/*"],
+      "@daveyplate/better-auth-ui": ["./better-auth-ui"],
+      "better-auth": ["./better-auth"],
+      "better-auth/providers": ["./better-auth/providers.ts"]
     }
   },
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
