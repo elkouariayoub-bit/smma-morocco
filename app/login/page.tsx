@@ -30,13 +30,20 @@ export default function LoginPage({ searchParams }: { searchParams?: LoginSearch
   const [isCodeLoading, setIsCodeLoading] = useState(false);
   const [activeTab, setActiveTab] = useState<'signin' | 'signup'>('signin');
 
-  const redirectTo = useMemo(() => {
+  const { emailRedirect, oauthRedirect } = useMemo(() => {
     const canonical =
       typeof window !== 'undefined'
         ? window.location.origin
         : trimTrailingSlash(env.siteUrl);
 
-    return canonical ? `${canonical}/auth/callback` : undefined;
+    if (!canonical) {
+      return { emailRedirect: undefined, oauthRedirect: undefined };
+    }
+
+    return {
+      emailRedirect: `${canonical}/auth/callback`,
+      oauthRedirect: `${canonical}/api/auth/callback/google`,
+    };
   }, []);
 
   const handleCodeSignIn = async (event: React.FormEvent) => {
@@ -132,7 +139,11 @@ export default function LoginPage({ searchParams }: { searchParams?: LoginSearch
                       : 'pointer-events-none absolute inset-0 -translate-y-3 opacity-0'
                   }`}
                 >
-                  <SignIn redirectTo={redirectTo} onSwitchToSignUp={() => setActiveTab('signup')} />
+                  <SignIn
+                    redirectTo={emailRedirect}
+                    oauthRedirectTo={oauthRedirect}
+                    onSwitchToSignUp={() => setActiveTab('signup')}
+                  />
                 </div>
                 <div
                   className={`transition-all duration-300 ${
@@ -141,7 +152,11 @@ export default function LoginPage({ searchParams }: { searchParams?: LoginSearch
                       : 'pointer-events-none absolute inset-0 -translate-y-3 opacity-0'
                   }`}
                 >
-                  <SignUp redirectTo={redirectTo} onSwitchToSignIn={() => setActiveTab('signin')} />
+                  <SignUp
+                    redirectTo={emailRedirect}
+                    oauthRedirectTo={oauthRedirect}
+                    onSwitchToSignIn={() => setActiveTab('signin')}
+                  />
                 </div>
               </div>
 

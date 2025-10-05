@@ -9,6 +9,7 @@ import { LogOut } from 'lucide-react';
 
 type AuthComponentProps = {
   redirectTo?: string;
+  oauthRedirectTo?: string;
 };
 
 type SignInProps = AuthComponentProps & {
@@ -134,16 +135,19 @@ const validateName = (value?: string) => {
   return undefined;
 };
 
-function useRedirect(redirectTo?: string) {
+function useRedirects(redirectTo?: string, oauthRedirectTo?: string) {
   return useMemo(() => {
-    if (redirectTo) return redirectTo;
+    const fallbackOrigin =
+      typeof window !== 'undefined'
+        ? window.location.origin
+        : undefined;
 
-    if (typeof window !== 'undefined') {
-      return `${window.location.origin}/auth/callback`;
-    }
+    const emailRedirect = redirectTo ?? (fallbackOrigin ? `${fallbackOrigin}/auth/callback` : undefined);
+    const oauthRedirect =
+      oauthRedirectTo ?? (fallbackOrigin ? `${fallbackOrigin}/api/auth/callback/google` : undefined);
 
-    return undefined;
-  }, [redirectTo]);
+    return { emailRedirect, oauthRedirect };
+  }, [redirectTo, oauthRedirectTo]);
 }
 
 const GoogleIcon = () => (
@@ -178,7 +182,7 @@ const LoadingSpinner = ({ className = 'h-4 w-4 border-2' }: { className?: string
   <span className={`inline-flex ${className} animate-spin rounded-full border-white/60 border-t-white`} aria-hidden="true" />
 );
 
-export function SignIn({ redirectTo, onSwitchToSignUp }: SignInProps) {
+export function SignIn({ redirectTo, oauthRedirectTo, onSwitchToSignUp }: SignInProps) {
   const router = useRouter();
   const [state, setState] = useState<AuthState>(initialState);
   const [mode, setMode] = useState<'signin' | 'reset'>('signin');
@@ -186,7 +190,7 @@ export function SignIn({ redirectTo, onSwitchToSignUp }: SignInProps) {
     email?: string;
     password?: string;
   }>({});
-  const canonicalRedirect = useRedirect(redirectTo);
+  const { emailRedirect, oauthRedirect } = useRedirects(redirectTo, oauthRedirectTo);
   const emailValidationMessage = validateEmail(state.email);
   const passwordValidationMessage = mode === 'signin' ? validatePasswordPresence(state.password) : undefined;
   const isSubmitDisabled =
@@ -236,7 +240,7 @@ export function SignIn({ redirectTo, onSwitchToSignUp }: SignInProps) {
         const result = await requestBetterAuth(
           {
             email: normalizedEmail,
-            redirectTo: canonicalRedirect,
+            redirectTo: emailRedirect,
           },
           'reset'
         );
@@ -252,7 +256,7 @@ export function SignIn({ redirectTo, onSwitchToSignUp }: SignInProps) {
         {
           email: normalizedEmail,
           password,
-          redirectTo: canonicalRedirect,
+          redirectTo: emailRedirect,
         },
         'signin'
       );
@@ -274,11 +278,19 @@ export function SignIn({ redirectTo, onSwitchToSignUp }: SignInProps) {
     async (provider: OAuthProvider) => {
       updateState({ isLoading: true, error: null, message: null });
 
+      if (!oauthRedirect) {
+        updateState({
+          error: 'OAuth redirect is not configured. Please contact support.',
+          isLoading: false,
+        });
+        return;
+      }
+
       try {
         const result = await requestBetterAuth(
           {
             provider,
-            redirectTo: canonicalRedirect,
+            redirectTo: oauthRedirect,
           },
           'oauth'
         );
@@ -298,7 +310,7 @@ export function SignIn({ redirectTo, onSwitchToSignUp }: SignInProps) {
         updateState({ error: message, isLoading: false });
       }
     },
-    [canonicalRedirect]
+    [oauthRedirect]
   );
 
   return (
@@ -432,7 +444,7 @@ export function SignIn({ redirectTo, onSwitchToSignUp }: SignInProps) {
   );
 }
 
-export function SignUp({ redirectTo, onSwitchToSignIn }: SignUpProps) {
+export function SignUp({ redirectTo, oauthRedirectTo, onSwitchToSignIn }: SignUpProps) {
   const router = useRouter();
   const [state, setState] = useState<AuthState>({ ...initialState, confirmPassword: '' });
   const [fieldErrors, setFieldErrors] = useState<{
@@ -441,7 +453,7 @@ export function SignUp({ redirectTo, onSwitchToSignIn }: SignUpProps) {
     password?: string;
     confirmPassword?: string;
   }>({});
-  const canonicalRedirect = useRedirect(redirectTo);
+  const { emailRedirect, oauthRedirect } = useRedirects(redirectTo, oauthRedirectTo);
   const nameValidationMessage = validateName(state.name);
   const emailValidationMessage = validateEmail(state.email);
   const passwordValidationMessage = validatePasswordStrength(state.password);
@@ -498,7 +510,7 @@ export function SignUp({ redirectTo, onSwitchToSignIn }: SignUpProps) {
           name: name?.trim(),
           email: normalizedEmail,
           password,
-          redirectTo: canonicalRedirect,
+          redirectTo: emailRedirect,
         },
         'signup'
       );
@@ -527,11 +539,19 @@ export function SignUp({ redirectTo, onSwitchToSignIn }: SignUpProps) {
     async (provider: OAuthProvider) => {
       updateState({ isLoading: true, error: null, message: null });
 
+      if (!oauthRedirect) {
+        updateState({
+          error: 'OAuth redirect is not configured. Please contact support.',
+          isLoading: false,
+        });
+        return;
+      }
+
       try {
         const result = await requestBetterAuth(
           {
             provider,
-            redirectTo: canonicalRedirect,
+            redirectTo: oauthRedirect,
           },
           'oauth'
         );
@@ -551,7 +571,7 @@ export function SignUp({ redirectTo, onSwitchToSignIn }: SignUpProps) {
         updateState({ error: message, isLoading: false });
       }
     },
-    [canonicalRedirect]
+    [oauthRedirect]
   );
 
   return (

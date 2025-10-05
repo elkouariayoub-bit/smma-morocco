@@ -19,18 +19,33 @@ type BetterAuthRequest = {
 
 const normalizeEmail = (email: string) => email.trim().toLowerCase();
 
-const getRedirectTarget = (redirectTo: string | undefined, request: Request) => {
+const normalizeOrigin = (value: string | null | undefined) => {
+  if (!value) return null;
+
+  try {
+    const url = new URL(value);
+    return url.origin;
+  } catch (error) {
+    console.warn('Invalid origin provided for Better Auth redirect:', value, error);
+    return null;
+  }
+};
+
+const getBaseOrigin = (request: Request) =>
+  normalizeOrigin(env.betterAuthUrl) || normalizeOrigin(env.siteUrl) || new URL(request.url).origin;
+
+const getRedirectTarget = (
+  redirectTo: string | undefined,
+  request: Request,
+  options?: { provider?: SupportedProvider }
+) => {
   if (redirectTo) {
     return redirectTo;
   }
 
-  const configured = env.siteUrl?.replace(/\/$/, '');
-  if (configured) {
-    return `${configured}/auth/callback`;
-  }
-
-  const url = new URL(request.url);
-  return `${url.origin}/auth/callback`;
+  const baseOrigin = getBaseOrigin(request);
+  const path = options?.provider === 'google' ? '/api/auth/callback/google' : '/auth/callback';
+  return `${baseOrigin}${path}`;
 };
 
 const invalidRequest = (message: string, status = 400) =>
@@ -150,7 +165,7 @@ export async function POST(request: Request) {
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider,
         options: {
-          redirectTo: getRedirectTarget(redirectTo, request),
+          redirectTo: getRedirectTarget(redirectTo, request, { provider }),
           skipBrowserRedirect: true,
         },
       });
