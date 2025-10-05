@@ -2,7 +2,7 @@ import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
 import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
 import { loadServerEnv } from '@/lib/load-server-env';
-import { getBetterAuth } from '@/lib/better-auth';
+import { getBetterAuth } from '@/lib/auth';
 
 import type { EnvValues } from '@/lib/env';
 
