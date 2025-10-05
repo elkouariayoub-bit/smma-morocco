@@ -8,7 +8,8 @@
     "start": "next start",
     "smoke": "node ./scripts/smoke-test.js",
     "typecheck": "tsc --noEmit",
-    "debug:auth": "node ./scripts/debug-better-auth.mjs"
+    "debug:auth": "node ./scripts/debug-better-auth.mjs",
+    "verify:env": "node ./scripts/verify-env.mjs"
   },
   "engines": {
     "node": "20.x"

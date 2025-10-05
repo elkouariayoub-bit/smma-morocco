@@ -8,6 +8,7 @@ Stack: Next.js (App Router) + TypeScript + Tailwind (minimal) + Shadcn-style com
 pnpm i # or npm i / yarn
 cp .env.example .env.local
 # fill all environment variables in .env.local
+npm run verify:env # ensure Google + Better Auth secrets are present before booting
 
 # create tables in Supabase SQL Editor
 # 1. Run supabase/schema.sql
