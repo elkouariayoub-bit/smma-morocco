@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { signIn } from 'better-auth/client';
 import { supabase } from '@/lib/supabase';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -161,7 +162,9 @@ const GoogleIcon = () => (
 
 type OAuthProvider = 'google';
 
-function OAuthButtons({ onOAuth, isLoading }: { onOAuth: (provider: OAuthProvider) => Promise<void>; isLoading: boolean }) {
+type OAuthHandler = (provider: OAuthProvider) => Promise<void>;
+
+function OAuthButtons({ onOAuth, isLoading }: { onOAuth: OAuthHandler; isLoading: boolean }) {
   return (
     <div className="grid gap-4">
       <Button
@@ -288,8 +291,8 @@ export function SignIn({ redirectTo, oauthRedirectTo, onSwitchToSignUp }: SignIn
     }
   };
 
-  const handleOAuth = useCallback(
-    async (provider: OAuthProvider) => {
+  const handleOAuth = useCallback<OAuthHandler>(
+    async (provider) => {
       updateState({ isLoading: true, error: null, message: null });
 
       if (!oauthRedirect) {
@@ -301,15 +304,12 @@ export function SignIn({ redirectTo, oauthRedirectTo, onSwitchToSignUp }: SignIn
       }
 
       try {
-        const result = await requestBetterAuth(
-          {
-            provider,
-            redirectTo: oauthRedirect,
-          },
-          'oauth'
-        );
+        const result = await signIn.social({
+          provider,
+          redirectTo: oauthRedirect,
+        });
 
-        if (result.redirect) {
+        if (result?.redirect) {
           updateState({ message: 'Redirecting to provider…' });
           window.location.href = result.redirect;
           return;
@@ -549,8 +549,8 @@ export function SignUp({ redirectTo, oauthRedirectTo, onSwitchToSignIn }: SignUp
     }
   };
 
-  const handleOAuth = useCallback(
-    async (provider: OAuthProvider) => {
+  const handleOAuth = useCallback<OAuthHandler>(
+    async (provider) => {
       updateState({ isLoading: true, error: null, message: null });
 
       if (!oauthRedirect) {
@@ -562,15 +562,12 @@ export function SignUp({ redirectTo, oauthRedirectTo, onSwitchToSignIn }: SignUp
       }
 
       try {
-        const result = await requestBetterAuth(
-          {
-            provider,
-            redirectTo: oauthRedirect,
-          },
-          'oauth'
-        );
+        const result = await signIn.social({
+          provider,
+          redirectTo: oauthRedirect,
+        });
 
-        if (result.redirect) {
+        if (result?.redirect) {
           updateState({ message: 'Redirecting to provider…' });
           window.location.href = result.redirect;
           return;
