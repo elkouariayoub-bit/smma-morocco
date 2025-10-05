@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
-import { env } from '@/lib/env';
+import { loadServerEnv } from '@/lib/load-server-env';
+
+import type { EnvValues } from '@/lib/env';
 
 const LOCAL_HOSTNAMES = new Set(['localhost', '127.0.0.1', '::1']);
 
@@ -21,7 +23,7 @@ function parseUrl(value: string | undefined) {
   }
 }
 
-function resolveCanonicalOrigin(request: NextRequest) {
+function resolveCanonicalOrigin(env: EnvValues, request: NextRequest) {
   const configured = parseUrl(env.siteUrl || undefined);
   const forwardedHost = request.headers.get('x-forwarded-host') || request.headers.get('host');
   const forwardedProto = request.headers.get('x-forwarded-proto');
@@ -53,6 +55,8 @@ function resolveCanonicalOrigin(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
+  loadServerEnv();
+  const { env } = await import('@/lib/env');
   const supabase = createRouteHandlerClient({ cookies });
 
   let payload: { email?: string };
@@ -68,7 +72,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: { message: 'Email is required' } }, { status: 400 });
   }
 
-  const origin = resolveCanonicalOrigin(request);
+  const origin = resolveCanonicalOrigin(env, request);
   const callbackUrl = new URL('/auth/callback', origin).toString();
 
   const { error } = await supabase.auth.signInWithOtp({

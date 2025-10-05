@@ -2,15 +2,19 @@ import { NextResponse, type NextRequest } from 'next/server';
 
 import type { BetterAuthInstance } from './index';
 
-type AuthFactory = BetterAuthInstance | (() => BetterAuthInstance);
+type AuthFactory =
+  | BetterAuthInstance
+  | (() => BetterAuthInstance | Promise<BetterAuthInstance>);
 
-const resolveInstance = (auth: AuthFactory): BetterAuthInstance =>
-  typeof auth === 'function' ? (auth as () => BetterAuthInstance)() : auth;
+const resolveInstance = async (auth: AuthFactory): Promise<BetterAuthInstance> =>
+  typeof auth === 'function'
+    ? await (auth as () => BetterAuthInstance | Promise<BetterAuthInstance>)()
+    : auth;
 
 export function toNextJsHandler(auth: AuthFactory) {
   const handler = async (_request: NextRequest) => {
     try {
-      const instance = resolveInstance(auth);
+      const instance = await resolveInstance(auth);
       const providers = Object.keys(instance.providers);
 
       return NextResponse.json(

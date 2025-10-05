@@ -1,6 +1,6 @@
 import { betterAuth } from 'better-auth';
 import { google } from 'better-auth/providers';
-import { env } from './env';
+import { loadServerEnv } from './load-server-env';
 
 import type { BetterAuthInstance } from 'better-auth';
 
@@ -12,10 +12,13 @@ const mask = (value: string | null | undefined) => {
 
 let instance: BetterAuthInstance | null = null;
 
-export function getBetterAuth() {
+export async function getBetterAuth(): Promise<BetterAuthInstance> {
   if (instance) {
     return instance;
   }
+
+  loadServerEnv();
+  const { env } = await import('./env');
 
   const missing: string[] = [];
 

@@ -1,46 +1,88 @@
 // lib/env.ts
-// Split runtime environment into values intended for the server
-// and values intended for the browser. Client-side code should
-// only rely on NEXT_PUBLIC_* variables.
-export const env = {
-  // Server-only (do NOT expose to client)
-  geminiApiKey: process.env.GEMINI_API_KEY,
-  supabaseServiceRoleKey: process.env.SUPABASE_SERVICE_ROLE_KEY,
-  googleClientId: process.env.GOOGLE_CLIENT_ID,
-  googleClientSecret: process.env.GOOGLE_CLIENT_SECRET,
-  betterAuthSecret: process.env.BETTER_AUTH_SECRET,
-  betterAuthUrl: process.env.BETTER_AUTH_URL,
+// Centralized environment access with lazy getters so updates after
+// dotenv loading are reflected automatically.
 
-  // Client (NEXT_PUBLIC_*) — safe to bundle for browser
-  supabaseUrl: process.env.NEXT_PUBLIC_SUPABASE_URL,
-  supabaseAnonKey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
-  // Optional canonical origin for constructing redirect URLs
-  siteUrl: process.env.NEXT_PUBLIC_SITE_URL,
+export type EnvValues = {
+  readonly geminiApiKey: string | undefined;
+  readonly supabaseServiceRoleKey: string | undefined;
+  readonly googleClientId: string | undefined;
+  readonly googleClientSecret: string | undefined;
+  readonly betterAuthSecret: string | undefined;
+  readonly betterAuthUrl: string | undefined;
+  readonly supabaseUrl: string | undefined;
+  readonly supabaseAnonKey: string | undefined;
+  readonly siteUrl: string | undefined;
 };
 
-function assertEnv() {
+const env: EnvValues = {
+  get geminiApiKey() {
+    return process.env.GEMINI_API_KEY;
+  },
+  get supabaseServiceRoleKey() {
+    return process.env.SUPABASE_SERVICE_ROLE_KEY;
+  },
+  get googleClientId() {
+    return process.env.GOOGLE_CLIENT_ID;
+  },
+  get googleClientSecret() {
+    return process.env.GOOGLE_CLIENT_SECRET;
+  },
+  get betterAuthSecret() {
+    return process.env.BETTER_AUTH_SECRET;
+  },
+  get betterAuthUrl() {
+    return process.env.BETTER_AUTH_URL;
+  },
+  get supabaseUrl() {
+    return process.env.NEXT_PUBLIC_SUPABASE_URL;
+  },
+  get supabaseAnonKey() {
+    return process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  },
+  get siteUrl() {
+    return process.env.NEXT_PUBLIC_SITE_URL;
+  },
+};
+
+export { env };
+
+function collectMissing(keys: Array<keyof EnvValues>) {
   const missing: string[] = [];
 
-  // The browser bundle should only require the NEXT_PUBLIC_* keys.
-  if (!env.supabaseUrl) missing.push('supabaseUrl');
-  if (!env.supabaseAnonKey) missing.push('supabaseAnonKey');
-
-  // Only assert server-only variables when running on the server.
-  if (typeof window === 'undefined') {
-    if (!env.geminiApiKey) missing.push('geminiApiKey');
-    // service role key is optional but recommended for server DB actions
-    if (!env.supabaseServiceRoleKey) {
-      // don't force it, but log a note in the thrown message if other things missing
+  for (const key of keys) {
+    if (!env[key]) {
+      missing.push(key as string);
     }
-
-    if (!env.googleClientId) missing.push('googleClientId');
-    if (!env.googleClientSecret) missing.push('googleClientSecret');
-    if (!env.betterAuthSecret) missing.push('betterAuthSecret');
   }
 
+  return missing;
+}
+
+const browserRequiredKeys: Array<keyof EnvValues> = ['supabaseUrl', 'supabaseAnonKey'];
+const serverRequiredKeys: Array<keyof EnvValues> = [
+  'geminiApiKey',
+  'googleClientId',
+  'googleClientSecret',
+  'betterAuthSecret',
+];
+
+export function assertBrowserEnv() {
+  const missing = collectMissing(browserRequiredKeys);
   if (missing.length) {
-    throw new Error(`Missing required env vars: ${missing.join(', ')}`);
+    throw new Error(`Missing required browser env vars: ${missing.join(', ')}`);
   }
 }
 
-assertEnv();
+export function assertServerEnv(options?: { optional?: Array<keyof EnvValues> }) {
+  const optional = new Set(options?.optional ?? []);
+  const keys = serverRequiredKeys.filter((key) => !optional.has(key));
+  const missing = collectMissing(keys);
+
+  if (missing.length) {
+    throw new Error(`Missing required server env vars: ${missing.join(', ')}`);
+  }
+}
+
+if (typeof window !== 'undefined') {
+  assertBrowserEnv();
+}
