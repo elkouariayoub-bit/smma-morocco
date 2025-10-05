@@ -40,6 +40,41 @@ const initialState: AuthState = {
   isLoading: false,
 };
 
+type BetterAuthIntent = 'signin' | 'signup' | 'reset';
+
+type BetterAuthResponse = {
+  success?: boolean;
+  message?: string;
+  error?: string;
+  redirect?: string;
+  requiresConfirmation?: boolean;
+};
+
+const requestBetterAuth = async (payload: Record<string, unknown>, intent: BetterAuthIntent) => {
+  const response = await fetch('/auth/better', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ ...payload, intent }),
+  });
+
+  let data: BetterAuthResponse | null = null;
+
+  try {
+    data = (await response.json()) as BetterAuthResponse;
+  } catch (error) {
+    data = null;
+  }
+
+  if (!response.ok || !data?.success) {
+    const message = data?.error ?? 'Unable to process your request right now. Please try again.';
+    throw new Error(message);
+  }
+
+  return data;
+};
+
 const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 const validateEmail = (value: string) => {
@@ -214,28 +249,43 @@ export function SignIn({ redirectTo, onSwitchToSignUp }: SignInProps) {
 
     const normalizedEmail = email.trim();
 
-    if (mode === 'reset') {
-      const { error } = await supabase.auth.resetPasswordForEmail(normalizedEmail, {
-        redirectTo: canonicalRedirect,
-      });
+    try {
+      if (mode === 'reset') {
+        const result = await requestBetterAuth(
+          {
+            email: normalizedEmail,
+            redirectTo: canonicalRedirect,
+          },
+          'reset'
+        );
 
-      if (error) {
-        updateState({ error: error.message, isLoading: false });
+        updateState({
+          message: result.message ?? 'Password reset email sent. Check your inbox!',
+          isLoading: false,
+        });
         return;
       }
 
-      updateState({ message: 'Password reset email sent. Check your inbox!', isLoading: false });
-      return;
-    }
-    const { error } = await supabase.auth.signInWithPassword({ email: normalizedEmail, password });
+      const result = await requestBetterAuth(
+        {
+          email: normalizedEmail,
+          password,
+          redirectTo: canonicalRedirect,
+        },
+        'signin'
+      );
 
-    if (error) {
-      updateState({ error: error.message, isLoading: false });
-      return;
+      updateState({
+        message: result.message ?? 'Successfully signed in. Redirecting…',
+        isLoading: false,
+        password: '',
+      });
+      router.replace(result.redirect ?? '/composer');
+      router.refresh();
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Unable to sign in. Please try again.';
+      updateState({ error: message, isLoading: false });
     }
-
-    updateState({ message: 'Successfully signed in. Redirecting…', isLoading: false });
-    router.replace('/composer');
   };
 
   const handleOAuth = useCallback(
@@ -446,33 +496,36 @@ export function SignUp({ redirectTo, onSwitchToSignIn }: SignUpProps) {
       return;
     }
 
-    const metadata = name?.trim() ? { full_name: name.trim() } : undefined;
-    const options =
-      canonicalRedirect || metadata
-        ? {
-            ...(canonicalRedirect ? { emailRedirectTo: canonicalRedirect } : {}),
-            ...(metadata ? { data: metadata } : {}),
-          }
-        : undefined;
-
     const normalizedEmail = email.trim();
+    try {
+      const result = await requestBetterAuth(
+        {
+          name: name?.trim(),
+          email: normalizedEmail,
+          password,
+          redirectTo: canonicalRedirect,
+        },
+        'signup'
+      );
 
-    const { error } = await supabase.auth.signUp({
-      email: normalizedEmail,
-      password,
-      options,
-    });
+      updateState({
+        message:
+          result.message ?? 'Account created! Check your inbox to confirm your email.',
+        isLoading: false,
+        name: '',
+        email: '',
+        password: '',
+        confirmPassword: '',
+      });
 
-    if (error) {
-      updateState({ error: error.message, isLoading: false });
-      return;
+      if (result.redirect) {
+        router.replace(result.redirect);
+        router.refresh();
+      }
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Unable to create your account right now.';
+      updateState({ error: message, isLoading: false });
     }
-
-    updateState({
-      message: 'Account created! Check your inbox to confirm your email.',
-      isLoading: false,
-    });
-    router.replace('/composer');
   };
 
   const handleOAuth = useCallback(
