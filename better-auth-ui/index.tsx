@@ -62,11 +62,11 @@ const GithubIcon = () => (
 
 function OAuthButtons({ onOAuth, isLoading }: { onOAuth: (provider: Provider) => Promise<void>; isLoading: boolean }) {
   return (
-    <div className="grid gap-3">
+    <div className="grid gap-4">
       <Button
         type="button"
         variant="social"
-        className="w-full gap-3 text-sm font-semibold"
+        className="w-full gap-2"
         onClick={() => onOAuth('google')}
         disabled={isLoading}
       >
@@ -76,7 +76,7 @@ function OAuthButtons({ onOAuth, isLoading }: { onOAuth: (provider: Provider) =>
       <Button
         type="button"
         variant="social"
-        className="w-full gap-3 text-sm font-semibold"
+        className="w-full gap-2"
         onClick={() => onOAuth('github')}
         disabled={isLoading}
       >
@@ -159,7 +159,7 @@ export function SignIn({ redirectTo }: AuthComponentProps) {
   );
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-5">
       <OAuthButtons onOAuth={handleOAuth} isLoading={state.isLoading} />
 
       <div className="relative" aria-hidden="true">
@@ -167,7 +167,7 @@ export function SignIn({ redirectTo }: AuthComponentProps) {
           <span className="w-full border-t border-slate-200" />
         </div>
         <div className="relative flex justify-center">
-          <span className="bg-white px-3 text-xs font-medium text-slate-500">or continue with email</span>
+          <span className="bg-white px-4 text-sm font-medium text-[#6b7280]">or continue with email</span>
         </div>
       </div>
 
@@ -292,10 +292,10 @@ export function SignUp({ redirectTo }: AuthComponentProps) {
   );
 
   return (
-    <div className="space-y-8">
-      <div className="space-y-1 text-left">
-        <h2 className="text-2xl font-semibold text-slate-900">Create an account</h2>
-        <p className="text-sm text-slate-500">Join SMMA Morocco with your email or your favorite provider.</p>
+    <div className="space-y-5">
+      <div className="space-y-2 text-left">
+        <h2 className="text-xl font-semibold text-[#1f2937]">Create an account</h2>
+        <p className="text-base text-[#6b7280]">Join SMMA Morocco with your email or your favorite provider.</p>
       </div>
 
       <OAuthButtons onOAuth={handleOAuth} isLoading={state.isLoading} />
@@ -305,7 +305,7 @@ export function SignUp({ redirectTo }: AuthComponentProps) {
           <span className="w-full border-t border-slate-200" />
         </div>
         <div className="relative flex justify-center">
-          <span className="bg-white px-3 text-xs font-medium text-slate-500">or continue with email</span>
+          <span className="bg-white px-4 text-sm font-medium text-[#6b7280]">or continue with email</span>
         </div>
       </div>
 

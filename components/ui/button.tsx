@@ -3,7 +3,7 @@ import { cva } from './cva';
 import { cn } from '@/lib/utils';
 
 const buttonStyles = cva(
-  'inline-flex h-12 items-center justify-center rounded-lg text-sm font-semibold transition-colors duration-200 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-blue-200 focus-visible:ring-offset-0 disabled:pointer-events-none disabled:opacity-60',
+  'inline-flex h-12 items-center justify-center rounded-lg text-base font-medium transition-colors duration-200 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-blue-200 focus-visible:ring-offset-0 disabled:pointer-events-none disabled:opacity-60',
   {
     variants: {
       variant: {
