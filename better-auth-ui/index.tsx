@@ -160,18 +160,14 @@ const GoogleIcon = () => (
   </svg>
 );
 
-type OAuthProvider = 'google';
-
-type OAuthHandler = (provider: OAuthProvider) => Promise<void>;
-
-function OAuthButtons({ onOAuth, isLoading }: { onOAuth: OAuthHandler; isLoading: boolean }) {
+function OAuthButtons({ onGoogle, isLoading }: { onGoogle: () => Promise<void>; isLoading: boolean }) {
   return (
     <div className="grid gap-4">
       <Button
         type="button"
         variant="social"
         className="w-full gap-2"
-        onClick={() => onOAuth('google')}
+        onClick={onGoogle}
         disabled={isLoading}
         aria-busy={isLoading}
       >
@@ -291,8 +287,7 @@ export function SignIn({ redirectTo, oauthRedirectTo, onSwitchToSignUp }: SignIn
     }
   };
 
-  const handleOAuth = useCallback<OAuthHandler>(
-    async (provider) => {
+  const handleOAuth = useCallback(async () => {
       updateState({ isLoading: true, error: null, message: null });
 
       if (!oauthRedirect) {
@@ -305,7 +300,7 @@ export function SignIn({ redirectTo, oauthRedirectTo, onSwitchToSignUp }: SignIn
 
       try {
         const result = await signIn.social({
-          provider,
+          provider: 'google',
           redirectTo: oauthRedirect,
         });
 
@@ -329,7 +324,7 @@ export function SignIn({ redirectTo, oauthRedirectTo, onSwitchToSignUp }: SignIn
 
   return (
     <div className="space-y-5">
-      <OAuthButtons onOAuth={handleOAuth} isLoading={state.isLoading} />
+      <OAuthButtons onGoogle={handleOAuth} isLoading={state.isLoading} />
 
       <div className="relative" aria-hidden="true">
         <div className="absolute inset-0 flex items-center">
@@ -549,8 +544,7 @@ export function SignUp({ redirectTo, oauthRedirectTo, onSwitchToSignIn }: SignUp
     }
   };
 
-  const handleOAuth = useCallback<OAuthHandler>(
-    async (provider) => {
+  const handleOAuth = useCallback(async () => {
       updateState({ isLoading: true, error: null, message: null });
 
       if (!oauthRedirect) {
@@ -563,7 +557,7 @@ export function SignUp({ redirectTo, oauthRedirectTo, onSwitchToSignIn }: SignUp
 
       try {
         const result = await signIn.social({
-          provider,
+          provider: 'google',
           redirectTo: oauthRedirect,
         });
 
@@ -592,7 +586,7 @@ export function SignUp({ redirectTo, oauthRedirectTo, onSwitchToSignIn }: SignUp
         <p className="text-base text-[#6b7280]">Join SMMA Morocco with your email or your favorite provider.</p>
       </div>
 
-      <OAuthButtons onOAuth={handleOAuth} isLoading={state.isLoading} />
+      <OAuthButtons onGoogle={handleOAuth} isLoading={state.isLoading} />
 
       <div className="relative" aria-hidden="true">
         <div className="absolute inset-0 flex items-center">
