@@ -12,8 +12,9 @@ const mask = (value: string | null | undefined) => {
 };
 
 let instance: BetterAuthInstance | null = null;
+let initializing: Promise<BetterAuthInstance> | null = null;
 
-function createBetterAuth(): BetterAuthInstance {
+async function createBetterAuth(): Promise<BetterAuthInstance> {
   loadServerEnv();
 
   const missing: string[] = [];
@@ -58,15 +59,30 @@ function createBetterAuth(): BetterAuthInstance {
     providerIds.length ? providerIds.join(', ') : 'none'
   );
 
+  if (!auth.providers.google) {
+    throw new Error(
+      'Google provider failed to register. Double-check GOOGLE_CLIENT_ID/SECRET values and restart your server.'
+    );
+  }
+
   return auth;
 }
 
-export const auth: BetterAuthInstance = createBetterAuth();
-
 export async function getBetterAuth(): Promise<BetterAuthInstance> {
-  if (!instance) {
-    instance = auth;
+  if (instance) {
+    return instance;
   }
 
-  return instance;
+  if (!initializing) {
+    initializing = createBetterAuth()
+      .then((auth) => {
+        instance = auth;
+        return auth;
+      })
+      .finally(() => {
+        initializing = null;
+      });
+  }
+
+  return initializing;
 }
