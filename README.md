@@ -36,6 +36,19 @@ Open http://localhost:3000
    - `GOOGLE_CLIENT_SECRET`
 6. Redeploy (or restart) the app so the Better Auth Google integration can pick up the new credentials.
 
+### Better Auth secret
+1. Generate a 32-byte hexadecimal secret (run once and keep it private):
+   ```bash
+   node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
+   ```
+2. Copy the output into `.env.local`:
+   ```env
+   BETTER_AUTH_SECRET=your_generated_secret
+   ```
+3. Restart your development server so the new secret is loaded.
+4. In Vercel (or your hosting provider), add the same `BETTER_AUTH_SECRET` under **Environment Variables**.
+5. Trigger a fresh deployment and confirm the “Better Auth secret is not configured” warning is gone.
+
 #### Debugging Google provider availability
 - After updating credentials, restart your dev server (or redeploy) and clear cached cookies before testing again.
 - Visit [`/auth/better`](http://localhost:3000/auth/better) to inspect the live Better Auth configuration. The JSON response lists the enabled providers and whether each required environment variable is loaded.
