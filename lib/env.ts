@@ -32,6 +32,10 @@ function assertEnv() {
     if (!env.supabaseServiceRoleKey) {
       // don't force it, but log a note in the thrown message if other things missing
     }
+
+    if (!env.googleClientId) missing.push('googleClientId');
+    if (!env.googleClientSecret) missing.push('googleClientSecret');
+    if (!env.betterAuthSecret) missing.push('betterAuthSecret');
   }
 
   if (missing.length) {
