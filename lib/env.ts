@@ -6,6 +6,8 @@ export const env = {
   // Server-only (do NOT expose to client)
   geminiApiKey: process.env.GEMINI_API_KEY,
   supabaseServiceRoleKey: process.env.SUPABASE_SERVICE_ROLE_KEY,
+  googleClientId: process.env.GOOGLE_CLIENT_ID,
+  googleClientSecret: process.env.GOOGLE_CLIENT_SECRET,
 
   // Client (NEXT_PUBLIC_*) — safe to bundle for browser
   supabaseUrl: process.env.NEXT_PUBLIC_SUPABASE_URL,

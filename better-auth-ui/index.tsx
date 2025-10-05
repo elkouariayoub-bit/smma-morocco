@@ -5,7 +5,6 @@ import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import type { Provider } from '@supabase/supabase-js';
 import { LogOut } from 'lucide-react';
 
 type AuthComponentProps = {
@@ -156,16 +155,9 @@ const GoogleIcon = () => (
   </svg>
 );
 
-const GithubIcon = () => (
-  <svg className="h-5 w-5" viewBox="0 0 24 24" aria-hidden="true">
-    <path
-      fill="currentColor"
-      d="M12 .5C5.648.5.5 5.648.5 12c0 5.088 3.292 9.384 7.868 10.908.576.108.788-.252.788-.56 0-.276-.012-1.188-.012-2.16-3.212.588-4.044-.78-4.296-1.5-.132-.336-.708-1.5-1.212-1.8-.408-.216-.996-.744-.012-.756.924-.012 1.584.852 1.8 1.2 1.056 1.776 2.748 1.272 3.42.972.108-.768.408-1.272.744-1.56-2.844-.324-5.82-1.428-5.82-6.348 0-1.404.5-2.556 1.32-3.456-.132-.324-.576-1.668.132-3.468 0 0 1.08-.348 3.528 1.32a12.08 12.08 0 0 1 3.216-.432c1.092 0 2.184.144 3.216.432 2.448-1.68 3.528-1.32 3.528-1.32.708 1.8.264 3.144.132 3.468.828.9 1.32 2.052 1.32 3.456 0 4.932-2.988 6.024-5.832 6.348.42.36.78 1.056.78 2.136 0 1.548-.012 2.796-.012 3.18 0 .312.204.684.792.564C20.216 21.372 23.5 17.088 23.5 12 23.5 5.648 18.352.5 12 .5z"
-    />
-  </svg>
-);
+type OAuthProvider = 'google';
 
-function OAuthButtons({ onOAuth, isLoading }: { onOAuth: (provider: Provider) => Promise<void>; isLoading: boolean }) {
+function OAuthButtons({ onOAuth, isLoading }: { onOAuth: (provider: OAuthProvider) => Promise<void>; isLoading: boolean }) {
   return (
     <div className="grid gap-4">
       <Button
@@ -177,16 +169,6 @@ function OAuthButtons({ onOAuth, isLoading }: { onOAuth: (provider: Provider) =>
       >
         <GoogleIcon />
         Continue with Google
-      </Button>
-      <Button
-        type="button"
-        variant="social"
-        className="w-full gap-2"
-        onClick={() => onOAuth('github')}
-        disabled={isLoading}
-      >
-        <GithubIcon />
-        Continue with GitHub
       </Button>
     </div>
   );
@@ -289,7 +271,7 @@ export function SignIn({ redirectTo, onSwitchToSignUp }: SignInProps) {
   };
 
   const handleOAuth = useCallback(
-    async (provider: Provider) => {
+    async (provider: OAuthProvider) => {
       updateState({ isLoading: true, error: null, message: null });
 
       try {
@@ -542,7 +524,7 @@ export function SignUp({ redirectTo, onSwitchToSignIn }: SignUpProps) {
   };
 
   const handleOAuth = useCallback(
-    async (provider: Provider) => {
+    async (provider: OAuthProvider) => {
       updateState({ isLoading: true, error: null, message: null });
 
       try {

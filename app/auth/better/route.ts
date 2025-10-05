@@ -1,8 +1,10 @@
 import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
 import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
-import type { Provider } from '@supabase/supabase-js';
 import { env } from '@/lib/env';
+import { getBetterAuth } from '@/lib/better-auth';
+
+type SupportedProvider = 'google';
 
 type BetterAuthIntent = 'signin' | 'signup' | 'reset' | 'oauth';
 
@@ -12,7 +14,7 @@ type BetterAuthRequest = {
   password?: string;
   name?: string;
   redirectTo?: string;
-  provider?: Provider;
+  provider?: SupportedProvider;
 };
 
 const normalizeEmail = (email: string) => email.trim().toLowerCase();
@@ -126,6 +128,23 @@ export async function POST(request: Request) {
     case 'oauth': {
       if (!provider) {
         return invalidRequest('Provider is required.');
+      }
+
+      if (provider !== 'google') {
+        return invalidRequest('Unsupported OAuth provider.');
+      }
+
+      let auth;
+      try {
+        auth = getBetterAuth();
+      } catch (error) {
+        const message =
+          error instanceof Error ? error.message : 'Google OAuth is not configured. Please try again later.';
+        return invalidRequest(message, 500);
+      }
+
+      if (!auth.providers.google) {
+        return invalidRequest('Google OAuth is not available right now.');
       }
 
       const { data, error } = await supabase.auth.signInWithOAuth({

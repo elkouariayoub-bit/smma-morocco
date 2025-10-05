@@ -6,6 +6,14 @@ const nextConfig = {
       process.cwd(),
       'better-auth-ui'
     );
+    config.resolve.alias['better-auth'] = path.resolve(
+      process.cwd(),
+      'better-auth'
+    );
+    config.resolve.alias['better-auth/providers'] = path.resolve(
+      process.cwd(),
+      'better-auth/providers.ts'
+    );
     return config;
   },
 };
