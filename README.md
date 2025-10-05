@@ -37,17 +37,19 @@ Open http://localhost:3000
 6. Redeploy (or restart) the app so the Better Auth Google integration can pick up the new credentials.
 
 ### Better Auth secret
-1. Generate a 32-byte hexadecimal secret (run once and keep it private):
+Fix “Better Auth secret is not configured” by ensuring the server can read `BETTER_AUTH_SECRET`:
+
+1. Generate a secure 32-byte hex secret (run once and keep it private):
    ```bash
    node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
    ```
-2. Copy the output into `.env.local`:
+2. Open your `.env.local` file and add the value:
    ```env
-   BETTER_AUTH_SECRET=your_generated_secret
+   BETTER_AUTH_SECRET=<paste_generated_secret_here>
    ```
-3. Restart your development server so the new secret is loaded.
-4. In Vercel (or your hosting provider), add the same `BETTER_AUTH_SECRET` under **Environment Variables**.
-5. Trigger a fresh deployment and confirm the “Better Auth secret is not configured” warning is gone.
+3. Save the file and restart your development server (`npm run dev`) so the new secret loads.
+4. In Vercel → **Settings → Environment Variables**, add the same key/value pair.
+5. Redeploy the project. The Google sign-in flow should pick up the secret and the error will disappear.
 
 #### Debugging Google provider availability
 - After updating credentials, restart your dev server (or redeploy) and clear cached cookies before testing again.

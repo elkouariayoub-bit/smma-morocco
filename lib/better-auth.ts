@@ -21,7 +21,16 @@ export function getBetterAuth() {
 
   if (!env.googleClientId) missing.push('GOOGLE_CLIENT_ID');
   if (!env.googleClientSecret) missing.push('GOOGLE_CLIENT_SECRET');
-  if (!env.betterAuthSecret) missing.push('BETTER_AUTH_SECRET');
+
+  if (!env.betterAuthSecret) {
+    throw new Error(
+      [
+        'Better Auth secret is not configured.',
+        'Generate one with `node -e "console.log(require(\'crypto\').randomBytes(32).toString(\'hex\'))"`',
+        'and add BETTER_AUTH_SECRET to your .env.local (and hosting provider) before restarting.',
+      ].join(' ')
+    );
+  }
 
   if (missing.length) {
     throw new Error(`Better Auth is missing configuration: ${missing.join(', ')}`);
