@@ -20,11 +20,17 @@ export default function AuthCallbackPage() {
         }
 
         const code = searchParams.get('code');
+        const searchType = searchParams.get('type');
         if (code) {
           const { error: exchangeError } = await supabase.auth.exchangeCodeForSession(code);
           if (exchangeError) {
             console.error('Error exchanging auth code:', exchangeError);
             router.replace('/login?message=' + encodeURIComponent(exchangeError.message || 'Sign-in failed'));
+            return;
+          }
+
+          if (searchType === 'recovery') {
+            router.replace('/auth/reset');
             return;
           }
 
@@ -41,6 +47,7 @@ export default function AuthCallbackPage() {
         const params = new URLSearchParams(hash);
         const access_token = params.get('access_token');
         const refresh_token = params.get('refresh_token');
+        const hashType = params.get('type');
 
         if (!access_token || !refresh_token) {
           router.replace('/login?message=' + encodeURIComponent('No auth token in URL'));
@@ -51,6 +58,11 @@ export default function AuthCallbackPage() {
         if (sessionError) {
           console.error('Error setting session after magic link:', sessionError);
           router.replace('/login?message=' + encodeURIComponent(sessionError.message || 'Sign-in failed'));
+          return;
+        }
+
+        if (hashType === 'recovery') {
+          router.replace('/auth/reset');
           return;
         }
 
