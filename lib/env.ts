@@ -8,6 +8,7 @@ export const env = {
   supabaseServiceRoleKey: process.env.SUPABASE_SERVICE_ROLE_KEY,
   googleClientId: process.env.GOOGLE_CLIENT_ID,
   googleClientSecret: process.env.GOOGLE_CLIENT_SECRET,
+  betterAuthSecret: process.env.BETTER_AUTH_SECRET,
   betterAuthUrl: process.env.BETTER_AUTH_URL,
 
   // Client (NEXT_PUBLIC_*) — safe to bundle for browser
