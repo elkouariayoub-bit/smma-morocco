@@ -10,6 +10,8 @@ export const env = {
   // Client (NEXT_PUBLIC_*) — safe to bundle for browser
   supabaseUrl: process.env.NEXT_PUBLIC_SUPABASE_URL,
   supabaseAnonKey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+  // Optional canonical origin for constructing redirect URLs
+  siteUrl: process.env.NEXT_PUBLIC_SITE_URL,
 };
 
 function assertEnv() {
