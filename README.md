@@ -39,6 +39,7 @@ Open http://localhost:3000
 #### Debugging Google provider availability
 - After updating credentials, restart your dev server (or redeploy) and clear cached cookies before testing again.
 - Visit [`/auth/better`](http://localhost:3000/auth/better) to inspect the live Better Auth configuration. The JSON response lists the enabled providers and whether each required environment variable is loaded.
+- Run `npm run debug:auth` locally to print a masked snapshot of the Better Auth environment variables and confirm that Google is registered before you boot Next.js.
 - The server logs now emit `[better-auth]` messages every time the Google flow is initialised. If Supabase reports `provider is not enabled`, make sure Google is toggled on inside **Supabase → Authentication → Providers** and that its Client ID/Secret match the values in `.env.local`.
 
 ### Deploy on Vercel

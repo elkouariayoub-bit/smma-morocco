@@ -4,6 +4,12 @@ import { env } from './env';
 
 import type { BetterAuthInstance } from 'better-auth';
 
+const mask = (value: string | null | undefined) => {
+  if (!value) return 'missing';
+  if (value.length <= 8) return 'set';
+  return `${value.slice(0, 4)}…${value.slice(-4)}`;
+};
+
 let instance: BetterAuthInstance | null = null;
 
 export function getBetterAuth() {
@@ -33,6 +39,12 @@ export function getBetterAuth() {
   });
 
   const providerIds = Object.keys(instance.providers);
+  console.info('[better-auth] Configuration check', {
+    googleClientId: mask(env.googleClientId),
+    googleClientSecret: mask(env.googleClientSecret),
+    betterAuthSecret: mask(env.betterAuthSecret),
+    betterAuthUrl: env.betterAuthUrl ?? 'not set',
+  });
   console.info(
     '[better-auth] Registered providers:',
     providerIds.length ? providerIds.join(', ') : 'none'
