@@ -21,6 +21,7 @@ async function createBetterAuth(): Promise<BetterAuthInstance> {
 
   if (!env.googleClientId) missing.push('GOOGLE_CLIENT_ID');
   if (!env.googleClientSecret) missing.push('GOOGLE_CLIENT_SECRET');
+  if (!env.betterAuthUrl) missing.push('BETTER_AUTH_URL');
 
   if (!env.betterAuthSecret) {
     throw new Error(
@@ -38,7 +39,7 @@ async function createBetterAuth(): Promise<BetterAuthInstance> {
 
   const auth = betterAuth({
     secret: env.betterAuthSecret!,
-    baseURL: env.betterAuthUrl ?? null,
+    baseURL: env.betterAuthUrl!,
     providers: [
       google({
         clientId: env.googleClientId!,

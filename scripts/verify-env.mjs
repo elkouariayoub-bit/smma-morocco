@@ -8,6 +8,7 @@ const REQUIRED_KEYS = [
   'GOOGLE_CLIENT_ID',
   'GOOGLE_CLIENT_SECRET',
   'BETTER_AUTH_SECRET',
+  'BETTER_AUTH_URL',
 ];
 
 const envPath = path.resolve(process.cwd(), '.env.local');

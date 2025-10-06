@@ -64,6 +64,7 @@ const serverRequiredKeys: Array<keyof EnvValues> = [
   'googleClientId',
   'googleClientSecret',
   'betterAuthSecret',
+  'betterAuthUrl',
 ];
 
 export function assertBrowserEnv() {

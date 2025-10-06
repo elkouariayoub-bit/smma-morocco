@@ -48,6 +48,7 @@ const missing = [];
 if (!googleClientId) missing.push('GOOGLE_CLIENT_ID');
 if (!googleClientSecret) missing.push('GOOGLE_CLIENT_SECRET');
 if (!betterAuthSecret) missing.push('BETTER_AUTH_SECRET');
+if (!process.env.BETTER_AUTH_URL) missing.push('BETTER_AUTH_URL');
 
 if (missing.length) {
   console.error(`\nMissing required environment variables: ${missing.join(', ')}`);
