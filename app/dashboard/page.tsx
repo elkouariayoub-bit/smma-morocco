@@ -7,7 +7,12 @@ import { Card } from "@/components/Card"
 import { PlatformCard } from "@/components/PlatformCard"
 import { Button } from "@/components/ui/button"
 import { FadeIn } from "@/components/fade-in"
-import { KpiChart, type KpiPoint } from "@/components/KpiChart"
+import { KpiChart } from "@/components/KpiChart"
+import {
+  fetchAudienceGrowthSeries,
+  fetchEngagementSeries,
+  type KpiSeries,
+} from "@/lib/kpi"
 import {
   Users,
   Heart,
@@ -24,7 +29,7 @@ interface StatCard {
   description?: string
   growth?: string
   icon?: ReactNode
-  trend?: KpiPoint[]
+  trend?: KpiSeries
   trendLabel?: string
   showTrendAxis?: boolean
 }
@@ -37,44 +42,6 @@ interface Platform {
   icon: ReactNode
   accentClassName?: string
 }
-
-const quickStats: StatCard[] = [
-  {
-    title: "Audience Growth",
-    value: "+2.4K",
-    growth: "↑ 5.2% vs last week",
-    description: "New followers across all platforms",
-    icon: <Users className="h-5 w-5" />,
-    trendLabel: "Audience growth for the past 7 days",
-    trend: [
-      { label: "Mon", value: 280 },
-      { label: "Tue", value: 320 },
-      { label: "Wed", value: 360 },
-      { label: "Thu", value: 420 },
-      { label: "Fri", value: 460 },
-      { label: "Sat", value: 510 },
-      { label: "Sun", value: 540 },
-    ],
-  },
-  {
-    title: "Engagement",
-    value: "+14.7K",
-    growth: "↑ 3.9% vs last week",
-    description: "Likes, comments, and shares",
-    icon: <Heart className="h-5 w-5" />,
-    trendLabel: "Engagement interactions for the past 7 days",
-    trend: [
-      { label: "Mon", value: 1750 },
-      { label: "Tue", value: 1825 },
-      { label: "Wed", value: 1880 },
-      { label: "Thu", value: 1940 },
-      { label: "Fri", value: 2010 },
-      { label: "Sat", value: 2150 },
-      { label: "Sun", value: 2210 },
-    ],
-    showTrendAxis: false,
-  },
-]
 
 const performanceMetrics: StatCard[] = [
   {
@@ -119,7 +86,34 @@ const platformOverview: Platform[] = [
   },
 ]
 
-export default function DashboardPage() {
+export default async function DashboardPage() {
+  const [audienceGrowthSeries, engagementSeries] = await Promise.all([
+    fetchAudienceGrowthSeries(),
+    fetchEngagementSeries(),
+  ])
+
+  const quickStats: StatCard[] = [
+    {
+      title: "Audience Growth",
+      value: "+2.4K",
+      growth: "↑ 5.2% vs last week",
+      description: "New followers across all platforms",
+      icon: <Users className="h-5 w-5" />,
+      trendLabel: "Audience growth for the past 7 days",
+      trend: audienceGrowthSeries,
+    },
+    {
+      title: "Engagement",
+      value: "+14.7K",
+      growth: "↑ 3.9% vs last week",
+      description: "Likes, comments, and shares",
+      icon: <Heart className="h-5 w-5" />,
+      trendLabel: "Engagement interactions for the past 7 days",
+      trend: engagementSeries,
+      showTrendAxis: false,
+    },
+  ]
+
   return (
     <div className="space-y-6">
       {/* Hidden sidebar render keeps the component available for responsive layouts handled by the route shell. */}
