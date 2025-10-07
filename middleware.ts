@@ -35,10 +35,6 @@ export async function middleware(req: NextRequest) {
     return NextResponse.redirect(loginUrl)
   }
 
-  if (isAuthenticated && pathname === '/') {
-    return NextResponse.redirect(new URL('/dashboard', req.url))
-  }
-
   if (isAuthenticated && pathname === '/login' && !req.nextUrl.searchParams.has('next')) {
     return NextResponse.redirect(new URL('/dashboard', req.url))
   }
