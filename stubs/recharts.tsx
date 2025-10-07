@@ -2,6 +2,7 @@ import * as React from "react";
 
 type ChartProps = React.HTMLAttributes<HTMLDivElement> & {
   children?: React.ReactNode;
+  [key: string]: any;
 };
 
 function createStubComponent(name: string) {

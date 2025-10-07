@@ -7,6 +7,7 @@ import { Card } from "@/components/Card"
 import { PlatformCard } from "@/components/PlatformCard"
 import { Button } from "@/components/ui/button"
 import { FadeIn } from "@/components/fade-in"
+import { KpiChart, type KpiPoint } from "@/components/KpiChart"
 import {
   Users,
   Heart,
@@ -23,6 +24,9 @@ interface StatCard {
   description?: string
   growth?: string
   icon?: ReactNode
+  trend?: KpiPoint[]
+  trendLabel?: string
+  showTrendAxis?: boolean
 }
 
 interface Platform {
@@ -41,6 +45,16 @@ const quickStats: StatCard[] = [
     growth: "↑ 5.2% vs last week",
     description: "New followers across all platforms",
     icon: <Users className="h-5 w-5" />,
+    trendLabel: "Audience growth for the past 7 days",
+    trend: [
+      { label: "Mon", value: 280 },
+      { label: "Tue", value: 320 },
+      { label: "Wed", value: 360 },
+      { label: "Thu", value: 420 },
+      { label: "Fri", value: 460 },
+      { label: "Sat", value: 510 },
+      { label: "Sun", value: 540 },
+    ],
   },
   {
     title: "Engagement",
@@ -48,6 +62,17 @@ const quickStats: StatCard[] = [
     growth: "↑ 3.9% vs last week",
     description: "Likes, comments, and shares",
     icon: <Heart className="h-5 w-5" />,
+    trendLabel: "Engagement interactions for the past 7 days",
+    trend: [
+      { label: "Mon", value: 1750 },
+      { label: "Tue", value: 1825 },
+      { label: "Wed", value: 1880 },
+      { label: "Thu", value: 1940 },
+      { label: "Fri", value: 2010 },
+      { label: "Sat", value: 2150 },
+      { label: "Sun", value: 2210 },
+    ],
+    showTrendAxis: false,
   },
 ]
 
@@ -107,7 +132,22 @@ export default function DashboardPage() {
       <section className="grid gap-4 sm:grid-cols-2 lg:gap-6">
         {quickStats.map((card, index) => (
           <FadeIn key={card.title} delay={0.08 * index}>
-            <Card {...card} />
+            <Card {...card}>
+              {card.trend ? (
+                <div className="space-y-3 text-xs text-gray-500 dark:text-gray-400">
+                  <p className="font-medium text-gray-400 dark:text-gray-500">Last 7 days</p>
+                  <div className="h-24 text-[#2563eb] dark:text-[#93c5fd]">
+                    <KpiChart
+                      data={card.trend}
+                      height={96}
+                      showGrid
+                      showAxis={card.showTrendAxis}
+                      ariaLabel={card.trendLabel ?? `${card.title} trend`}
+                    />
+                  </div>
+                </div>
+              ) : null}
+            </Card>
           </FadeIn>
         ))}
       </section>
