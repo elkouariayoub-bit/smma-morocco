@@ -1,10 +1,5 @@
-import { DashboardLayout } from "@/components/dashboard-layout"
-import { DashboardContent } from "@/components/dashboard-content"
+import { redirect } from 'next/navigation'
 
 export default function Page() {
-  return (
-    <DashboardLayout>
-      <DashboardContent />
-    </DashboardLayout>
-  )
+  redirect('/login')
 }
