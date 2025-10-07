@@ -1,18 +1,20 @@
-import type { ReactNode } from "react"
+import type { ComponentType, ReactNode } from "react"
 import Link from "next/link"
 
+import type { KpiChartProps } from "@/components/KpiChart"
 import { Sidebar } from "@/components/Sidebar"
 import { Header } from "@/components/Header"
 import { Card } from "@/components/Card"
 import { PlatformCard } from "@/components/PlatformCard"
 import { Button } from "@/components/ui/button"
 import { FadeIn } from "@/components/fade-in"
-import { KpiChart } from "@/components/KpiChart"
 import {
   fetchAudienceGrowthSeries,
   fetchEngagementSeries,
   type KpiSeries,
 } from "@/lib/kpi"
+import { cn } from "@/lib/utils"
+import dynamic from "next/dynamic"
 import {
   Users,
   Heart,
@@ -23,6 +25,23 @@ import {
   Twitter,
 } from "lucide-react"
 
+type TrendType = "audience" | "engagement"
+
+const AudienceChartClient = dynamic<KpiChartProps>(
+  () => import("@/components/AudienceChartClient"),
+  { ssr: false }
+)
+
+const EngagementChartClient = dynamic<KpiChartProps>(
+  () => import("@/components/EngagementChartClient"),
+  { ssr: false }
+)
+
+const trendComponents: Record<TrendType, ComponentType<KpiChartProps>> = {
+  audience: AudienceChartClient,
+  engagement: EngagementChartClient,
+}
+
 interface StatCard {
   title: string
   value: string
@@ -32,6 +51,8 @@ interface StatCard {
   trend?: KpiSeries
   trendLabel?: string
   showTrendAxis?: boolean
+  chartType?: TrendType
+  chartClassName?: string
 }
 
 interface Platform {
@@ -101,6 +122,8 @@ export default async function DashboardPage() {
       icon: <Users className="h-5 w-5" />,
       trendLabel: "Audience growth for the past 7 days",
       trend: audienceGrowthSeries,
+      chartType: "audience",
+      chartClassName: "text-[#2563eb] dark:text-[#93c5fd]",
     },
     {
       title: "Engagement",
@@ -111,6 +134,8 @@ export default async function DashboardPage() {
       trendLabel: "Engagement interactions for the past 7 days",
       trend: engagementSeries,
       showTrendAxis: false,
+      chartType: "engagement",
+      chartClassName: "text-emerald-500 dark:text-emerald-400",
     },
   ]
 
@@ -124,26 +149,32 @@ export default async function DashboardPage() {
       <Header />
 
       <section className="grid gap-4 sm:grid-cols-2 lg:gap-6">
-        {quickStats.map((card, index) => (
-          <FadeIn key={card.title} delay={0.08 * index}>
-            <Card {...card}>
-              {card.trend ? (
-                <div className="space-y-3 text-xs text-gray-500 dark:text-gray-400">
-                  <p className="font-medium text-gray-400 dark:text-gray-500">Last 7 days</p>
-                  <div className="h-24 text-[#2563eb] dark:text-[#93c5fd]">
-                    <KpiChart
-                      data={card.trend}
-                      height={96}
-                      showGrid
-                      showAxis={card.showTrendAxis}
-                      ariaLabel={card.trendLabel ?? `${card.title} trend`}
-                    />
+        {quickStats.map((card, index) => {
+          const ChartComponent = card.chartType
+            ? trendComponents[card.chartType]
+            : undefined
+
+          return (
+            <FadeIn key={card.title} delay={0.08 * index}>
+              <Card {...card}>
+                {card.trend && ChartComponent ? (
+                  <div className="space-y-3 text-xs text-gray-500 dark:text-gray-400">
+                    <p className="font-medium text-gray-400 dark:text-gray-500">Last 7 days</p>
+                    <div className={cn("h-24", card.chartClassName)}>
+                      <ChartComponent
+                        data={card.trend}
+                        height={96}
+                        showGrid
+                        showAxis={card.showTrendAxis}
+                        ariaLabel={card.trendLabel ?? `${card.title} trend`}
+                      />
+                    </div>
                   </div>
-                </div>
-              ) : null}
-            </Card>
-          </FadeIn>
-        ))}
+                ) : null}
+              </Card>
+            </FadeIn>
+          )
+        })}
       </section>
 
       <FadeIn delay={0.18}>
