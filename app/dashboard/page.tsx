@@ -28,9 +28,12 @@ const DashboardKpisClient = dynamic(
   { ssr: false }
 )
 
-const TripleKpiPanel = dynamic(() => import("@/components/TripleKpiPanel"), {
-  ssr: false,
-})
+const TripleKpiPanel = dynamic(
+  () => import("@/components/TripleKpiPanel.client"),
+  {
+    ssr: false,
+  }
+)
 
 interface Platform {
   name: string
