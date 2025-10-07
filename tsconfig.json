@@ -21,7 +21,24 @@
     ],
     "paths": {
       "@/components/*": ["./components/*"],
-      "@/lib/*": ["./lib/*"]
+      "@/lib/*": ["./lib/*"],
+      "@daveyplate/better-auth-ui": ["./better-auth-ui"],
+      "better-auth": ["./better-auth"],
+      "better-auth/providers": ["./better-auth/providers.ts"],
+      "better-auth/next-js": ["./better-auth/next-js.ts"],
+      "better-auth/client": ["./better-auth/client.ts"],
+      "clsx": ["./stubs/clsx.ts"],
+      "tailwind-merge": ["./stubs/tailwind-merge.ts"],
+      "class-variance-authority": ["./stubs/class-variance-authority.ts"],
+      "@radix-ui/react-slot": ["./stubs/radix-slot.tsx"],
+      "@radix-ui/react-scroll-area": ["./stubs/radix-scroll-area.tsx"],
+      "@radix-ui/react-dialog": ["./stubs/radix-dialog.tsx"],
+      "geist/font/sans": ["./stubs/geist-font-sans.ts"],
+      "geist/font/mono": ["./stubs/geist-font-mono.ts"],
+      "@vercel/analytics/next": ["./stubs/vercel-analytics.tsx"],
+      "framer-motion": ["./stubs/framer-motion.tsx"],
+      "tailwindcss": ["./stubs/tailwindcss.css"],
+      "tw-animate-css": ["./stubs/tw-animate-css.css"]
     }
   },
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
