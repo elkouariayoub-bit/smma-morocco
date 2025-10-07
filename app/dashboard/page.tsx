@@ -9,9 +9,7 @@ import { PlatformCard } from "@/components/PlatformCard"
 import { Button } from "@/components/ui/button"
 import { FadeIn } from "@/components/fade-in"
 import {
-  fetchAudienceGrowthSeries,
   fetchEngagementRateSeries,
-  fetchEngagementSeries,
   fetchImpressionsSeries,
   fetchPeopleSeries,
 } from "@/lib/kpi"
@@ -23,10 +21,6 @@ import {
   Twitter,
 } from "lucide-react"
 
-const DashboardKpisClient = dynamic(
-  () => import("@/components/DashboardKpis.client"),
-  { ssr: false }
-)
 const TripleKpiPanel = dynamic(
   () => import("@/components/TripleKpiPanel.client"),
   { ssr: false }
@@ -85,15 +79,7 @@ const platformOverview: Platform[] = [
 ]
 
 export default async function DashboardPage() {
-  const [
-    audienceGrowthSeries,
-    engagementSeries,
-    engagementRateSeries,
-    impressionsSeries,
-    peopleSeries,
-  ] = await Promise.all([
-    fetchAudienceGrowthSeries(),
-    fetchEngagementSeries(),
+  const [engagementRateSeries, impressionsSeries, peopleSeries] = await Promise.all([
     fetchEngagementRateSeries(),
     fetchImpressionsSeries(),
     fetchPeopleSeries(),
@@ -107,15 +93,6 @@ export default async function DashboardPage() {
       </div>
 
       <Header />
-
-      <FadeIn delay={0.08}>
-        <section className="grid gap-4 sm:gap-6 lg:grid-cols-12">
-          <DashboardKpisClient
-            audienceSeries={audienceGrowthSeries}
-            engagementSeries={engagementSeries}
-          />
-        </section>
-      </FadeIn>
 
       <FadeIn delay={0.14}>
         <TripleKpiPanel
