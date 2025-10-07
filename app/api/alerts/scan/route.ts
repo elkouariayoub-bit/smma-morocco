@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server"
 
-import { addAlert } from "@/lib/alerts"
+import { addAlert } from "../../store"
 import { getKpis } from "@/lib/kpi"
 
 function pctChange(latest: number, avg: number) {
