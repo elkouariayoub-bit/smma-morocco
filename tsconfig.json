@@ -14,12 +14,14 @@
     "isolatedModules": true,
     "jsx": "preserve",
     "incremental": true,
+    "baseUrl": ".",
     "plugins": [
       {
         "name": "next"
       }
     ],
     "paths": {
+      "@/*": ["*"],
       "@/components/*": ["./components/*"],
       "@/lib/*": ["./lib/*"],
       "@daveyplate/better-auth-ui": ["./better-auth-ui"],
