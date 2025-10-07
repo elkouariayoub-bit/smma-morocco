@@ -1,4 +1,5 @@
 import type { ReactNode } from "react"
+import dynamic from "next/dynamic"
 import Link from "next/link"
 
 import { Sidebar } from "@/components/Sidebar"
@@ -7,7 +8,6 @@ import { Card, type CardProps } from "@/components/Card"
 import { PlatformCard } from "@/components/PlatformCard"
 import { Button } from "@/components/ui/button"
 import { FadeIn } from "@/components/fade-in"
-import DashboardKpisClient from "@/components/DashboardKpisClient"
 import {
   fetchAudienceGrowthSeries,
   fetchEngagementSeries,
@@ -19,6 +19,11 @@ import {
   Instagram as InstagramIcon,
   Twitter,
 } from "lucide-react"
+
+const DashboardKpisClient = dynamic(
+  () => import("@/components/DashboardKpis.client"),
+  { ssr: false }
+)
 
 interface Platform {
   name: string
