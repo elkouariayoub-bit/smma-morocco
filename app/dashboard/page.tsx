@@ -10,7 +10,10 @@ import { Button } from "@/components/ui/button"
 import { FadeIn } from "@/components/fade-in"
 import {
   fetchAudienceGrowthSeries,
+  fetchEngagementRateSeries,
   fetchEngagementSeries,
+  fetchImpressionsSeries,
+  fetchPeopleSeries,
 } from "@/lib/kpi"
 import {
   Plus,
@@ -24,6 +27,10 @@ const DashboardKpisClient = dynamic(
   () => import("@/components/DashboardKpis.client"),
   { ssr: false }
 )
+
+const TripleKpiPanel = dynamic(() => import("@/components/TripleKpiPanel"), {
+  ssr: false,
+})
 
 interface Platform {
   name: string
@@ -78,9 +85,18 @@ const platformOverview: Platform[] = [
 ]
 
 export default async function DashboardPage() {
-  const [audienceGrowthSeries, engagementSeries] = await Promise.all([
+  const [
+    audienceGrowthSeries,
+    engagementSeries,
+    engagementRateSeries,
+    impressionsSeries,
+    peopleSeries,
+  ] = await Promise.all([
     fetchAudienceGrowthSeries(),
     fetchEngagementSeries(),
+    fetchEngagementRateSeries(),
+    fetchImpressionsSeries(),
+    fetchPeopleSeries(),
   ])
 
   return (
@@ -99,6 +115,14 @@ export default async function DashboardPage() {
             engagementSeries={engagementSeries}
           />
         </section>
+      </FadeIn>
+
+      <FadeIn delay={0.14}>
+        <TripleKpiPanel
+          engagementRate={engagementRateSeries}
+          impressions={impressionsSeries}
+          people={peopleSeries}
+        />
       </FadeIn>
 
       <FadeIn delay={0.18}>
