@@ -11,16 +11,16 @@ import {
   CartesianGrid,
 } from "recharts"
 
-export type KpiPoint = { label: string; value: number }
+export type KpiPoint = { label: string; value: number };
 
 export type KpiChartProps = {
-  data: KpiPoint[]
-  height?: number
-  showGrid?: boolean
-  showAxis?: boolean
-  strokeWidth?: number
-  ariaLabel?: string
-}
+  data: KpiPoint[];
+  height?: number;
+  showGrid?: boolean;
+  showAxis?: boolean;
+  strokeWidth?: number;
+  ariaLabel?: string;
+};
 
 function formatNumber(n: number) {
   if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M`
