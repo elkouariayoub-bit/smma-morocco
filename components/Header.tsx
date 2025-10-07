@@ -1,6 +1,6 @@
 "use client"
 
-import AlertsBell from "@/components/AlertsBell"
+import AlertsBell from "@/components/AlertsBell.client"
 
 interface HeaderProps {
   name?: string
