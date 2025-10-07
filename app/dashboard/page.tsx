@@ -6,7 +6,6 @@ import { Sidebar } from "@/components/Sidebar"
 import { Header } from "@/components/Header"
 import { Card, type CardProps } from "@/components/Card"
 import { PlatformCard } from "@/components/PlatformCard"
-import TripleKpiPanel from "@/components/TripleKpiPanel.client"
 import { Button } from "@/components/ui/button"
 import { FadeIn } from "@/components/fade-in"
 import {
@@ -26,6 +25,10 @@ import {
 
 const DashboardKpisClient = dynamic(
   () => import("@/components/DashboardKpis.client"),
+  { ssr: false }
+)
+const TripleKpiPanel = dynamic(
+  () => import("@/components/TripleKpiPanel.client"),
   { ssr: false }
 )
 
