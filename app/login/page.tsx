@@ -18,6 +18,7 @@ import {
 type LoginSearchParams = {
   message?: string;
   next?: string;
+  reason?: string;
 };
 
 const trimTrailingSlash = (value: string | null | undefined) =>
@@ -44,7 +45,12 @@ export default function LoginPage({ searchParams }: { searchParams?: LoginSearch
     }
   }, [searchParams?.next]);
 
-  const defaultRedirect = normalizedNext ?? '/dashboard';
+  const shouldRespectNext = useMemo(
+    () => Boolean(normalizedNext) && searchParams?.reason === 'redirect',
+    [normalizedNext, searchParams?.reason]
+  );
+
+  const defaultRedirect = shouldRespectNext && normalizedNext ? normalizedNext : '/dashboard';
 
   const { emailRedirect, oauthRedirect } = useMemo(() => {
     const canonical =
@@ -56,13 +62,13 @@ export default function LoginPage({ searchParams }: { searchParams?: LoginSearch
       return { emailRedirect: undefined, oauthRedirect: undefined };
     }
 
-    const nextQuery = normalizedNext ? `?next=${encodeURIComponent(normalizedNext)}` : '';
+    const nextQuery = shouldRespectNext && normalizedNext ? `?next=${encodeURIComponent(normalizedNext)}` : '';
 
     return {
       emailRedirect: `${canonical}/auth/callback${nextQuery}`,
       oauthRedirect: `${canonical}/api/auth/callback/google${nextQuery}`,
     };
-  }, [normalizedNext]);
+  }, [normalizedNext, shouldRespectNext]);
 
   const handleCodeSignIn = async (event: React.FormEvent) => {
     event.preventDefault();

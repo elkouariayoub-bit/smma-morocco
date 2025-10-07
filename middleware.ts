@@ -31,6 +31,7 @@ export async function middleware(req: NextRequest) {
     const loginUrl = new URL('/login', req.url)
     const nextPath = `${pathname}${search}`
     loginUrl.searchParams.set('next', nextPath)
+    loginUrl.searchParams.set('reason', 'redirect')
     return NextResponse.redirect(loginUrl)
   }
 
