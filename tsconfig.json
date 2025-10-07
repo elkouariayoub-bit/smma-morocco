@@ -37,6 +37,7 @@
       "geist/font/mono": ["./stubs/geist-font-mono.ts"],
       "@vercel/analytics/next": ["./stubs/vercel-analytics.tsx"],
       "framer-motion": ["./stubs/framer-motion.tsx"],
+      "recharts": ["./stubs/recharts.tsx"],
       "tailwindcss": ["./stubs/tailwindcss.css"],
       "tw-animate-css": ["./stubs/tw-animate-css.css"]
     }
