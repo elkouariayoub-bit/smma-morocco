@@ -5,6 +5,20 @@ import { NextResponse } from "next/server"
 
 import { buildMetricRows } from "@/lib/exportRows"
 
+async function loadXlsx() {
+  try {
+    return await import("xlsx")
+  } catch (primaryError) {
+    try {
+      const fallbackSpecifier = ["xlsx", "xlsx.mjs"].join("/")
+      return await import(fallbackSpecifier)
+    } catch (fallbackError) {
+      console.error("xlsx import failed", primaryError, fallbackError)
+      return null
+    }
+  }
+}
+
 export async function GET(req: Request) {
   try {
     const { searchParams } = new URL(req.url)
@@ -15,19 +29,12 @@ export async function GET(req: Request) {
       return NextResponse.json({ error: "start/end required" }, { status: 400 })
     }
 
-    const XLSX = await import("xlsx") as unknown as {
-      utils: typeof import("xlsx").utils
-      write: typeof import("xlsx").write
-      __xlsxLoadError?: Error
+    const XLSX = await loadXlsx()
+
+    if (!XLSX) {
+      return NextResponse.json({ error: "xlsx module unavailable" }, { status: 500 })
     }
 
-    if (XLSX.__xlsxLoadError) {
-      console.error("xlsx module failed to load", XLSX.__xlsxLoadError)
-      return NextResponse.json(
-        { error: "xlsx module unavailable" },
-        { status: 500 }
-      )
-    }
     const rows = await buildMetricRows(start, end)
 
     const workbook = XLSX.utils.book_new()
