@@ -46,6 +46,8 @@ const nextConfig = {
     config.resolve.alias['framer-motion'] = path.resolve(process.cwd(), 'stubs/framer-motion.tsx');
     config.resolve.alias['recharts'] = path.resolve(process.cwd(), 'stubs/recharts.tsx');
     config.resolve.alias['swr'] = path.resolve(process.cwd(), 'stubs/swr.ts');
+    config.resolve.alias['pdf-lib'] = path.resolve(process.cwd(), 'stubs/pdf-lib.ts');
+    config.resolve.alias['xlsx'] = path.resolve(process.cwd(), 'stubs/xlsx.ts');
     config.resolve.alias['tailwindcss'] = path.resolve(process.cwd(), 'stubs/tailwindcss.css');
     config.resolve.alias['tw-animate-css'] = path.resolve(process.cwd(), 'stubs/tw-animate-css.css');
     return config;

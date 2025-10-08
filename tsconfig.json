@@ -41,6 +41,8 @@
       "framer-motion": ["./stubs/framer-motion.tsx"],
       "recharts": ["./stubs/recharts.tsx"],
       "swr": ["./stubs/swr.ts"],
+      "pdf-lib": ["./stubs/pdf-lib.ts"],
+      "xlsx": ["./stubs/xlsx.ts"],
       "tailwindcss": ["./stubs/tailwindcss.css"],
       "tw-animate-css": ["./stubs/tw-animate-css.css"]
     }
