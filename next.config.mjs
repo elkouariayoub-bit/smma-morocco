@@ -2,6 +2,10 @@ import path from 'path';
 import { createRequire } from 'module';
 
 const require = createRequire(import.meta.url);
+const nextVersion = require('next/package.json').version;
+const [major, minor = '0'] = nextVersion.split('.');
+const supportsServerExternalPackages =
+  Number(major) > 14 || (Number(major) === 14 && Number(minor) >= 3);
 
 function aliasWhenMissing(config, moduleName, stubPath) {
   try {
@@ -68,5 +72,9 @@ const nextConfig = {
     return config;
   },
 };
+
+if (supportsServerExternalPackages) {
+  nextConfig.serverExternalPackages = ['xlsx', 'pdf-lib'];
+}
 
 export default nextConfig;
