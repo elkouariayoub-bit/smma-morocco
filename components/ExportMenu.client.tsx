@@ -1,63 +1,99 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
+import { createPortal } from "react-dom";
 
 import { useDateRange } from "@/app/providers/date-range";
 
 export default function ExportMenu() {
   const { range } = useDateRange();
   const [open, setOpen] = useState(false);
-  const menuRef = useRef<HTMLDivElement>(null);
+  const [portalReady, setPortalReady] = useState(false);
+  const buttonRef = useRef<HTMLButtonElement>(null);
 
   const csvHref = `/api/export/csv?start=${range.start}&end=${range.end}`;
-  const xlsxHref = `/api/export/xlsx?start=${range.start}&end=${range.end}`;
+  const xlsxHref = `/api/export/excel?start=${range.start}&end=${range.end}`;
   const pdfHref = `/api/export/pdf?start=${range.start}&end=${range.end}`;
 
+  useEffect(() => setPortalReady(true), []);
+
   useEffect(() => {
-    const handleClickAway = (event: MouseEvent) => {
-      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+    if (!open) return;
+
+    const onClick = (event: MouseEvent) => {
+      const button = buttonRef.current;
+      if (button && !button.contains(event.target as Node)) {
         setOpen(false);
       }
     };
 
-    document.addEventListener("click", handleClickAway);
-    return () => document.removeEventListener("click", handleClickAway);
-  }, []);
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setOpen(false);
+      }
+    };
+
+    document.addEventListener("click", onClick);
+    document.addEventListener("keydown", onKey);
+
+    return () => {
+      document.removeEventListener("click", onClick);
+      document.removeEventListener("keydown", onKey);
+    };
+  }, [open]);
+
+  const menuStyle = useMemo<CSSProperties>(() => {
+    const rect = buttonRef.current?.getBoundingClientRect();
+    if (!rect) {
+      return { display: "none" };
+    }
+
+    return {
+      position: "fixed",
+      top: rect.bottom + 8,
+      left: Math.max(8, rect.right - 176),
+      zIndex: 10_000,
+      width: 176,
+    };
+  }, [open]);
 
   return (
-    <div className="relative" ref={menuRef}>
+    <div className="relative">
       <button
-        type="button"
+        ref={buttonRef}
         onClick={() => setOpen((value) => !value)}
-        className="inline-flex items-center justify-center rounded-md border border-gray-200 px-3 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 dark:border-gray-700 dark:text-gray-200 dark:hover:bg-neutral-800"
-        aria-haspopup="menu"
-        aria-expanded={open}
+        className="rounded-md border px-3 py-2 hover:bg-gray-100 dark:hover:bg-neutral-800"
       >
         Export ▾
       </button>
 
-      {open ? (
-        <div className="absolute right-0 z-50 mt-2 w-48 overflow-hidden rounded-lg border border-gray-200 bg-white shadow-lg dark:border-gray-800 dark:bg-gray-900">
-          <a
-            href={csvHref}
-            className="block px-3 py-2 text-sm text-gray-700 transition-colors hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-neutral-800"
+      {open && portalReady &&
+        createPortal(
+          <div
+            style={menuStyle}
+            className="rounded-lg border bg-white shadow-lg dark:bg-neutral-900"
           >
-            CSV
-          </a>
-          <a
-            href={xlsxHref}
-            className="block px-3 py-2 text-sm text-gray-700 transition-colors hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-neutral-800"
-          >
-            Excel (.xlsx)
-          </a>
-          <a
-            href={pdfHref}
-            className="block px-3 py-2 text-sm text-gray-700 transition-colors hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-neutral-800"
-          >
-            PDF
-          </a>
-        </div>
-      ) : null}
+            <a
+              className="block px-3 py-2 text-sm hover:bg-gray-100 dark:hover:bg-neutral-800"
+              href={csvHref}
+            >
+              CSV
+            </a>
+            <a
+              className="block px-3 py-2 text-sm hover:bg-gray-100 dark:hover:bg-neutral-800"
+              href={xlsxHref}
+            >
+              Excel (.xlsx)
+            </a>
+            <a
+              className="block px-3 py-2 text-sm hover:bg-gray-100 dark:hover:bg-neutral-800"
+              href={pdfHref}
+            >
+              PDF
+            </a>
+          </div>,
+          document.body
+        )}
     </div>
   );
 }
