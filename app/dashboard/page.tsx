@@ -10,7 +10,7 @@ import { FadeIn } from "@/components/fade-in"
 import { Plus, TrendingUp, Facebook as FacebookIcon, Instagram as InstagramIcon, Twitter } from "lucide-react"
 
 import DateRangeToolbar from "@/components/DateRangeToolbar"
-import ExportButton from "@/components/ExportButton.client"
+import ExportMenu from "@/components/ExportMenu.client"
 import DashboardMetricsLoader from "@/components/DashboardMetricsLoader"
 
 interface Platform {
@@ -79,7 +79,7 @@ export default function DashboardPage() {
         <div className="rounded-xl border border-gray-200 bg-white px-6 py-4 shadow-sm dark:border-gray-800 dark:bg-gray-900">
           <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
             <DateRangeToolbar />
-            <ExportButton />
+            <ExportMenu />
           </div>
         </div>
       </FadeIn>
