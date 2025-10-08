@@ -10,6 +10,7 @@ export default function ExportMenu() {
   const [open, setOpen] = useState(false);
   const [portalReady, setPortalReady] = useState(false);
   const buttonRef = useRef<HTMLButtonElement>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
 
   const csvHref = `/api/export/csv?start=${range.start}&end=${range.end}`;
   const xlsxHref = `/api/export/excel?start=${range.start}&end=${range.end}`;
@@ -18,13 +19,24 @@ export default function ExportMenu() {
   useEffect(() => setPortalReady(true), []);
 
   useEffect(() => {
-    if (!open) return;
+    if (!open) {
+      return;
+    }
 
     const onClick = (event: MouseEvent) => {
+      const target = event.target as Node | null;
       const button = buttonRef.current;
-      if (button && !button.contains(event.target as Node)) {
-        setOpen(false);
+      const menu = menuRef.current;
+
+      if (target && button?.contains(target)) {
+        return;
       }
+
+      if (target && menu?.contains(target)) {
+        return;
+      }
+
+      setOpen(false);
     };
 
     const onKey = (event: KeyboardEvent) => {
@@ -63,6 +75,9 @@ export default function ExportMenu() {
         ref={buttonRef}
         onClick={() => setOpen((value) => !value)}
         className="rounded-md border px-3 py-2 hover:bg-gray-100 dark:hover:bg-neutral-800"
+        type="button"
+        aria-haspopup="menu"
+        aria-expanded={open}
       >
         Export ▾
       </button>
@@ -70,24 +85,29 @@ export default function ExportMenu() {
       {open && portalReady &&
         createPortal(
           <div
+            ref={menuRef}
             style={menuStyle}
             className="rounded-lg border bg-white shadow-lg dark:bg-neutral-900"
+            role="menu"
           >
             <a
               className="block px-3 py-2 text-sm hover:bg-gray-100 dark:hover:bg-neutral-800"
               href={csvHref}
+              role="menuitem"
             >
               CSV
             </a>
             <a
               className="block px-3 py-2 text-sm hover:bg-gray-100 dark:hover:bg-neutral-800"
               href={xlsxHref}
+              role="menuitem"
             >
               Excel (.xlsx)
             </a>
             <a
               className="block px-3 py-2 text-sm hover:bg-gray-100 dark:hover:bg-neutral-800"
               href={pdfHref}
+              role="menuitem"
             >
               PDF
             </a>
