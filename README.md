@@ -19,6 +19,14 @@ pnpm dev
 
 Open http://localhost:3000
 
+### Reporting exports
+- CSV, Excel, and PDF downloads are powered by `xlsx` and `pdf-lib`.
+- These packages are already listed in `package.json`, but make sure your environment can install them:
+  ```bash
+  npm install pdf-lib@^1.17.1 xlsx@^0.18.5
+  ```
+- If the registry is blocked (common in restricted sandboxes), the app falls back to local stubs so development can continue, but production deployments should install the real libraries.
+
 ### Supabase notes
 - Create a project (EU region closest to Morocco recommended).
 - Get `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` from **Project Settings → API**.
