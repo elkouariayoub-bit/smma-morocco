@@ -4,7 +4,7 @@ import { useMemo } from "react"
 
 import { useDateRange } from "@/app/providers/date-range"
 import KpiChart from "@/components/KpiChart"
-import type { KpiSeries, Range } from "@/lib/kpi"
+import type { KpiPoint, KpiSeries, Range } from "@/lib/kpi"
 import { previousRange } from "@/lib/kpi"
 
 const compactNumber = new Intl.NumberFormat("en-US", {
@@ -38,9 +38,9 @@ export type TripleKpiPanelProps = {
   engagementRate: KpiSeries
   impressions: KpiSeries
   people: KpiSeries
-  engagementRatePrev?: KpiSeries | null
-  impressionsPrev?: KpiSeries | null
-  peoplePrev?: KpiSeries | null
+  engagementRatePrev?: KpiPoint[]
+  impressionsPrev?: KpiPoint[]
+  peoplePrev?: KpiPoint[]
 }
 
 function formatDateRange(range: Range) {

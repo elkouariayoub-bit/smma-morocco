@@ -73,9 +73,9 @@ export default function DashboardMetricsLoader() {
       engagementRate={current.engagementRate}
       impressions={current.impressions}
       people={current.people}
-      engagementRatePrev={previous?.engagementRate ?? null}
-      impressionsPrev={previous?.impressions ?? null}
-      peoplePrev={previous?.people ?? null}
+      engagementRatePrev={previous?.engagementRate}
+      impressionsPrev={previous?.impressions}
+      peoplePrev={previous?.people}
     />
   )
 }
