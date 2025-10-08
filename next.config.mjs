@@ -1,6 +1,21 @@
 import path from 'path';
+import { createRequire } from 'module';
+
+const require = createRequire(import.meta.url);
+
+function aliasWhenMissing(config, moduleName, stubPath) {
+  try {
+    require.resolve(moduleName);
+  } catch {
+    config.resolve.alias[moduleName] = path.resolve(process.cwd(), stubPath);
+  }
+}
 
 const nextConfig = {
+  experimental: {
+    // Ensure these server-only packages can be bundled/loaded on Vercel Functions
+    serverComponentsExternalPackages: ['xlsx', 'pdf-lib'],
+  },
   webpack(config) {
     config.resolve.alias['@daveyplate/better-auth-ui'] = path.resolve(
       process.cwd(),
@@ -48,8 +63,8 @@ const nextConfig = {
     config.resolve.alias['swr'] = path.resolve(process.cwd(), 'stubs/swr.ts');
     config.resolve.alias['tailwindcss'] = path.resolve(process.cwd(), 'stubs/tailwindcss.css');
     config.resolve.alias['tw-animate-css'] = path.resolve(process.cwd(), 'stubs/tw-animate-css.css');
-    config.resolve.alias['pdf-lib'] = path.resolve(process.cwd(), 'stubs/pdf-lib.ts');
-    config.resolve.alias['xlsx'] = path.resolve(process.cwd(), 'stubs/xlsx.ts');
+    aliasWhenMissing(config, 'pdf-lib', 'stubs/pdf-lib.ts');
+    aliasWhenMissing(config, 'xlsx', 'stubs/xlsx.ts');
     return config;
   },
 };
