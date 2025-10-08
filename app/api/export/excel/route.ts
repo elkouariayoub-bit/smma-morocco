@@ -2,8 +2,36 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 import { NextResponse } from "next/server";
+import { createRequire } from "module";
+import { pathToFileURL } from "url";
 
 import { buildMetricRows } from "@/lib/exportRows";
+
+const require = createRequire(import.meta.url);
+
+function resolveModule(specifier: string) {
+  try {
+    return require.resolve(specifier);
+  } catch {
+    return null;
+  }
+}
+
+async function loadXlsx() {
+  const resolvedCjs = resolveModule("xlsx");
+  if (resolvedCjs) {
+    const fileUrl = pathToFileURL(resolvedCjs).href;
+    return import(/* webpackIgnore: true */ fileUrl);
+  }
+
+  const resolvedEsm = resolveModule("xlsx/xlsx.mjs");
+  if (resolvedEsm) {
+    const fileUrl = pathToFileURL(resolvedEsm).href;
+    return import(/* webpackIgnore: true */ fileUrl);
+  }
+
+  return null;
+}
 
 export async function GET(req: Request) {
   try {
@@ -15,17 +43,9 @@ export async function GET(req: Request) {
       return NextResponse.json({ error: "start/end required" }, { status: 400 });
     }
 
-    let XLSX: any;
-    try {
-      XLSX = await import("xlsx");
-    } catch (e1) {
-      const fallbackSpecifier = `xlsx/${"xlsx.mjs"}`;
-      try {
-        XLSX = await import(fallbackSpecifier);
-      } catch (e2) {
-        console.error("xlsx import failed", { e1, e2 });
-        return NextResponse.json({ error: "xlsx module unavailable" }, { status: 500 });
-      }
+    const XLSX = await loadXlsx();
+    if (!XLSX) {
+      return NextResponse.json({ error: "xlsx module unavailable" }, { status: 500 });
     }
 
     const rows = await buildMetricRows(start, end);
