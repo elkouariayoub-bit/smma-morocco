@@ -2,6 +2,7 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 import { NextResponse } from "next/server"
+import { PDFDocument, StandardFonts, rgb } from "pdf-lib"
 
 import { buildMetricRows } from "@/lib/exportRows"
 
@@ -30,28 +31,11 @@ export async function GET(req: Request) {
       return NextResponse.json({ error: "start/end required" }, { status: 400 })
     }
 
-    const imported = await import("pdf-lib")
-    const pdfLib = ("default" in imported && imported.default?.PDFDocument)
-      ? imported.default
-      : imported
-
-    const loadError = (pdfLib as { __pdfLibLoadError?: Error }).__pdfLibLoadError
-    if (loadError) {
-      console.error("pdf-lib module failed to load", loadError)
-      return NextResponse.json({ error: "pdf generation unavailable" }, { status: 500 })
-    }
-
-    const { PDFDocument, StandardFonts, rgb } = pdfLib as {
-      PDFDocument: typeof import("pdf-lib").PDFDocument
-      StandardFonts: typeof import("pdf-lib").StandardFonts
-      rgb: typeof import("pdf-lib").rgb
-    }
-
     const rows = await buildMetricRows(start, end)
 
-    const pdfDoc = (await PDFDocument.create()) as any
-    const font = await pdfDoc.embedFont((StandardFonts as any).Helvetica)
-    const fontBold = await pdfDoc.embedFont((StandardFonts as any).HelveticaBold)
+    const pdfDoc = await PDFDocument.create()
+    const font = await pdfDoc.embedFont(StandardFonts.Helvetica)
+    const fontBold = await pdfDoc.embedFont(StandardFonts.HelveticaBold)
 
     const addPage = () => pdfDoc.addPage(PAGE_SIZE)
 
@@ -63,7 +47,7 @@ export async function GET(req: Request) {
           y: nextY,
           size: 11,
           font: fontBold,
-          color: (rgb as any)(0, 0, 0),
+          color: rgb(0, 0, 0),
         })
       })
 
@@ -72,7 +56,7 @@ export async function GET(req: Request) {
         start: { x: MARGIN, y: nextY },
         end: { x: PAGE_WIDTH - MARGIN, y: nextY },
         thickness: 1,
-        color: (rgb as any)(0.8, 0.8, 0.8),
+        color: rgb(0.8, 0.8, 0.8),
       })
 
       return nextY - HEADER_LINE_GAP

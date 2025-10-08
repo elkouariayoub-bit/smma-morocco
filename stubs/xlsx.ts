@@ -1,27 +1,13 @@
-import { createRequire } from 'module'
-
 type XlsxApi = {
-  read: (...args: any[]) => any
-  write: (...args: any[]) => any
-  writeFile: (...args: any[]) => any
-  writeFileXLSX: (...args: any[]) => any
   utils: {
     book_new: (...args: any[]) => any
     json_to_sheet: (...args: any[]) => any
     sheet_add_json: (...args: any[]) => any
     book_append_sheet: (...args: any[]) => any
   }
-}
-
-const moduleName = 'xlsx'
-let actual: XlsxApi | undefined
-let loadError: Error | undefined
-
-try {
-  const require = createRequire(import.meta.url)
-  actual = require(moduleName) as XlsxApi
-} catch (err) {
-  loadError = err instanceof Error ? err : new Error(String(err))
+  write: (...args: any[]) => any
+  writeFile: (...args: any[]) => any
+  writeFileXLSX: (...args: any[]) => any
 }
 
 const stub = (name: string) => {
@@ -32,25 +18,22 @@ const stub = (name: string) => {
   }
 }
 
-export const read = actual?.read ?? stub('read')
-export const write = actual?.write ?? stub('write')
-export const writeFile = actual?.writeFile ?? stub('writeFile')
-export const writeFileXLSX = actual?.writeFileXLSX ?? stub('writeFileXLSX')
-export const utils = actual?.utils ?? {
+export const utils = {
   book_new: stub('utils.book_new'),
   json_to_sheet: stub('utils.json_to_sheet'),
   sheet_add_json: stub('utils.sheet_add_json'),
   book_append_sheet: stub('utils.book_append_sheet'),
 }
 
-export const __xlsxLoadError = loadError
+export const write = stub('write')
+export const writeFile = stub('writeFile')
+export const writeFileXLSX = stub('writeFileXLSX')
 
 const fallback: XlsxApi = {
-  read,
+  utils,
   write,
   writeFile,
   writeFileXLSX,
-  utils,
 }
 
-export default (actual ?? fallback) as XlsxApi
+export default fallback

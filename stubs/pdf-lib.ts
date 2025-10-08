@@ -1,22 +1,3 @@
-import { createRequire } from 'module';
-
-type PdfLibModule = {
-  PDFDocument: any;
-  StandardFonts: any;
-  rgb: (...args: any[]) => any;
-};
-
-const moduleName = 'pdf-lib';
-let actual: PdfLibModule | undefined;
-let loadError: Error | undefined;
-
-try {
-  const require = createRequire(import.meta.url);
-  actual = require(moduleName) as PdfLibModule;
-} catch (err) {
-  loadError = err instanceof Error ? err : new Error(String(err));
-}
-
 const missing = (name: string) => {
   return () => {
     throw new Error(
@@ -25,7 +6,7 @@ const missing = (name: string) => {
   };
 };
 
-export const PDFDocument = actual?.PDFDocument ?? class {
+export const PDFDocument = class {
   static async create() {
     throw new Error('PDF generation requires pdf-lib to be installed.');
   }
@@ -35,8 +16,8 @@ export const PDFDocument = actual?.PDFDocument ?? class {
   }
 };
 
-export const rgb = actual?.rgb ?? missing('rgb');
-export const StandardFonts = actual?.StandardFonts ?? new Proxy(
+export const rgb = missing('rgb');
+export const StandardFonts = new Proxy(
   {},
   {
     get() {
@@ -45,12 +26,8 @@ export const StandardFonts = actual?.StandardFonts ?? new Proxy(
   }
 );
 
-export const __pdfLibLoadError = loadError;
-
-const fallback: PdfLibModule = {
+export default {
   PDFDocument,
   StandardFonts,
   rgb,
 };
-
-export default (actual ?? fallback) as PdfLibModule;
