@@ -2,7 +2,6 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 import { NextResponse } from "next/server"
-import { PDFDocument, StandardFonts, rgb } from "pdf-lib"
 
 import { buildMetricRows } from "@/lib/exportRows"
 
@@ -29,6 +28,23 @@ export async function GET(req: Request) {
 
     if (!start || !end) {
       return NextResponse.json({ error: "start/end required" }, { status: 400 })
+    }
+
+    let mod: any
+    try {
+      mod = await import("pdf-lib")
+    } catch (error) {
+      console.error("pdf-lib import failed", error)
+      return NextResponse.json({ error: "pdf generation unavailable" }, { status: 500 })
+    }
+
+    const PDFDocument = mod.PDFDocument ?? mod.default?.PDFDocument
+    const StandardFonts = mod.StandardFonts ?? mod.default?.StandardFonts
+    const rgb = mod.rgb ?? mod.default?.rgb
+
+    if (!PDFDocument || !StandardFonts || !rgb) {
+      console.error("pdf-lib exports missing", Object.keys(mod ?? {}))
+      return NextResponse.json({ error: "pdf generation unavailable" }, { status: 500 })
     }
 
     const rows = await buildMetricRows(start, end)
