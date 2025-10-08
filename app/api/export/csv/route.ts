@@ -3,7 +3,7 @@ import { NextResponse } from "next/server"
 import { toCsv } from "@/lib/csv"
 import { buildMetricRows } from "@/lib/exportRows"
 
-export const runtime = "nodejs"
+export const runtime = "nodejs" satisfies "nodejs"
 
 export async function GET(req: Request) {
   const { searchParams } = new URL(req.url)
