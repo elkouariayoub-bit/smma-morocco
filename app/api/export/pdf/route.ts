@@ -30,19 +30,22 @@ export async function GET(req: Request) {
       return NextResponse.json({ error: "start/end required" }, { status: 400 })
     }
 
-    const pdfLib = await import("pdf-lib") as unknown as {
-      PDFDocument: typeof import("pdf-lib").PDFDocument
-      StandardFonts: typeof import("pdf-lib").StandardFonts
-      rgb: typeof import("pdf-lib").rgb
-      __pdfLibLoadError?: Error
-    }
+    const imported = await import("pdf-lib")
+    const pdfLib = ("default" in imported && imported.default?.PDFDocument)
+      ? imported.default
+      : imported
 
-    if (pdfLib.__pdfLibLoadError) {
-      console.error("pdf-lib module failed to load", pdfLib.__pdfLibLoadError)
+    const loadError = (pdfLib as { __pdfLibLoadError?: Error }).__pdfLibLoadError
+    if (loadError) {
+      console.error("pdf-lib module failed to load", loadError)
       return NextResponse.json({ error: "pdf generation unavailable" }, { status: 500 })
     }
 
-    const { PDFDocument, StandardFonts, rgb } = pdfLib
+    const { PDFDocument, StandardFonts, rgb } = pdfLib as {
+      PDFDocument: typeof import("pdf-lib").PDFDocument
+      StandardFonts: typeof import("pdf-lib").StandardFonts
+      rgb: typeof import("pdf-lib").rgb
+    }
 
     const rows = await buildMetricRows(start, end)
 
