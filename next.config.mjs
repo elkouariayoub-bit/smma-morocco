@@ -69,6 +69,7 @@ const nextConfig = {
     config.resolve.alias['tw-animate-css'] = path.resolve(process.cwd(), 'stubs/tw-animate-css.css');
     aliasWhenMissing(config, 'pdf-lib', 'stubs/pdf-lib.ts');
     aliasWhenMissing(config, 'xlsx', 'stubs/xlsx.ts');
+    aliasWhenMissing(config, 'xlsx/xlsx.mjs', 'stubs/xlsx.ts');
     return config;
   },
 };
