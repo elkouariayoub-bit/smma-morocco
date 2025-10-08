@@ -9,7 +9,7 @@ export default function ExportButton() {
 
   const href = useMemo(() => {
     const params = new URLSearchParams({ start: range.start, end: range.end })
-    return `/api/kpis/export?${params.toString()}`
+    return `/api/export/csv?${params.toString()}`
   }, [range.end, range.start])
 
   return (

@@ -10,7 +10,6 @@ export async function GET(req: Request) {
   if (!start || !end) return NextResponse.json({ error: "start/end required" }, { status: 400 })
 
   const rows = await buildMetricRows(start, end)
-
   const csv = toCsv(rows)
   return new NextResponse(csv, {
     headers: {
