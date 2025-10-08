@@ -70,11 +70,9 @@ export default function DashboardPage() {
       <Header />
 
       <FadeIn delay={0.12}>
-        <div className="rounded-xl border border-gray-200 bg-white px-6 py-4 shadow-sm dark:border-gray-800 dark:bg-gray-900">
-          <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-            <DateRangeToolbar />
-            <ExportMenu />
-          </div>
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <DateRangeToolbar />
+          <ExportMenu />
         </div>
       </FadeIn>
 
