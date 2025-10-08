@@ -11,7 +11,7 @@ import { Plus, TrendingUp, Facebook as FacebookIcon, Instagram as InstagramIcon,
 
 import DateRangeToolbar from "@/components/DateRangeToolbar"
 import ExportMenu from "@/components/ExportMenu.client"
-import DashboardMetricsLoader from "@/components/DashboardMetricsLoader"
+import DashboardMetricsLoader from "@/components/DashboardMetricsLoader.client"
 
 interface Platform {
   name: string
