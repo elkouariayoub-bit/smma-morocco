@@ -16,6 +16,9 @@ const DashboardMetricsLoader = dynamic(() => import("@/components/DashboardMetri
 const DateRangeToolbar = dynamic(() => import("@/components/date-range-toolbar"), {
   ssr: false,
 })
+const ExportButton = dynamic(() => import("@/components/ExportButton.client"), {
+  ssr: false,
+})
 
 interface Platform {
   name: string
@@ -81,7 +84,10 @@ export default function DashboardPage() {
 
       <FadeIn delay={0.12}>
         <div className="rounded-xl border border-gray-200 bg-white px-6 py-4 shadow-sm dark:border-gray-800 dark:bg-gray-900">
-          <DateRangeToolbar />
+          <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+            <DateRangeToolbar />
+            <ExportButton />
+          </div>
         </div>
       </FadeIn>
 
