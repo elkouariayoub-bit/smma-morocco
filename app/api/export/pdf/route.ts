@@ -3,6 +3,8 @@ import { NextResponse } from "next/server"
 import { PDFDocument, StandardFonts, rgb } from "pdf-lib"
 import { buildMetricRows } from "@/lib/exportRows"
 
+export const runtime = "nodejs"
+
 const PAGE_SIZE: [number, number] = [612, 792]
 const MARGIN = 40
 const START_Y = 740

@@ -3,6 +3,8 @@ import * as XLSX from "xlsx"
 
 import { buildMetricRows } from "@/lib/exportRows"
 
+export const runtime = "nodejs"
+
 export async function GET(req: Request) {
   const { searchParams } = new URL(req.url)
   const start = searchParams.get("start")
