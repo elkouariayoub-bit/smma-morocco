@@ -1,7 +1,7 @@
 // app/api/ai/caption/route.ts
 import { NextResponse } from 'next/server';
 import { GoogleGenAI } from '@google/genai';
-import { env } from '@/lib/env';
+import { loadServerEnv } from '@/lib/load-server-env';
 
 const systemInstruction = `You are an expert social media marketer helping small businesses craft compelling social media content.
 When given a topic, generate:
@@ -18,6 +18,9 @@ export async function POST(req: Request) {
     if (!topic || typeof topic !== 'string') {
       return NextResponse.json({ ok: false, error: 'Missing "topic"' }, { status: 400 });
     }
+
+    loadServerEnv();
+    const { env } = await import('@/lib/env');
 
     // Init client
     const ai = new GoogleGenAI({
