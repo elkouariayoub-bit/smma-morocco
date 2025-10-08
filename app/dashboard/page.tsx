@@ -1,7 +1,6 @@
 import type { ReactNode } from "react"
 import Link from "next/link"
 
-import { Sidebar } from "@/components/Sidebar"
 import { Header } from "@/components/Header"
 import { Card, type CardProps } from "@/components/Card"
 import { PlatformCard } from "@/components/PlatformCard"
@@ -68,11 +67,6 @@ const platformOverview: Platform[] = [
 export default function DashboardPage() {
   return (
     <main className="space-y-6">
-      {/* Hidden sidebar render keeps the component available for responsive layouts handled by the route shell. */}
-      <div className="hidden">
-        <Sidebar variant="desktop" />
-      </div>
-
       <Header />
 
       <FadeIn delay={0.12}>
