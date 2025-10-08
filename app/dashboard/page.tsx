@@ -1,5 +1,4 @@
 import type { ReactNode } from "react"
-import dynamic from "next/dynamic"
 import Link from "next/link"
 
 import { Sidebar } from "@/components/Sidebar"
@@ -10,15 +9,9 @@ import { Button } from "@/components/ui/button"
 import { FadeIn } from "@/components/fade-in"
 import { Plus, TrendingUp, Facebook as FacebookIcon, Instagram as InstagramIcon, Twitter } from "lucide-react"
 
-const DashboardMetricsLoader = dynamic(() => import("@/components/DashboardMetricsLoader"), {
-  ssr: false,
-})
-const DateRangeToolbar = dynamic(() => import("@/components/date-range-toolbar"), {
-  ssr: false,
-})
-const ExportButton = dynamic(() => import("@/components/ExportButton.client"), {
-  ssr: false,
-})
+import DateRangeToolbar from "@/components/DateRangeToolbar"
+import ExportButton from "@/components/ExportButton.client"
+import DashboardMetricsLoader from "@/components/DashboardMetricsLoader"
 
 interface Platform {
   name: string
@@ -74,7 +67,7 @@ const platformOverview: Platform[] = [
 
 export default function DashboardPage() {
   return (
-    <div className="space-y-6">
+    <main className="space-y-6">
       {/* Hidden sidebar render keeps the component available for responsive layouts handled by the route shell. */}
       <div className="hidden">
         <Sidebar variant="desktop" />
@@ -144,6 +137,6 @@ export default function DashboardPage() {
           ))}
         </div>
       </section>
-    </div>
+    </main>
   )
 }
