@@ -5,8 +5,6 @@ import { NextResponse } from "next/server";
 
 import { buildMetricRows } from "@/lib/exportRows";
 
-type ExcelJSModule = typeof import("exceljs");
-
 export async function GET(req: Request) {
   try {
     const { searchParams } = new URL(req.url);
@@ -17,14 +15,10 @@ export async function GET(req: Request) {
       return NextResponse.json({ error: "start/end required" }, { status: 400 });
     }
 
-    const ExcelJSImport = (await import("exceljs")) as ExcelJSModule & {
-      __isStub?: boolean;
-    };
-    const ExcelJS = (ExcelJSImport as ExcelJSModule & { __isStub?: boolean }).default ?? ExcelJSImport;
+    const ExcelJSImport = await import("exceljs");
+    const ExcelJS = (ExcelJSImport as { default?: any; __isStub?: boolean }).default ?? ExcelJSImport;
 
-    const workbookCtor = (ExcelJS as { Workbook?: new () => any; __isStub?: boolean }).Workbook;
-
-    if ((ExcelJS as { __isStub?: boolean }).__isStub || typeof workbookCtor !== "function") {
+    if ((ExcelJS as { __isStub?: boolean }).__isStub || typeof (ExcelJS as any).Workbook !== "function") {
       return NextResponse.json(
         { error: "Excel exports require the exceljs dependency to be installed." },
         { status: 500 }
@@ -33,7 +27,7 @@ export async function GET(req: Request) {
 
     const rows = await buildMetricRows(start, end);
 
-    const workbook = new workbookCtor();
+    const workbook = new (ExcelJS as { Workbook: new () => any }).Workbook();
     workbook.creator = "SMMA Dashboard";
     workbook.created = new Date();
 
@@ -53,7 +47,6 @@ export async function GET(req: Request) {
 
     const headerRow = worksheet.getRow(1);
     headerRow.font = { bold: true };
-    headerRow.alignment = { vertical: "middle" };
     headerRow.eachCell((cell: any) => {
       cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FFEFEFEF" } };
       cell.border = { bottom: { style: "thin", color: { argb: "FFCCCCCC" } } };
