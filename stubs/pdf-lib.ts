@@ -26,8 +26,11 @@ export const StandardFonts = new Proxy(
   }
 );
 
-export default {
+const stubModule = {
   PDFDocument,
   StandardFonts,
   rgb,
+  __isStub: true,
 };
+
+export default stubModule;

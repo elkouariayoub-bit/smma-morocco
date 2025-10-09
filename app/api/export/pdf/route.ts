@@ -38,6 +38,13 @@ export async function GET(req: Request) {
       return NextResponse.json({ error: "pdf generation unavailable" }, { status: 500 });
     }
 
+    if ((mod as { __isStub?: boolean }).__isStub || mod.default?.__isStub) {
+      return NextResponse.json(
+        { error: "PDF exports require the pdf-lib dependency to be installed." },
+        { status: 500 }
+      );
+    }
+
     const PDFDocument = mod.PDFDocument ?? mod.default?.PDFDocument;
     const StandardFonts = mod.StandardFonts ?? mod.default?.StandardFonts;
     const rgb = mod.rgb ?? mod.default?.rgb;

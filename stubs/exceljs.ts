@@ -39,6 +39,9 @@ class StubWorkbook {
   }
 }
 
-export default {
+const stubModule = {
   Workbook: StubWorkbook,
+  __isStub: true,
 };
+
+export default stubModule;

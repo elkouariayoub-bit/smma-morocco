@@ -17,12 +17,23 @@ export async function GET(req: Request) {
       return NextResponse.json({ error: "start/end required" }, { status: 400 });
     }
 
-    const ExcelJSImport = (await import("exceljs")) as ExcelJSModule;
-    const ExcelJS = ExcelJSImport.default ?? ExcelJSImport;
+    const ExcelJSImport = (await import("exceljs")) as ExcelJSModule & {
+      __isStub?: boolean;
+    };
+    const ExcelJS = (ExcelJSImport as ExcelJSModule & { __isStub?: boolean }).default ?? ExcelJSImport;
+
+    const workbookCtor = (ExcelJS as { Workbook?: new () => any; __isStub?: boolean }).Workbook;
+
+    if ((ExcelJS as { __isStub?: boolean }).__isStub || typeof workbookCtor !== "function") {
+      return NextResponse.json(
+        { error: "Excel exports require the exceljs dependency to be installed." },
+        { status: 500 }
+      );
+    }
 
     const rows = await buildMetricRows(start, end);
 
-    const workbook = new ExcelJS.Workbook();
+    const workbook = new workbookCtor();
     workbook.creator = "SMMA Dashboard";
     workbook.created = new Date();
 
