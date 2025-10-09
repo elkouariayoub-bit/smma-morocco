@@ -2,7 +2,6 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 import { NextResponse } from "next/server";
-
 import { buildMetricRows } from "@/lib/exportRows";
 
 export async function GET(req: Request) {
@@ -10,51 +9,29 @@ export async function GET(req: Request) {
     const { searchParams } = new URL(req.url);
     const start = searchParams.get("start");
     const end = searchParams.get("end");
+    if (!start || !end) return NextResponse.json({ error: "start/end required" }, { status: 400 });
 
-    if (!start || !end) {
-      return NextResponse.json({ error: "start/end required" }, { status: 400 });
-    }
-
-    // @ts-expect-error exceljs is loaded dynamically at runtime
-    const ExcelJSImport = await import("exceljs");
-    const ExcelJS = (ExcelJSImport as { default?: any; __isStub?: boolean }).default ?? ExcelJSImport;
-
-    if ((ExcelJS as { __isStub?: boolean }).__isStub || typeof (ExcelJS as any).Workbook !== "function") {
-      return NextResponse.json(
-        { error: "Excel exports require the exceljs dependency to be installed." },
-        { status: 500 }
-      );
-    }
-
+    // import inside handler so Next doesn’t try to analyze on edge
+    // @ts-expect-error exceljs type definitions are not available in this environment
+    const ExcelJS = (await import("exceljs")).default;
     const rows = await buildMetricRows(start, end);
 
-    const workbook = new (ExcelJS as { Workbook: new () => any }).Workbook();
-    workbook.creator = "SMMA Dashboard";
-    workbook.created = new Date();
+    const wb = new ExcelJS.Workbook();
+    wb.creator = "SMMA Dashboard";
+    wb.created = new Date();
+    const ws = wb.addWorksheet("Metrics", { views: [{ state: "frozen", ySplit: 1 }] });
 
-    const worksheet = workbook.addWorksheet("Metrics", {
-      properties: { defaultRowHeight: 18 },
-      views: [{ state: "frozen", ySplit: 1 }],
-    });
-
-    worksheet.columns = [
+    ws.columns = [
       { header: "date", key: "date", width: 14 },
       { header: "engagement_rate", key: "engagement_rate", width: 18 },
       { header: "impressions", key: "impressions", width: 14 },
       { header: "people", key: "people", width: 12 },
     ];
+    ws.addRows(rows);
 
-    worksheet.addRows(rows);
+    ws.getRow(1).font = { bold: true };
 
-    const headerRow = worksheet.getRow(1);
-    headerRow.font = { bold: true };
-    headerRow.eachCell((cell: any) => {
-      cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FFEFEFEF" } };
-      cell.border = { bottom: { style: "thin", color: { argb: "FFCCCCCC" } } };
-    });
-
-    const buffer = await workbook.xlsx.writeBuffer();
-
+    const buffer = await wb.xlsx.writeBuffer();
     return new NextResponse(Buffer.from(buffer), {
       headers: {
         "Content-Type": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
@@ -62,8 +39,8 @@ export async function GET(req: Request) {
         "Cache-Control": "no-store",
       },
     });
-  } catch (error) {
-    console.error("/api/export/excel error:", error);
+  } catch (err) {
+    console.error("/api/export/excel error:", err);
     return NextResponse.json({ error: "failed to export metrics" }, { status: 500 });
   }
 }
