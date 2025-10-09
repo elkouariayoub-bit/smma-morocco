@@ -45,6 +45,10 @@ const nextConfig = {
       'stubs/class-variance-authority.ts'
     );
     config.resolve.alias['@radix-ui/react-slot'] = path.resolve(process.cwd(), 'stubs/radix-slot.tsx');
+    config.resolve.alias['@radix-ui/react-popover'] = path.resolve(
+      process.cwd(),
+      'stubs/radix-popover.tsx'
+    );
     config.resolve.alias['@radix-ui/react-scroll-area'] = path.resolve(
       process.cwd(),
       'stubs/radix-scroll-area.tsx'

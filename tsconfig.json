@@ -32,6 +32,7 @@
       "clsx": ["./stubs/clsx.ts"],
       "tailwind-merge": ["./stubs/tailwind-merge.ts"],
       "class-variance-authority": ["./stubs/class-variance-authority.ts"],
+      "@radix-ui/react-popover": ["./stubs/radix-popover.tsx"],
       "@radix-ui/react-slot": ["./stubs/radix-slot.tsx"],
       "@radix-ui/react-scroll-area": ["./stubs/radix-scroll-area.tsx"],
       "@radix-ui/react-dialog": ["./stubs/radix-dialog.tsx"],
