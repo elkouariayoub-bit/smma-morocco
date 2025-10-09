@@ -18,7 +18,7 @@ function aliasWhenMissing(config, moduleName, stubPath) {
 const nextConfig = {
   experimental: {
     // Ensure these server-only packages can be bundled/loaded on Vercel Functions
-    serverComponentsExternalPackages: ['xlsx', 'pdf-lib'],
+    serverComponentsExternalPackages: ['exceljs', 'xlsx', 'pdf-lib'],
   },
   webpack(config) {
     config.resolve.alias['@daveyplate/better-auth-ui'] = path.resolve(
@@ -75,7 +75,7 @@ const nextConfig = {
 };
 
 if (supportsServerExternalPackages) {
-  nextConfig.serverExternalPackages = ['xlsx', 'pdf-lib'];
+  nextConfig.serverExternalPackages = ['exceljs', 'xlsx', 'pdf-lib'];
 }
 
 export default nextConfig;
