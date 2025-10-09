@@ -2,10 +2,6 @@ import path from 'path';
 import { createRequire } from 'module';
 
 const require = createRequire(import.meta.url);
-const nextVersion = require('next/package.json').version;
-const [major, minor = '0'] = nextVersion.split('.');
-const supportsServerExternalPackages =
-  Number(major) > 14 || (Number(major) === 14 && Number(minor) >= 3);
 
 function aliasWhenMissing(config, moduleName, stubPath) {
   try {
@@ -15,10 +11,11 @@ function aliasWhenMissing(config, moduleName, stubPath) {
   }
 }
 
+/** @type {import('next').NextConfig} */
 const nextConfig = {
+  serverExternalPackages: ['exceljs', 'pdf-lib'],
   experimental: {
-    // Ensure these server-only packages can be bundled/loaded on Vercel Functions
-    serverComponentsExternalPackages: ['exceljs', 'xlsx', 'pdf-lib'],
+    serverComponentsExternalPackages: ['exceljs', 'pdf-lib'],
   },
   webpack(config) {
     config.resolve.alias['@daveyplate/better-auth-ui'] = path.resolve(
@@ -74,9 +71,4 @@ const nextConfig = {
     return config;
   },
 };
-
-if (supportsServerExternalPackages) {
-  nextConfig.serverExternalPackages = ['exceljs', 'xlsx', 'pdf-lib'];
-}
-
 export default nextConfig;
