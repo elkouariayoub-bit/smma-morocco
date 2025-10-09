@@ -27,7 +27,12 @@ export default function ExportMenu() {
         ? "/api/export/excel"
         : "/api/export/pdf";
 
-    window.location.href = `${baseUrl}?start=${range.start}&end=${range.end}`;
+    const params = new URLSearchParams({
+      start: range.start,
+      end: range.end,
+    });
+
+    window.location.href = `${baseUrl}?${params.toString()}`;
     setOpen(false);
   };
 
