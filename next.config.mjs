@@ -24,7 +24,7 @@ const nextConfig = {
   webpack(config) {
     config.resolve.alias['@daveyplate/better-auth-ui'] = path.resolve(
       process.cwd(),
-      'better-auth-ui'
+      '@daveyplate/better-auth-ui/index.tsx'
     );
     config.resolve.alias['better-auth'] = path.resolve(
       process.cwd(),
@@ -42,33 +42,36 @@ const nextConfig = {
       process.cwd(),
       'better-auth/client.ts'
     );
-    config.resolve.alias['clsx'] = path.resolve(process.cwd(), 'stubs/clsx.ts');
-    config.resolve.alias['tailwind-merge'] = path.resolve(process.cwd(), 'stubs/tailwind-merge.ts');
+    config.resolve.alias['clsx'] = path.resolve(process.cwd(), 'clsx.ts');
+    config.resolve.alias['tailwind-merge'] = path.resolve(process.cwd(), 'tailwind-merge.ts');
     config.resolve.alias['class-variance-authority'] = path.resolve(
       process.cwd(),
-      'stubs/class-variance-authority.ts'
+      'class-variance-authority.ts'
     );
-    config.resolve.alias['@radix-ui/react-slot'] = path.resolve(process.cwd(), 'stubs/radix-slot.tsx');
-    aliasWhenMissing(config, '@radix-ui/react-popover', 'stubs/radix-popover.tsx');
+    config.resolve.alias['@radix-ui/react-slot'] = path.resolve(process.cwd(), '@radix-ui/react-slot/index.tsx');
+    config.resolve.alias['@radix-ui/react-popover'] = path.resolve(
+      process.cwd(),
+      '@radix-ui/react-popover/index.tsx'
+    );
     aliasWhenMissing(config, 'react-day-picker', 'stubs/react-day-picker.tsx', 'react-day-picker$');
     aliasWhenMissing(config, 'react-day-picker/dist/style.css', 'stubs/react-day-picker.css');
     config.resolve.alias['@radix-ui/react-scroll-area'] = path.resolve(
       process.cwd(),
-      'stubs/radix-scroll-area.tsx'
+      '@radix-ui/react-scroll-area/index.tsx'
     );
     config.resolve.alias['@radix-ui/react-dialog'] = path.resolve(
       process.cwd(),
-      'stubs/radix-dialog.tsx'
+      '@radix-ui/react-dialog/index.tsx'
     );
-    config.resolve.alias['geist/font/sans'] = path.resolve(process.cwd(), 'stubs/geist-font-sans.ts');
-    config.resolve.alias['geist/font/mono'] = path.resolve(process.cwd(), 'stubs/geist-font-mono.ts');
+    config.resolve.alias['geist/font/sans'] = path.resolve(process.cwd(), 'geist/font/sans.ts');
+    config.resolve.alias['geist/font/mono'] = path.resolve(process.cwd(), 'geist/font/mono.ts');
     config.resolve.alias['@vercel/analytics/next'] = path.resolve(
       process.cwd(),
-      'stubs/vercel-analytics.tsx'
+      '@vercel/analytics/next.tsx'
     );
-    config.resolve.alias['framer-motion'] = path.resolve(process.cwd(), 'stubs/framer-motion.tsx');
-    config.resolve.alias['recharts'] = path.resolve(process.cwd(), 'stubs/recharts.tsx');
-    config.resolve.alias['swr'] = path.resolve(process.cwd(), 'stubs/swr.ts');
+    config.resolve.alias['framer-motion'] = path.resolve(process.cwd(), 'framer-motion/index.tsx');
+    config.resolve.alias['recharts'] = path.resolve(process.cwd(), 'recharts/index.tsx');
+    config.resolve.alias['swr'] = path.resolve(process.cwd(), 'swr/index.ts');
     config.resolve.alias['tailwindcss'] = path.resolve(process.cwd(), 'stubs/tailwindcss.css');
     config.resolve.alias['tw-animate-css'] = path.resolve(process.cwd(), 'stubs/tw-animate-css.css');
     aliasWhenMissing(config, 'exceljs', 'stubs/exceljs.ts');

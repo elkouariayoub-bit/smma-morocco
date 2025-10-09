@@ -14,6 +14,7 @@ declare module 'exceljs' {
   const exceljs: any;
   export default exceljs;
 }
+
 declare module 'react-day-picker' {
   export type DateRange = {
     from?: Date
@@ -37,4 +38,14 @@ declare module 'react-day-picker' {
   } & React.HTMLAttributes<HTMLDivElement>;
 
   export function DayPicker(props: DayPickerProps): JSX.Element;
+}
+
+declare module 'tailwindcss' {
+  const css: unknown;
+  export default css;
+}
+
+declare module 'tw-animate-css' {
+  const css: unknown;
+  export default css;
 }
