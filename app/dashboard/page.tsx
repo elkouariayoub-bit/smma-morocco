@@ -70,12 +70,12 @@ export default function DashboardPage() {
       <Header />
 
       <FadeIn delay={0.12}>
-        <div
-          className="relative z-40 overflow-visible rounded-2xl border border-gray-200 bg-white p-4 shadow-sm transition-colors dark:border-gray-800 dark:bg-gray-900"
-        >
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <DateRangeToolbar />
-            <ExportMenu />
+        <div className="relative z-40 overflow-visible">
+          <div className="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm transition-colors dark:border-gray-800 dark:bg-gray-900">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <DateRangeToolbar />
+              <ExportMenu />
+            </div>
           </div>
         </div>
       </FadeIn>
