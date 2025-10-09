@@ -1,112 +1,95 @@
-'use client'
+'use client';
 
-import Link from 'next/link'
-import { usePathname } from 'next/navigation'
-import { useCallback } from 'react'
-import { BarChart3, HelpCircle, Home, Settings } from 'lucide-react'
+import Link from 'next/link';
+import { usePathname, useRouter } from 'next/navigation';
+import { supabase } from '@/lib/supabase';
+import { User, type Session } from '@supabase/supabase-js';
+import { useEffect, useState, type Dispatch, type SetStateAction } from 'react';
+import type { Page } from '../types';
+import { PenSquare, Clock, Archive, BarChart2, LogOut } from 'lucide-react';
 
-import type { Page } from '../types'
-import { cn } from '@/lib/utils'
+const navItems = [
+  { href: '/composer', label: 'Composer', icon: PenSquare },
+  { href: '/queue', label: 'Queue', icon: Clock },
+  { href: '/drafts', label: 'Drafts', icon: Archive },
+  { href: '/analytics', label: 'Analytics', icon: BarChart2 },
+];
 
-type SidebarProps = {
-  /**
-   * Support the legacy multi-page SPA shell by allowing callers to track the current page.
-   * Next.js routes rely on the current pathname instead.
-   */
-  currentPage?: Page
-  setCurrentPage?: (page: Page) => void
-  /**
-   * Triggered after a navigation interaction so mobile sheets can close when links are tapped.
-   */
-  onNavigate?: () => void
-  /**
-   * When rendered inside a sheet, shrink spacing so the menu feels comfortable on mobile.
-   */
-  variant?: 'desktop' | 'mobile'
+interface SidebarProps {
+  currentPage?: Page;
+  setCurrentPage?: Dispatch<SetStateAction<Page>>;
 }
 
-export const sidebarNavItems: Array<{
-  href: string
-  label: string
-  icon: typeof Home
-  legacyPage?: Page
-}> = [
-  { href: '/dashboard', label: 'Home', icon: Home, legacyPage: 'composer' },
-  { href: '/analytics', label: 'Analytics', icon: BarChart3, legacyPage: 'analytics' },
-  { href: '/settings', label: 'Settings', icon: Settings },
-  { href: '/help', label: 'Help', icon: HelpCircle },
-]
+export function Sidebar({ currentPage, setCurrentPage }: SidebarProps) {
+  const pathname = usePathname();
+  const router = useRouter();
+  const [user, setUser] = useState<User | null>(null);
 
-export function Sidebar({ currentPage, setCurrentPage, onNavigate, variant = 'desktop' }: SidebarProps) {
-  let pathname: string | undefined
-  try {
-    pathname = usePathname()
-  } catch (error) {
-    pathname = undefined
-  }
+  useEffect(() => {
+    const fetchUser = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      setUser(user);
+    };
 
-  const handleNavigate = useCallback(
-    (legacyPage?: Page) => {
-      if (legacyPage && setCurrentPage) {
-        setCurrentPage(legacyPage)
-      }
-      onNavigate?.()
-    },
-    [onNavigate, setCurrentPage],
-  )
+    fetchUser();
+    
+    const { data: authListener } = supabase.auth.onAuthStateChange((event: string, session: Session | null) => {
+      setUser(session?.user ?? null);
+    });
+
+    return () => {
+      authListener?.subscription.unsubscribe();
+    };
+  }, []);
+
+  const handleSignOut = async () => {
+    await supabase.auth.signOut();
+    router.push('/login');
+  };
 
   return (
-    <div
-      className={cn(
-        'flex h-full flex-col bg-white transition-colors dark:bg-gray-900',
-        variant === 'desktop'
-          ? 'w-64 border-r border-gray-200 shadow-sm transition dark:border-gray-800 lg:fixed lg:inset-y-0 lg:left-0'
-          : 'w-full',
-      )}
-    >
-      <div
-        className={cn(
-          'border-b border-gray-200 dark:border-gray-800',
-          variant === 'mobile' ? 'px-4 py-5' : 'px-6 py-6',
-        )}
-      >
-        <span className="block text-xs font-semibold uppercase tracking-[0.18em] text-gray-500 dark:text-gray-400">
-          SMMA
-        </span>
-        <span className="text-lg font-semibold text-gray-900 dark:text-gray-50">Dashboard</span>
+    <aside className="w-64 bg-white border-r border-gray-200 flex flex-col fixed h-full">
+      <div className="p-6 border-b border-gray-200">
+        <Link href="/" className="text-2xl font-bold text-gray-800">SMMA<span className="text-black">.</span></Link>
+        <p className="text-sm text-gray-500">Morocco</p>
       </div>
-      <nav className={cn('flex flex-1 flex-col gap-1.5 py-4', variant === 'mobile' ? 'px-4' : 'px-3')}
-        aria-label="Primary"
-      >
-        {sidebarNavItems.map((item) => {
-          const isActive = pathname === item.href || (!!currentPage && currentPage === item.legacyPage)
-
+      <nav className="flex-1 p-4 space-y-1">
+        {navItems.map((item) => {
+          const pageFromHref = item.href.replace(/^\//, '') as Page;
+          const isActive = pathname === item.href || currentPage === pageFromHref;
           return (
             <Link
               key={item.href}
               href={item.href}
-              onClick={() => handleNavigate(item.legacyPage)}
-              className={cn(
-                'group relative flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-all duration-200',
-                'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2563eb]',
+              onClick={() => setCurrentPage?.(pageFromHref)}
+              className={`w-full flex items-center space-x-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
                 isActive
-                  ? 'bg-[#2563eb]/10 text-[#2563eb] shadow-sm dark:bg-[#2563eb]/20'
-                  : 'text-gray-600 hover:-translate-y-0.5 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-gray-100',
-              )}
+                  ? 'bg-gray-900 text-white'
+                  : 'text-gray-600 hover:bg-gray-100'
+              }`}
             >
-              <item.icon
-                className={cn(
-                  'h-5 w-5 transition-colors duration-200',
-                  isActive
-                    ? 'text-[#2563eb]'
-                    : 'text-gray-400 group-hover:text-gray-700 dark:text-gray-500 dark:group-hover:text-gray-300',
-                )}
-              />
+              <item.icon className="w-5 h-5" />
               <span>{item.label}</span>
             </Link>
-          )
+          );
         })}
       </nav>
-    </div>
-  )
+      {user && (
+         <div className="p-4 border-t border-gray-200">
+            <div className="flex items-center space-x-3">
+                <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center font-bold text-gray-600">
+                    {user.email?.[0].toUpperCase()}
+                </div>
+                <div className="flex-1 min-w-0">
+                    <p className="text-sm font-semibold text-gray-800 truncate">{user.email}</p>
+                    <button onClick={handleSignOut} className="text-xs text-gray-500 hover:underline flex items-center gap-1">
+                        <LogOut className="w-3 h-3"/>
+                        Sign Out
+                    </button>
+                </div>
+            </div>
+         </div>
+      )}
+    </aside>
+  );
 }

@@ -1,11 +1,8 @@
 // lib/supabaseServer.ts
 import { createClient } from '@supabase/supabase-js';
-import { loadServerEnv } from './load-server-env';
+import { env } from './env';
 
-export async function supabaseServer() {
-  loadServerEnv();
-  const { env } = await import('./env');
-
+export function supabaseServer() {
   if (!env.supabaseUrl) {
     throw new Error('Missing server env var: NEXT_PUBLIC_SUPABASE_URL');
   }
@@ -15,6 +12,6 @@ export async function supabaseServer() {
   if (!key) throw new Error('Missing Supabase key for server client');
 
   return createClient(env.supabaseUrl as string, key as string, {
-    auth: { persistSession: false },
+    auth: { persistSession: false }
   });
 }

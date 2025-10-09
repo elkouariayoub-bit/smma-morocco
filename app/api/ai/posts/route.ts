@@ -3,7 +3,7 @@ import { NextResponse } from 'next/server';
 import { supabaseServer } from '@/lib/supabaseServer';
 
 export async function GET() {
-  const supabase = await supabaseServer();
+  const supabase = supabaseServer();
 
   // You can’t read user_id in a simple route without a cookie/session;
   // but for simplicity we’ll return all (for your own dev account) or filter later.
@@ -17,7 +17,7 @@ export async function GET() {
 }
 
 export async function POST(req: Request) {
-  const supabase = await supabaseServer();
+  const supabase = supabaseServer();
   const body = await req.json();
   const { platform, caption, image_url, scheduled_at, user_id } = body;
 

@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card } from './Card';
 import { Post, PostStatus } from '../types';
 
 export const Queue: React.FC = () => {
@@ -40,12 +40,8 @@ export const Queue: React.FC = () => {
   return (
     <div className="space-y-6">
       <h2 className="text-3xl font-bold tracking-tight text-slate-900 dark:text-slate-100">Queue</h2>
-      <Card className="border border-slate-200 bg-white shadow-sm">
-        <CardHeader>
-          <CardTitle>Scheduled Posts</CardTitle>
-          <CardDescription>These posts are waiting to be published.</CardDescription>
-        </CardHeader>
-        <CardContent className="flow-root">
+      <Card title="Scheduled Posts" description="These posts are waiting to be published.">
+        <div className="flow-root p-6">
             {loading && (
                 <div className="text-center py-10">
                     <p className="text-slate-500 dark:text-slate-400">Loading your queue...</p>
@@ -89,7 +85,7 @@ export const Queue: React.FC = () => {
                     ))}
                 </ul>
             )}
-        </CardContent>
+        </div>
       </Card>
     </div>
   );

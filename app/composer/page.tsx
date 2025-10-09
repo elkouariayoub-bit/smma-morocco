@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Wand2 } from 'lucide-react';
-import { getOptionalSupabaseBrowserClient } from '@/lib/supabase';
+import { supabase } from '@/lib/supabase';
 import { SocialPlatform } from '@/lib/types';
 
 const Select = ({ className, ...props }: React.SelectHTMLAttributes<HTMLSelectElement>) => (
@@ -16,9 +16,7 @@ className={`flex h-9 w-full items-center justify-between rounded-md border borde
 );
 
 export default function ComposerPage() {
-        const supabase = getOptionalSupabaseBrowserClient();
-        const supabaseMissingMessage = 'Supabase credentials are not configured. Please set NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY.';
-        const [title, setTitle] = useState("");
+	const [title, setTitle] = useState("");
 	const [caption, setCaption] = useState("");
 	const [image, setImage] = useState<File | null>(null);
 	const [platform, setPlatform] = useState<SocialPlatform>(SocialPlatform.Instagram);
@@ -35,18 +33,12 @@ export default function ComposerPage() {
   
 	const [userId, setUserId] = useState<string | null>(null);
 
-        useEffect(() => {
-                if (!supabase) {
-                        setUserId(null);
-                        setError(supabaseMissingMessage);
-                        return;
-                }
-
-                (async () => {
-                        const { data } = await supabase.auth.getUser();
-                        setUserId(data.user?.id ?? null);
-                })();
-        }, [supabase]);
+	useEffect(() => {
+		(async () => {
+			const { data } = await supabase.auth.getUser();
+			setUserId(data.user?.id ?? null);
+		})();
+	}, []);
 
 	useEffect(() => {
 		setMessage(null);
@@ -73,15 +65,12 @@ export default function ComposerPage() {
 };
 
 const handleSchedule = async () => {
-        setSaving(true);
-        setError(null);
-        try {
-                if (!supabase) {
-                        throw new Error(supabaseMissingMessage);
-                }
-                // You need the current user_id; simplest is to fetch it from Supabase auth
-                const { data: { user } } = await supabase.auth.getUser();
-                if (!user) throw new Error('You must be signed in');
+	setSaving(true);
+	setError(null);
+	try {
+		// You need the current user_id; simplest is to fetch it from Supabase auth
+		const { data: { user } } = await supabase.auth.getUser();
+		if (!user) throw new Error('You must be signed in');
 
 		const payload = {
 			platform,
@@ -107,15 +96,14 @@ const handleSchedule = async () => {
 	}
 };
 
-async function saveDraft() {
-        if (!userId) return setMessage('❌ Sign in');
-        setSaving(true);
-        setMessage(null);
-        try {
-                        if (!supabase) throw new Error(supabaseMissingMessage);
-                        const media_urls: string[] = []; // Image upload not implemented yet
-                        const { error, data } = await supabase.from('drafts')
-                                .insert({ title, caption, media_urls, user_id: userId, platform })
+	async function saveDraft() {
+		if (!userId) return setMessage('❌ Sign in');
+		setSaving(true);
+		setMessage(null);
+		try {
+			const media_urls: string[] = []; // Image upload not implemented yet
+			const { error, data } = await supabase.from('drafts')
+				.insert({ title, caption, media_urls, user_id: userId, platform })
 				.select('id').single();
 			if (error) throw error;
 			setMessage('✅ Draft saved');
@@ -123,17 +111,16 @@ async function saveDraft() {
 		finally { setSaving(false); }
 	}
 
-async function schedulePost() {
-        if (!userId) return setMessage('❌ Sign in');
-        if (!when) { return setMessage('❌ Pick a date & time'); }
-        setSaving(true);
-        setMessage(null);
-        try {
-                        if (!supabase) throw new Error(supabaseMissingMessage);
-                        const scheduled_at = new Date(when).toISOString();
-                        const media_urls: string[] = []; // Image upload not implemented yet
-                        const { error, data } = await supabase.from('scheduled_posts')
-                                .insert({ platform, caption, media_urls, scheduled_at, user_id: userId, title })
+	async function schedulePost() {
+		if (!userId) return setMessage('❌ Sign in');
+		if (!when) { return setMessage('❌ Pick a date & time'); }
+		setSaving(true);
+		setMessage(null);
+		try {
+			const scheduled_at = new Date(when).toISOString();
+			const media_urls: string[] = []; // Image upload not implemented yet
+			const { error, data } = await supabase.from('scheduled_posts')
+				.insert({ platform, caption, media_urls, scheduled_at, user_id: userId, title })
 				.select('id').single();
 			if (error) throw error;
 			setMessage('✅ Scheduled');
@@ -143,28 +130,8 @@ async function schedulePost() {
 	}
 
 
-        if (!supabase) {
-                return (
-                        <div className="flex min-h-screen items-center justify-center bg-slate-100 px-6 py-16">
-                                <Card className="max-w-lg">
-                                        <CardHeader>
-                                                <CardTitle>Supabase configuration required</CardTitle>
-                                                <CardDescription>
-                                                        {supabaseMissingMessage} Without these settings the composer cannot save drafts or schedule posts.
-                                                </CardDescription>
-                                        </CardHeader>
-                                        <CardContent>
-                                                <p className="text-sm text-slate-600">
-                                                        Update your environment variables and restart the app to continue.
-                                                </p>
-                                        </CardContent>
-                                </Card>
-                        </div>
-                );
-        }
-
-        return (
-                <div className="grid md:grid-cols-3 gap-6 items-start">
+	return (
+		<div className="grid md:grid-cols-3 gap-6 items-start">
 			<div className="md:col-span-2 grid gap-6">
 				<Card>
 						<CardHeader>

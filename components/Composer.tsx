@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card } from './Card';
 import { Button } from './Button';
 import { SocialPlatform } from '../types';
 import { Wand2 } from './Icon';
@@ -95,8 +95,8 @@ export const Composer: React.FC = () => {
       <h2 className="text-3xl font-bold tracking-tight text-slate-900 dark:text-slate-100">Composer</h2>
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2">
-            <Card className="border border-slate-200 bg-white shadow-sm">
-              <CardContent className="space-y-4">
+            <Card>
+                 <div className="space-y-4">
                     <div>
                         <label className="text-sm font-medium text-slate-700 dark:text-slate-300">Platforms</label>
                         <div className="flex space-x-2 mt-2">
@@ -133,16 +133,12 @@ export const Composer: React.FC = () => {
                           {message && <p className="text-green-600">{message}</p>}
                        </div>
                     </div>
-              </CardContent>
+                 </div>
             </Card>
         </div>
         <div className="space-y-6">
-            <Card className="border border-slate-200 bg-white shadow-sm">
-              <CardHeader>
-                <CardTitle>AI Assistant</CardTitle>
-                <CardDescription>Generate content with AI.</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
+            <Card title="AI Assistant" description="Generate content with AI.">
+                <div className="space-y-4">
                     <div>
                         <label htmlFor="ai-topic" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
                             Topic
@@ -161,13 +157,10 @@ export const Composer: React.FC = () => {
                         Generate Caption
                     </Button>
                     {aiError && <p className="text-sm text-red-500">{aiError}</p>}
-              </CardContent>
+                </div>
             </Card>
-            <Card className="border border-slate-200 bg-white shadow-sm">
-              <CardHeader>
-                <CardTitle>Preview</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
+            <Card title="Preview">
+                <div className="space-y-4">
                     <div>
                         <p className="text-sm font-medium text-slate-500 dark:text-slate-400">Platforms</p>
                         <p className="text-sm text-slate-800 dark:text-slate-200 capitalize">
@@ -182,7 +175,7 @@ export const Composer: React.FC = () => {
                             </p>
                         </div>
                     </div>
-              </CardContent>
+                </div>
             </Card>
         </div>
       </div>

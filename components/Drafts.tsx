@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card } from './Card';
 import { Post, SocialPlatform, PostStatus } from '../types';
 
 const mockDrafts: Post[] = [
@@ -24,12 +24,8 @@ export const Drafts: React.FC = () => {
   return (
     <div className="space-y-6">
       <h2 className="text-3xl font-bold tracking-tight text-slate-900 dark:text-slate-100">Drafts</h2>
-      <Card className="border border-slate-200 bg-white shadow-sm">
-        <CardHeader>
-          <CardTitle>Saved Drafts</CardTitle>
-          <CardDescription>These posts are not scheduled yet.</CardDescription>
-        </CardHeader>
-        <CardContent className="divide-y divide-slate-200">
+      <Card title="Saved Drafts" description="These posts are not scheduled yet.">
+        <div className="divide-y divide-slate-200 dark:divide-slate-700">
             {mockDrafts.map((post) => (
               <div key={post.id} className="py-4">
                 <p className="text-sm font-medium text-indigo-500">{post.platform}</p>
@@ -40,12 +36,12 @@ export const Drafts: React.FC = () => {
                 </div>
               </div>
             ))}
-            {mockDrafts.length === 0 && (
-              <div className="py-10 text-center">
-                <p className="text-slate-500">You have no saved drafts.</p>
-              </div>
-            )}
-        </CardContent>
+             {mockDrafts.length === 0 && (
+                <div className="text-center py-10">
+                    <p className="text-slate-500 dark:text-slate-400">You have no saved drafts.</p>
+                </div>
+             )}
+        </div>
       </Card>
     </div>
   );

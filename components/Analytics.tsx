@@ -1,11 +1,18 @@
 
 import React from 'react';
-import { Card as MetricCard } from '@/components/Card';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card } from './Card';
 import { BarChart2 } from './Icon';
 
 const StatCard: React.FC<{ title: string; value: string; change: string }> = ({ title, value, change }) => (
-  <MetricCard title={title} value={value} growth={change} />
+    <Card>
+        <p className="text-sm font-medium text-slate-500 dark:text-slate-400 truncate">{title}</p>
+        <div className="mt-1 flex items-baseline">
+            <p className="text-2xl font-semibold text-slate-900 dark:text-slate-100">{value}</p>
+            <p className="ml-2 flex items-baseline text-sm font-semibold text-green-600">
+                {change}
+            </p>
+        </div>
+    </Card>
 )
 
 export const Analytics: React.FC = () => {
@@ -18,14 +25,14 @@ export const Analytics: React.FC = () => {
           <StatCard title="Posts Published" value="89" change="+12" />
           <StatCard title="Link Clicks" value="1,204" change="+15%" />
       </div>
-      <Card className="border border-slate-200 bg-white shadow-sm">
-        <CardContent className="flex h-96 flex-col items-center justify-center gap-4 text-center">
-          <BarChart2 className="h-16 w-16 text-slate-400" />
-          <h3 className="text-lg font-semibold text-slate-800">Full Analytics Coming Soon</h3>
-          <p className="text-sm text-slate-500">
-            We're building a comprehensive analytics suite.
-          </p>
-        </CardContent>
+      <Card>
+        <div className="flex flex-col items-center justify-center h-96">
+            <BarChart2 className="w-16 h-16 text-slate-400 dark:text-slate-500" />
+            <h3 className="mt-4 text-lg font-semibold text-slate-800 dark:text-slate-200">Full Analytics Coming Soon</h3>
+            <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
+              We're building a comprehensive analytics suite.
+            </p>
+        </div>
       </Card>
     </div>
   );

@@ -3,48 +3,36 @@
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { Button } from './ui/button';
-import { getOptionalSupabaseBrowserClient } from '@/lib/supabase';
+import { supabase } from '@/lib/supabase';
 import { User, type Session } from '@supabase/supabase-js';
 
 const navLinks = [
-    { href: '/dashboard', label: 'Dashboard' },
+    { href: '/composer', label: 'Composer' },
     { href: '/queue', label: 'Queue' },
-    { href: '/drafts', label: 'Drafts' },
     { href: '/analytics', label: 'Analytics' },
 ];
 
 export function Navbar() {
   const [user, setUser] = useState<User | null>(null);
-  const supabase = getOptionalSupabaseBrowserClient();
 
   useEffect(() => {
-    if (!supabase) {
-      setUser(null);
-      return;
-    }
-
     const fetchUser = async () => {
       const { data: { user } } = await supabase.auth.getUser();
       setUser(user);
     };
 
     fetchUser();
-
-    const { data: authListener } = supabase.auth.onAuthStateChange((_event: string, session: Session | null) => {
+    
+    const { data: authListener } = supabase.auth.onAuthStateChange((event: string, session: Session | null) => {
       setUser(session?.user ?? null);
     });
 
     return () => {
       authListener?.subscription.unsubscribe();
     };
-  }, [supabase]);
+  }, []);
 
   const handleSignOut = async () => {
-    if (!supabase) {
-      console.warn('Supabase credentials missing; unable to sign out.');
-      return;
-    }
-
     await supabase.auth.signOut();
   };
 
