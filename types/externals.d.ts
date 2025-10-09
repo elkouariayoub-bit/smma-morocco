@@ -5,11 +5,6 @@ declare module 'xlsx' {
   export default xlsx;
 }
 
-declare module 'pdf-lib' {
-  const pdfLib: any;
-  export default pdfLib;
-}
-
 declare module 'exceljs' {
   const exceljs: any;
   export default exceljs;

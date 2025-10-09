@@ -19,6 +19,9 @@
     "paths": {
       "@/*": [
         "./*"
+      ],
+      "pdf-lib": [
+        "./stubs/pdf-lib"
       ]
     },
     "types": [

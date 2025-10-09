@@ -31,9 +31,13 @@ export async function GET(req: Request) {
     }
 
     let mod: any;
+    let PDFDocument: any;
+    let StandardFonts: any;
+    let rgb: any;
+
     try {
-      // @ts-expect-error pdf-lib resolves at runtime when installed
       mod = await import("pdf-lib");
+      ({ PDFDocument, StandardFonts, rgb } = mod);
     } catch (error) {
       console.error("pdf-lib import failed", error);
       return NextResponse.json({ error: "pdf generation unavailable" }, { status: 500 });
@@ -45,10 +49,6 @@ export async function GET(req: Request) {
         { status: 500 }
       );
     }
-
-    const PDFDocument = mod.PDFDocument ?? mod.default?.PDFDocument;
-    const StandardFonts = mod.StandardFonts ?? mod.default?.StandardFonts;
-    const rgb = mod.rgb ?? mod.default?.rgb;
 
     if (!PDFDocument || !StandardFonts || !rgb) {
       console.error("pdf-lib exports missing", Object.keys(mod ?? {}));
