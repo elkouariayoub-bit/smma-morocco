@@ -1,0 +1,8 @@
+{
+  "name": "@radix-ui/react-popover",
+  "version": "0.0.0-stub",
+  "main": "./index.js",
+  "module": "./index.js",
+  "types": "./index.d.ts",
+  "sideEffects": false
+}
