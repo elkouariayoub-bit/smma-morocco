@@ -28,7 +28,7 @@ export default async function AnalyticsPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center gap-3">
+      <div className="relative overflow-visible">
         <DateRangeToolbar />
       </div>
       <div className="grid gap-4 md:grid-cols-3">
