@@ -42,6 +42,8 @@ export default function DateRangeToolbar() {
     [range, setRange]
   );
 
+  const isSingleDay = range.start === range.end;
+
   return (
     <div className="flex flex-wrap items-center gap-3">
       <div className="flex items-center gap-3">
@@ -59,14 +61,16 @@ export default function DateRangeToolbar() {
           ))}
         </div>
       </div>
-      <label className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-300">
-        <input
-          type="checkbox"
-          checked={range.compare}
-          onChange={handleCompareToggle}
-        />
-        Compare to previous period
-      </label>
+      {!isSingleDay && (
+        <label className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-300">
+          <input
+            type="checkbox"
+            checked={range.compare}
+            onChange={handleCompareToggle}
+          />
+          Compare to previous period
+        </label>
+      )}
     </div>
   );
 }
