@@ -51,7 +51,13 @@ export default function SingleDatePicker() {
         </Button>
       </PopoverTrigger>
       <PopoverContent align="start" sideOffset={8} className="p-2">
-        <Calendar mode="single" selected={date} onSelect={handleSelect} className="rounded-md border shadow-sm" />
+        <Calendar
+          mode="single"
+          captionLayout="dropdown"
+          selected={date}
+          onSelect={handleSelect}
+          className="rounded-md border shadow-sm"
+        />
       </PopoverContent>
     </Popover>
   );
