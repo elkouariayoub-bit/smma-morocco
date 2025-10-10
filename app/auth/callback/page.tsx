@@ -1,15 +1,51 @@
 'use client';
 
-import { useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { Suspense, useEffect } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 
 export default function AuthCallbackPage() {
+  return (
+    <Suspense fallback={<CallbackMessage message="Finishing sign-in…" />}>
+      <AuthCallbackHandler />
+    </Suspense>
+  );
+}
+
+function AuthCallbackHandler() {
   const router = useRouter();
+  const searchParams = useSearchParams();
 
   useEffect(() => {
     const finishSignIn = async () => {
       try {
+        const error = searchParams.get('error');
+        const errorDescription = searchParams.get('error_description');
+        if (error) {
+          router.replace(
+            '/login?message=' + encodeURIComponent(errorDescription || 'Sign-in failed'),
+          );
+          return;
+        }
+
+        const next = searchParams.get('next');
+        const redirectTo = next && next.startsWith('/') ? next : '/composer';
+        const code = searchParams.get('code');
+
+        if (code) {
+          const { error: exchangeError } = await supabase.auth.exchangeCodeForSession(code);
+          if (exchangeError) {
+            console.error('Error exchanging auth code:', exchangeError);
+            router.replace(
+              '/login?message=' + encodeURIComponent(exchangeError.message || 'Sign-in failed'),
+            );
+            return;
+          }
+
+          router.replace(redirectTo);
+          return;
+        }
+
         // Supabase magic links include the access_token and refresh_token in the
         // URL fragment (window.location.hash). We'll parse the fragment and call
         // supabase.auth.setSession() to persist the session client-side.
@@ -24,15 +60,20 @@ export default function AuthCallbackPage() {
           return;
         }
 
-        const { data, error } = await supabase.auth.setSession({ access_token, refresh_token });
-        if (error) {
-          console.error('Error setting session after magic link:', error);
-          router.replace('/login?message=' + encodeURIComponent(error.message || 'Sign-in failed'));
+        const { data, error: sessionError } = await supabase.auth.setSession({
+          access_token,
+          refresh_token,
+        });
+        if (sessionError) {
+          console.error('Error setting session after magic link:', sessionError);
+          router.replace(
+            '/login?message=' + encodeURIComponent(sessionError.message || 'Sign-in failed'),
+          );
           return;
         }
 
         // Success — navigate into the app
-        router.replace('/composer');
+        router.replace(redirectTo);
       } catch (err) {
         console.error('Unexpected error during auth callback', err);
         router.replace('/login?message=' + encodeURIComponent('Unexpected auth error'));
@@ -40,11 +81,15 @@ export default function AuthCallbackPage() {
     };
 
     finishSignIn();
-  }, [router]);
+  }, [router, searchParams]);
 
+  return <CallbackMessage message="Finishing sign-in…" />;
+}
+
+function CallbackMessage({ message }: { message: string }) {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50">
-      <p className="text-gray-600">Finishing sign-in…</p>
+      <p className="text-gray-600">{message}</p>
     </div>
   );
 }

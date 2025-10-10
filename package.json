@@ -19,7 +19,8 @@
     "lucide-react": "^0.441.0",
     "next": "^14.2.8",
     "react": "^18.3.1",
-    "react-dom": "^18.3.1"
+    "react-dom": "^18.3.1",
+    "recharts": "file:vendor/recharts"
   },
   "devDependencies": {
     "@types/node": "^20.12.12",
