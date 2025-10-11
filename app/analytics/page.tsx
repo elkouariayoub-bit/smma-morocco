@@ -2,6 +2,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { createServerComponentClient } from "@supabase/auth-helpers-nextjs";
 import { cookies } from "next/headers";
 
+import PostingHeatmap from "@/components/dashboard/PostingHeatmap";
 import TopPosts from "@/components/dashboard/TopPosts";
 import { env } from "@/lib/env";
 
@@ -14,7 +15,7 @@ export default async function AnalyticsPage() {
     return (
       <div className="flex flex-col gap-4 p-4 md:p-6">
         <section className="grid gap-4 lg:grid-cols-3">
-          <div className="lg:col-span-2">
+          <div className="space-y-4 lg:col-span-2">
             <Card className="bg-card/60 backdrop-blur">
               <CardHeader>
                 <CardTitle className="text-base font-medium text-slate-600">
@@ -27,6 +28,7 @@ export default async function AnalyticsPage() {
                 </p>
               </CardContent>
             </Card>
+            <PostingHeatmap />
           </div>
           <div className="lg:col-span-1">
             <TopPosts />
@@ -95,7 +97,7 @@ export default async function AnalyticsPage() {
         ))}
       </section>
       <section className="grid gap-4 lg:grid-cols-3">
-        <div className="lg:col-span-2">
+        <div className="space-y-4 lg:col-span-2">
           <Card className="bg-card/60 backdrop-blur">
             <CardHeader>
               <CardTitle>Engagement overview</CardTitle>
@@ -145,6 +147,7 @@ export default async function AnalyticsPage() {
               </div>
             </CardContent>
           </Card>
+          <PostingHeatmap />
         </div>
         <div className="lg:col-span-1">
           <TopPosts />
