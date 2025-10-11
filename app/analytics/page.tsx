@@ -2,6 +2,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { createServerComponentClient } from "@supabase/auth-helpers-nextjs";
 import { cookies } from "next/headers";
 
+import { TopPostsCard } from "@/components/top-posts.client";
 import { env } from "@/lib/env";
 
 export const revalidate = 3600; // Revalidate hourly
@@ -11,7 +12,7 @@ export default async function AnalyticsPage() {
 
   if (!supabaseConfigured) {
     return (
-      <div className="p-4 md:p-6">
+      <div className="flex flex-col gap-4 p-4 md:p-6">
         <Card>
           <CardHeader>
             <CardTitle className="text-base font-medium text-slate-600">
@@ -24,14 +25,15 @@ export default async function AnalyticsPage() {
             </p>
           </CardContent>
         </Card>
+        <TopPostsCard />
       </div>
     );
   }
 
   const supabase = createServerComponentClient({ cookies });
   const { data } = await supabase
-    .from('analytics_snapshots')
-    .select('impressions, likes, comments');
+    .from("analytics_snapshots")
+    .select("impressions, likes, comments");
 
   const totals = (data || []).reduce(
     (acc, record) => ({
@@ -43,25 +45,28 @@ export default async function AnalyticsPage() {
   );
 
   const metrics = [
-    { label: 'Impressions', value: totals.impressions },
-    { label: 'Likes', value: totals.likes },
-    { label: 'Comments', value: totals.comments },
+    { label: "Impressions", value: totals.impressions },
+    { label: "Likes", value: totals.likes },
+    { label: "Comments", value: totals.comments },
   ];
 
   return (
-    <div className="grid gap-4 p-4 md:grid-cols-3 md:p-6">
-      {metrics.map((metric) => (
-        <Card key={metric.label}>
-          <CardHeader>
-            <CardTitle className="text-base font-medium text-slate-600">
-              {metric.label}
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold">{metric.value.toLocaleString()}</div>
-          </CardContent>
-        </Card>
-      ))}
+    <div className="flex flex-col gap-4 p-4 md:p-6">
+      <div className="grid gap-4 md:grid-cols-3">
+        {metrics.map((metric) => (
+          <Card key={metric.label}>
+            <CardHeader>
+              <CardTitle className="text-base font-medium text-slate-600">
+                {metric.label}
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-3xl font-bold">{metric.value.toLocaleString()}</div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+      <TopPostsCard />
     </div>
   );
 }
