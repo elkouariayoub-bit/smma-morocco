@@ -2,6 +2,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { createServerComponentClient } from "@supabase/auth-helpers-nextjs";
 import { cookies } from "next/headers";
 
+import GoalBadge from "@/components/dashboard/GoalBadge";
 import PostingHeatmap from "@/components/dashboard/PostingHeatmap";
 import TopPosts from "@/components/dashboard/TopPosts";
 import { env } from "@/lib/env";
@@ -60,16 +61,61 @@ export default async function AnalyticsPage() {
     { impressions: 0, likes: 0, comments: 0 },
   );
 
-  const metrics: Array<{ label: string; value: number }> = [
-    { label: "Impressions", value: totals.impressions },
-    { label: "Likes", value: totals.likes },
-    { label: "Comments", value: totals.comments },
-  ];
+  const currencyFormatter = new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: "USD",
+    maximumFractionDigits: 0,
+  });
 
   const snapshotCount = snapshots.length;
   const totalEngagement = totals.likes + totals.comments;
   const averageImpressions = snapshotCount > 0 ? Math.round(totals.impressions / snapshotCount) : 0;
   const averageEngagement = snapshotCount > 0 ? Math.round(totalEngagement / snapshotCount) : 0;
+
+  const engagementRate =
+    totals.impressions > 0 ? (totalEngagement / totals.impressions) * 100 : 0;
+  const estimatedPeople = snapshotCount > 0 ? Math.round(totals.impressions * 0.65) : 0;
+  const estimatedRevenue = snapshotCount > 0 ? Math.round(totalEngagement * 2.5) : 0;
+
+  const metrics: Array<{
+    label: string;
+    value: number;
+    metricKey: string;
+    sublabel: string;
+    unit?: string;
+    format?: (value: number) => string;
+  }> = [
+    {
+      label: "Engagement rate",
+      value: engagementRate,
+      metricKey: "engagementRate",
+      sublabel: "Average likes and comments per impression",
+      unit: "%",
+      format: (value) => `${value.toFixed(1)}%`,
+    },
+    {
+      label: "Total impressions",
+      value: totals.impressions,
+      metricKey: "impressions",
+      sublabel: "Lifetime views across snapshots",
+      format: (value) => value.toLocaleString(),
+    },
+    {
+      label: "People reached",
+      value: estimatedPeople,
+      metricKey: "people",
+      sublabel: "Estimated unique viewers",
+      format: (value) => value.toLocaleString(),
+    },
+    {
+      label: "Revenue influenced",
+      value: estimatedRevenue,
+      metricKey: "revenue",
+      sublabel: "Projected value generated from engagement",
+      unit: "$",
+      format: (value) => currencyFormatter.format(value),
+    },
+  ];
 
   const chartValues = snapshots.map(
     (snapshot) => (snapshot.impressions ?? 0) + (snapshot.likes ?? 0) + (snapshot.comments ?? 0),
@@ -82,7 +128,7 @@ export default async function AnalyticsPage() {
 
   return (
     <div className="flex flex-col gap-4 p-4 md:p-6">
-      <section className="grid gap-4 md:grid-cols-3">
+      <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         {metrics.map((metric) => (
           <Card key={metric.label} className="bg-card/60 backdrop-blur">
             <CardHeader>
@@ -91,7 +137,11 @@ export default async function AnalyticsPage() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold">{metric.value.toLocaleString()}</div>
+              <div className="text-3xl font-bold">
+                {metric.format ? metric.format(metric.value) : metric.value.toLocaleString()}
+              </div>
+              <p className="text-xs text-muted-foreground">{metric.sublabel}</p>
+              <GoalBadge metricKey={metric.metricKey} current={metric.value} unit={metric.unit} />
             </CardContent>
           </Card>
         ))}
