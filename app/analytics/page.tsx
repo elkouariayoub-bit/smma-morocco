@@ -15,7 +15,7 @@ export default async function AnalyticsPage() {
     return (
       <div className="flex flex-col gap-4 p-4 md:p-6">
         <section className="grid gap-4 lg:grid-cols-3">
-          <div className="space-y-4 lg:col-span-2">
+          <div className="lg:col-span-2">
             <Card className="bg-card/60 backdrop-blur">
               <CardHeader>
                 <CardTitle className="text-base font-medium text-slate-600">
@@ -28,10 +28,10 @@ export default async function AnalyticsPage() {
                 </p>
               </CardContent>
             </Card>
-            <PostingHeatmap />
           </div>
-          <div className="lg:col-span-1">
+          <div className="space-y-4 lg:col-span-1">
             <TopPosts />
+            <PostingHeatmap />
           </div>
         </section>
       </div>
@@ -147,10 +147,10 @@ export default async function AnalyticsPage() {
               </div>
             </CardContent>
           </Card>
-          <PostingHeatmap />
         </div>
-        <div className="lg:col-span-1">
+        <div className="space-y-4 lg:col-span-1">
           <TopPosts />
+          <PostingHeatmap />
         </div>
       </section>
     </div>
