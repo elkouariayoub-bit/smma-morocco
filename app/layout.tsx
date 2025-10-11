@@ -5,7 +5,7 @@ import { Analytics } from '@vercel/analytics/next'
 
 import { PageTransition } from '@/components/page-transition'
 import { DateRangeProvider } from './providers/date-range'
-import { GoalsProvider } from './providers/goals'
+import { GoalsProvider } from '@/app/providers/goals'
 
 import './globals.css'
 
