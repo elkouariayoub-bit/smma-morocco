@@ -13,7 +13,7 @@ function formatPlatform(platform: Post["platform"]) {
   return platform.charAt(0).toUpperCase() + platform.slice(1)
 }
 
-export function TopPostsCard() {
+export default function TopPosts() {
   const { range } = useDateRange()
   const [rows, setRows] = useState<Post[]>([])
   const [open, setOpen] = useState(false)

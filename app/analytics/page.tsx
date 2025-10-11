@@ -2,7 +2,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { createServerComponentClient } from "@supabase/auth-helpers-nextjs";
 import { cookies } from "next/headers";
 
-import { TopPostsCard } from "@/components/top-posts.client";
+import TopPosts from "@/components/dashboard/TopPosts";
 import { env } from "@/lib/env";
 
 export const revalidate = 3600; // Revalidate hourly
@@ -13,19 +13,25 @@ export default async function AnalyticsPage() {
   if (!supabaseConfigured) {
     return (
       <div className="flex flex-col gap-4 p-4 md:p-6">
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base font-medium text-slate-600">
-              Analytics unavailable
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-sm text-slate-600">
-              Supabase credentials are not configured. Set NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY to load analytics data.
-            </p>
-          </CardContent>
-        </Card>
-        <TopPostsCard />
+        <section className="grid gap-4 lg:grid-cols-3">
+          <div className="lg:col-span-2">
+            <Card className="bg-card/60 backdrop-blur">
+              <CardHeader>
+                <CardTitle className="text-base font-medium text-slate-600">
+                  Analytics unavailable
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm text-slate-600">
+                  Supabase credentials are not configured. Set NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY to load analytics data.
+                </p>
+              </CardContent>
+            </Card>
+          </div>
+          <div className="lg:col-span-1">
+            <TopPosts />
+          </div>
+        </section>
       </div>
     );
   }
@@ -35,7 +41,15 @@ export default async function AnalyticsPage() {
     .from("analytics_snapshots")
     .select("impressions, likes, comments");
 
-  const totals = (data || []).reduce(
+  const snapshots = (data || []) as Array<{
+    impressions?: number | null;
+    likes?: number | null;
+    comments?: number | null;
+  }>;
+
+  type Totals = { impressions: number; likes: number; comments: number };
+
+  const totals = snapshots.reduce<Totals>(
     (acc, record) => ({
       impressions: acc.impressions + (record.impressions ?? 0),
       likes: acc.likes + (record.likes ?? 0),
@@ -44,17 +58,31 @@ export default async function AnalyticsPage() {
     { impressions: 0, likes: 0, comments: 0 },
   );
 
-  const metrics = [
+  const metrics: Array<{ label: string; value: number }> = [
     { label: "Impressions", value: totals.impressions },
     { label: "Likes", value: totals.likes },
     { label: "Comments", value: totals.comments },
   ];
 
+  const snapshotCount = snapshots.length;
+  const totalEngagement = totals.likes + totals.comments;
+  const averageImpressions = snapshotCount > 0 ? Math.round(totals.impressions / snapshotCount) : 0;
+  const averageEngagement = snapshotCount > 0 ? Math.round(totalEngagement / snapshotCount) : 0;
+
+  const chartValues = snapshots.map(
+    (snapshot) => (snapshot.impressions ?? 0) + (snapshot.likes ?? 0) + (snapshot.comments ?? 0),
+  );
+  const maxChartValue = chartValues.reduce((max, value) => (value > max ? value : max), 0);
+  const chartHeights =
+    maxChartValue > 0
+      ? chartValues.map((value) => Math.max(12, Math.round((value / maxChartValue) * 100)))
+      : [42, 58, 64, 72, 60, 80, 54, 68];
+
   return (
     <div className="flex flex-col gap-4 p-4 md:p-6">
-      <div className="grid gap-4 md:grid-cols-3">
+      <section className="grid gap-4 md:grid-cols-3">
         {metrics.map((metric) => (
-          <Card key={metric.label}>
+          <Card key={metric.label} className="bg-card/60 backdrop-blur">
             <CardHeader>
               <CardTitle className="text-base font-medium text-slate-600">
                 {metric.label}
@@ -65,8 +93,63 @@ export default async function AnalyticsPage() {
             </CardContent>
           </Card>
         ))}
-      </div>
-      <TopPostsCard />
+      </section>
+      <section className="grid gap-4 lg:grid-cols-3">
+        <div className="lg:col-span-2">
+          <Card className="bg-card/60 backdrop-blur">
+            <CardHeader>
+              <CardTitle>Engagement overview</CardTitle>
+              <p className="text-sm text-muted-foreground">
+                High-level insights gathered from your Supabase analytics snapshots.
+              </p>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="grid gap-4 sm:grid-cols-3">
+                <div>
+                  <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Snapshots</p>
+                  <p className="text-2xl font-semibold">
+                    {snapshotCount > 0 ? snapshotCount : "—"}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Avg. impressions</p>
+                  <p className="text-2xl font-semibold">
+                    {averageImpressions > 0 ? averageImpressions.toLocaleString() : "—"}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Avg. engagement</p>
+                  <p className="text-2xl font-semibold">
+                    {averageEngagement > 0 ? averageEngagement.toLocaleString() : "—"}
+                  </p>
+                </div>
+              </div>
+              <div className="space-y-3">
+                <div
+                  aria-hidden="true"
+                  className="flex h-48 items-end gap-2 rounded-md border border-dashed border-muted/40 bg-muted/10 p-4"
+                >
+                  {chartHeights.map((height, index) => (
+                    <div
+                      key={index}
+                      className="flex-1 rounded bg-primary/40 transition-colors dark:bg-primary/30"
+                      style={{ height: `${Math.min(100, Math.max(12, height))}%` }}
+                    />
+                  ))}
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  {snapshotCount > 0
+                    ? "Activity levels across your saved analytics snapshots."
+                    : "Add Supabase analytics snapshots to unlock engagement trend charts."}
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+        <div className="lg:col-span-1">
+          <TopPosts />
+        </div>
+      </section>
     </div>
   );
 }
