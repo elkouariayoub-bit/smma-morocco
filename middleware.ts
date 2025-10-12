@@ -1,4 +1,5 @@
 import { createMiddlewareClient } from '@supabase/auth-helpers-nextjs'
+import type { Session } from '@supabase/supabase-js'
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 
@@ -16,18 +17,43 @@ function needsProtection(pathname: string) {
   return PROTECTED_PREFIXES.some((prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`))
 }
 
+let hasWarnedMissingSupabaseEnv = false
+
 export async function middleware(req: NextRequest) {
   const res = NextResponse.next()
-  const supabase = createMiddlewareClient(
-    { req, res },
-    {
-      supabaseUrl: process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      supabaseKey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    },
-  )
-  const {
-    data: { session },
-  } = await supabase.auth.getSession()
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+
+  let session: Session | null = null
+
+  if (!supabaseUrl || !supabaseAnonKey) {
+    if (!hasWarnedMissingSupabaseEnv) {
+      const message =
+        'Supabase environment variables are missing. Authentication checks in middleware are being skipped.'
+      if (process.env.NODE_ENV !== 'production') {
+        console.warn(message)
+      } else {
+        console.error(message)
+      }
+      hasWarnedMissingSupabaseEnv = true
+    }
+  } else {
+    try {
+      const supabase = createMiddlewareClient(
+        { req, res },
+        {
+          supabaseUrl,
+          supabaseKey: supabaseAnonKey,
+        },
+      )
+      const {
+        data: { session: supabaseSession },
+      } = await supabase.auth.getSession()
+      session = supabaseSession
+    } catch (error) {
+      console.error('Failed to retrieve Supabase session in middleware', error)
+    }
+  }
 
   const hasCodeSession = req.cookies.get('code-auth')?.value === 'true'
   const isAuthenticated = Boolean(session) || hasCodeSession
