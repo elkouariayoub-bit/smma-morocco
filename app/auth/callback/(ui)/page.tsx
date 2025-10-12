@@ -10,10 +10,25 @@ export default function AuthCallbackPage() {
   useEffect(() => {
     const finishSignIn = async () => {
       try {
+        const currentUrl = new URL(window.location.href);
+        const code = currentUrl.searchParams.get('code');
+
+        if (code) {
+          const { error } = await supabase.auth.exchangeCodeForSession(code);
+          if (error) {
+            console.error('Error exchanging auth code for session:', error);
+            router.replace('/login?message=' + encodeURIComponent(error.message || 'Sign-in failed'));
+            return;
+          }
+
+          router.replace('/composer');
+          return;
+        }
+
         // Supabase magic links include the access_token and refresh_token in the
         // URL fragment (window.location.hash). We'll parse the fragment and call
         // supabase.auth.setSession() to persist the session client-side.
-        const hash = window.location.hash.replace(/^#/, '');
+        const hash = currentUrl.hash.replace(/^#/, '');
         const params = new URLSearchParams(hash);
         const access_token = params.get('access_token');
         const refresh_token = params.get('refresh_token');
@@ -24,7 +39,7 @@ export default function AuthCallbackPage() {
           return;
         }
 
-        const { data, error } = await supabase.auth.setSession({ access_token, refresh_token });
+        const { error } = await supabase.auth.setSession({ access_token, refresh_token });
         if (error) {
           console.error('Error setting session after magic link:', error);
           router.replace('/login?message=' + encodeURIComponent(error.message || 'Sign-in failed'));
