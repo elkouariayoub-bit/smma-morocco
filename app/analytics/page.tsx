@@ -3,6 +3,7 @@ import { createServerComponentClient } from "@supabase/auth-helpers-nextjs";
 import { cookies } from "next/headers";
 
 import GoalBadge from "@/components/dashboard/GoalBadge";
+import BreakdownExplorer from "@/components/dashboard/BreakdownExplorer";
 import PostingHeatmap from "@/components/dashboard/PostingHeatmap";
 import TopPosts from "@/components/dashboard/TopPosts";
 import { env } from "@/lib/env";
@@ -35,6 +36,7 @@ export default async function AnalyticsPage() {
             <PostingHeatmap />
           </div>
         </section>
+        <BreakdownExplorer />
       </div>
     );
   }
@@ -203,6 +205,7 @@ export default async function AnalyticsPage() {
           <PostingHeatmap />
         </div>
       </section>
+      <BreakdownExplorer />
     </div>
   );
 }
