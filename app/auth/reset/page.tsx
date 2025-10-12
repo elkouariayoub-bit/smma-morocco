@@ -76,7 +76,9 @@ export default function ResetPasswordPage() {
       if (!isActive) return;
 
       if (!data.session) {
-        router.replace('/login?message=' + encodeURIComponent('Your reset link has expired. Please request a new one.'));
+        router.replace(
+          '/auth/login?message=' + encodeURIComponent('Your reset link has expired. Please request a new one.')
+        );
         return;
       }
 
@@ -162,7 +164,7 @@ export default function ResetPasswordPage() {
           </CardHeader>
           <CardContent>
             <Link
-              href="/login"
+              href="/auth/login"
               className="text-sm font-medium text-blue-600 transition-colors duration-200 hover:text-blue-500"
             >
               Return to sign in
@@ -185,7 +187,7 @@ export default function ResetPasswordPage() {
     <div className="min-h-screen bg-slate-100">
       <div className="flex min-h-screen w-full flex-col items-center justify-center px-6 py-16 sm:px-8">
         <Link
-          href="/login"
+          href="/auth/login"
           className="mb-8 inline-flex items-center gap-2 text-sm font-medium text-blue-600 transition-colors duration-200 hover:text-blue-500"
         >
           ← Back to login

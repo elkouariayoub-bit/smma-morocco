@@ -29,6 +29,8 @@
       "better-auth/providers": ["./better-auth/providers.ts"],
       "better-auth/next-js": ["./better-auth/next-js.ts"],
       "better-auth/client": ["./better-auth/client.ts"],
+      "next-themes": ["./stubs/next-themes.tsx"],
+      "react-hook-form": ["./stubs/react-hook-form.ts"],
       "clsx": ["./stubs/clsx.ts"],
       "tailwind-merge": ["./stubs/tailwind-merge.ts"],
       "class-variance-authority": ["./stubs/class-variance-authority.ts"],

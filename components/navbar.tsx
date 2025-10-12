@@ -66,7 +66,7 @@ export function Navbar() {
                     <Button variant="secondary" onClick={handleSignOut}>Sign Out</Button>
                 </div>
             ) : (
-                <Link href="/login"><Button variant="secondary">Sign In</Button></Link>
+                <Link href="/auth/login"><Button variant="secondary">Sign In</Button></Link>
             )}
         </div>
       </div>

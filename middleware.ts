@@ -60,14 +60,18 @@ export async function middleware(req: NextRequest) {
   const { pathname, search } = req.nextUrl
 
   if (!isAuthenticated && needsProtection(pathname)) {
-    const loginUrl = new URL('/login', req.url)
+    const loginUrl = new URL('/auth/login', req.url)
     const nextPath = `${pathname}${search}`
     loginUrl.searchParams.set('next', nextPath)
     loginUrl.searchParams.set('reason', 'redirect')
     return NextResponse.redirect(loginUrl)
   }
 
-  if (isAuthenticated && pathname === '/login' && !req.nextUrl.searchParams.has('next')) {
+  if (
+    isAuthenticated &&
+    (pathname === '/login' || pathname === '/auth/login') &&
+    !req.nextUrl.searchParams.has('next')
+  ) {
     return NextResponse.redirect(new URL('/dashboard', req.url))
   }
 

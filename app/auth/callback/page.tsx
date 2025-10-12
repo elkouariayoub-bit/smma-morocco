@@ -19,7 +19,7 @@ const getSafeNext = (value: string | null) => {
 };
 
 const withLoginMessage = (message: string, next?: string | null) => {
-  const url = new URL('/login', window.location.origin);
+  const url = new URL('/auth/login', window.location.origin);
   url.searchParams.set('message', message);
   if (next) {
     url.searchParams.set('next', next);

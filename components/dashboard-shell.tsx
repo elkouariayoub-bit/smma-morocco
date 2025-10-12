@@ -20,7 +20,7 @@ export async function DashboardShell({
   const hasCodeSession = cookieStore.get("code-auth")?.value === "true"
 
   if (!session && !hasCodeSession) {
-    redirect(`/login?next=${encodeURIComponent(redirectPath)}`)
+    redirect(`/auth/login?next=${encodeURIComponent(redirectPath)}`)
   }
 
   return <DashboardLayout>{children}</DashboardLayout>
