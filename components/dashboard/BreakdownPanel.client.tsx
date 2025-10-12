@@ -53,19 +53,25 @@ type BreakdownPanelProps = {
 export default function BreakdownPanel({ metric, by, platform }: BreakdownPanelProps) {
   const { range } = useDateRange();
 
-  const queryKey = useMemo(() => {
+  const params = useMemo(() => {
     if (!range.start || !range.end) {
       return null;
     }
-    const params = new URLSearchParams({
+    return new URLSearchParams({
       start: range.start,
       end: range.end,
       metric,
       by,
       platform,
     });
-    return `/api/posts/breakdown?${params.toString()}`;
   }, [range.start, range.end, metric, by, platform]);
+
+  const queryKey = useMemo(() => {
+    if (!params) {
+      return null;
+    }
+    return `/api/posts/breakdown?${params.toString()}`;
+  }, [params]);
 
   const { data, isLoading, error } = useSWR(queryKey, fetcher, {
     revalidateOnFocus: false,
@@ -104,6 +110,8 @@ export default function BreakdownPanel({ metric, by, platform }: BreakdownPanelP
     );
   }, [by, rows]);
 
+  const exportQuery = params?.toString();
+
   return (
     <Card className="bg-card/60 backdrop-blur">
       <CardHeader className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -113,15 +121,18 @@ export default function BreakdownPanel({ metric, by, platform }: BreakdownPanelP
         <div className="flex flex-wrap items-center gap-2">
           <ExportLink
             label="Export CSV"
-            href={`/api/export/csv?start=${range.start}&end=${range.end}`}
+            href={exportQuery ? `/api/export/breakdown/csv?${exportQuery}` : undefined}
+            disabled={!exportQuery}
           />
           <ExportLink
             label="Excel"
-            href={`/api/export/excel?start=${range.start}&end=${range.end}`}
+            href={exportQuery ? `/api/export/breakdown/excel?${exportQuery}` : undefined}
+            disabled={!exportQuery}
           />
           <ExportLink
             label="PDF"
-            href={`/api/export/pdf?start=${range.start}&end=${range.end}`}
+            href={exportQuery ? `/api/export/breakdown/pdf?${exportQuery}` : undefined}
+            disabled={!exportQuery}
           />
         </div>
       </CardHeader>
@@ -187,7 +198,23 @@ function StatusMessage({ children, tone = "default" }: { children: ReactNode; to
   );
 }
 
-function ExportLink({ label, href }: { label: string; href: string }) {
+function ExportLink({
+  label,
+  href,
+  disabled,
+}: {
+  label: string;
+  href?: string;
+  disabled?: boolean;
+}) {
+  if (disabled || !href) {
+    return (
+      <Button variant="outline" size="sm" disabled>
+        {label}
+      </Button>
+    );
+  }
+
   return (
     <Button asChild variant="outline" size="sm">
       <a href={href}>{label}</a>
