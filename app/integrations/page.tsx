@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useCallback, useEffect, useState } from "react"
 import type { SVGProps } from "react"
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -54,6 +54,54 @@ export default function IntegrationsPage() {
     x: false,
     tiktok: false,
   })
+  const [toast, setToast] = useState<{ id: number; message: string } | null>(null)
+
+  const fetchIntegrationStatuses = useCallback(async () => {
+    try {
+      const response = await fetch("/api/integrations")
+
+      if (!response.ok) {
+        throw new Error("Failed to load integrations")
+      }
+
+      const data = (await response.json()) as { integrations: Pick<UserIntegration, "platform" | "is_connected">[] }
+      const nextState: Record<SupportedPlatform, boolean> = {
+        meta: false,
+        x: false,
+        tiktok: false,
+      }
+
+      for (const integration of data.integrations ?? []) {
+        const platform = integration.platform as SupportedPlatform
+        if (platform in nextState) {
+          nextState[platform] = Boolean(integration.is_connected)
+        }
+      }
+
+      setConnectionState(nextState)
+    } catch (error) {
+      console.error("Unable to fetch integrations", error)
+      setConnectionState({ meta: false, x: false, tiktok: false })
+    }
+  }, [])
+
+  useEffect(() => {
+    fetchIntegrationStatuses()
+  }, [fetchIntegrationStatuses])
+
+  useEffect(() => {
+    if (!toast) {
+      return
+    }
+
+    const timeout = window.setTimeout(() => {
+      setToast(null)
+    }, 4000)
+
+    return () => {
+      window.clearTimeout(timeout)
+    }
+  }, [toast])
 
   const handleOpenModal = (integration: IntegrationCard) => {
     setSelectedIntegration(integration)
@@ -65,12 +113,24 @@ export default function IntegrationsPage() {
     setSelectedIntegration(null)
   }
 
-  const handleIntegrationUpdate = (platform: SupportedPlatform, integration: UserIntegration | null) => {
-    setConnectionState((prev) => ({
-      ...prev,
-      [platform]: Boolean(integration?.is_connected),
-    }))
-  }
+  const handleIntegrationUpdate = useCallback(
+    (platform: SupportedPlatform, integration: UserIntegration | null, action?: "connect" | "disconnect" | "refresh") => {
+      setConnectionState((prev) => ({
+        ...prev,
+        [platform]: Boolean(integration?.is_connected),
+      }))
+
+      if (action === "connect" || action === "disconnect") {
+        const integrationName = integrations.find((item) => item.platform === platform)?.name ?? "Integration"
+        setToast({
+          id: Date.now(),
+          message: action === "connect" ? `${integrationName} connected successfully.` : `${integrationName} disconnected.`,
+        })
+        fetchIntegrationStatuses()
+      }
+    },
+    [fetchIntegrationStatuses],
+  )
 
   const activeDefinition: IntegrationDefinition | null = selectedIntegration
     ? {
@@ -116,12 +176,11 @@ export default function IntegrationsPage() {
                     size="sm"
                     type="button"
                     className={cn(
-                      "h-7 px-2 text-xs",
+                      "pointer-events-none h-7 px-2 text-xs",
                       isConnected
                         ? "border-emerald-400/40 text-emerald-300 hover:bg-emerald-400/10"
-                        : "",
+                        : "border-white/15 text-gray-300 hover:bg-white/5",
                     )}
-                    disabled
                   >
                     {status}
                   </Button>
@@ -149,6 +208,13 @@ export default function IntegrationsPage() {
         onClose={handleCloseModal}
         onIntegrationUpdate={handleIntegrationUpdate}
       />
+      {toast ? (
+        <div className="pointer-events-none fixed inset-x-0 bottom-6 z-50 flex justify-center px-4">
+          <div className="flex w-full max-w-sm items-center justify-between gap-3 rounded-lg border border-emerald-400/40 bg-emerald-500/15 px-4 py-3 text-sm text-emerald-100 shadow-lg">
+            <span>{toast.message}</span>
+          </div>
+        </div>
+      ) : null}
     </div>
   )
 }

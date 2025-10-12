@@ -26,7 +26,11 @@ type IntegrationModalProps = {
   open: boolean
   definition: IntegrationDefinition | null
   onClose: () => void
-  onIntegrationUpdate: (platform: SupportedPlatform, integration: UserIntegration | null) => void
+  onIntegrationUpdate: (
+    platform: SupportedPlatform,
+    integration: UserIntegration | null,
+    action?: "connect" | "disconnect" | "refresh",
+  ) => void
 }
 
 type FieldConfig = {
@@ -176,7 +180,7 @@ export function IntegrationModal({ open, definition, onClose, onIntegrationUpdat
         const data = (await response.json()) as { integration: UserIntegration | null }
         setFetchState({ loading: false, error: null, integration: data.integration })
         if (data.integration) {
-          onIntegrationUpdate(currentPlatform, data.integration)
+          onIntegrationUpdate(currentPlatform, data.integration, "refresh")
         }
       } catch (error) {
         if ((error as Error).name === "AbortError") {
@@ -295,14 +299,15 @@ export function IntegrationModal({ open, definition, onClose, onIntegrationUpdat
       setFetchState({ loading: false, error: null, integration: data.integration })
       setStatusMessage({ status: "success", message: "Integration connected successfully." })
       setTestSuccessful(false)
-      onIntegrationUpdate(platform, data.integration)
+      onIntegrationUpdate(platform, data.integration, "connect")
+      onClose()
     } catch (error) {
       console.error("Error connecting integration", error)
       setStatusMessage({ status: "error", message: "Failed to save integration credentials." })
     } finally {
       setIsSaving(false)
     }
-  }, [formValues, onIntegrationUpdate, platform, testSuccessful, validateFields])
+  }, [formValues, onClose, onIntegrationUpdate, platform, testSuccessful, validateFields])
 
   const handleDisconnect = useCallback(async () => {
     if (!platform) {
@@ -329,14 +334,15 @@ export function IntegrationModal({ open, definition, onClose, onIntegrationUpdat
       setFetchState({ loading: false, error: null, integration: null })
       setFormValues({})
       setStatusMessage({ status: "success", message: "Integration disconnected." })
-      onIntegrationUpdate(platform, null)
+      onIntegrationUpdate(platform, null, "disconnect")
+      onClose()
     } catch (error) {
       console.error("Error disconnecting integration", error)
       setStatusMessage({ status: "error", message: "Failed to disconnect integration." })
     } finally {
       setIsDisconnecting(false)
     }
-  }, [onIntegrationUpdate, platform])
+  }, [onClose, onIntegrationUpdate, platform])
 
   const renderBody = () => {
     if (fetchState.loading) {
