@@ -1,11 +1,10 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { ArrowUpRight } from "lucide-react"
 
 const integrations = [
   {
     name: "Facebook Ads",
-    description: "Connect your Facebook Ads account to sync campaign performance in real-time.",
+    description: "Connect your campaigns to sync performance data in real time.",
     status: "Connected",
   },
   {
@@ -18,40 +17,60 @@ const integrations = [
     description: "Track revenue and subscription metrics alongside marketing efforts.",
     status: "Available",
   },
+  {
+    name: "Shopify",
+    description: "Monitor storefront sales and customer cohorts against marketing activity.",
+    status: "Connected",
+  },
+  {
+    name: "Slack",
+    description: "Send campaign alerts to your team channels and keep everyone aligned.",
+    status: "Connected",
+  },
+  {
+    name: "Notion",
+    description: "Sync briefs and content calendars to keep your launch plans in one place.",
+    status: "Available",
+  },
 ]
 
 export default function IntegrationsPage() {
   return (
-    <div className="space-y-6 p-4 md:p-6">
-      <div>
-        <h1 className="text-2xl font-semibold tracking-tight">Integrations</h1>
-        <p className="text-muted-foreground">
+    <div className="flex flex-col gap-4 p-4 md:p-6">
+      <header className="space-y-2">
+        <h1 className="text-3xl font-semibold tracking-tight text-gray-900 dark:text-gray-50">Integrations</h1>
+        <p className="text-sm text-muted-foreground">
           Connect your favorite tools to automate workflows and centralize insights.
         </p>
-      </div>
+      </header>
 
-      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+      <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
         {integrations.map((integration) => (
-          <Card key={integration.name} className="flex flex-col justify-between">
-            <CardHeader className="space-y-1">
-              <div className="flex items-center justify-between">
+          <Card key={integration.name} className="flex h-full flex-col bg-card/60 backdrop-blur">
+            <CardHeader className="space-y-3 p-6 pb-4">
+              <div className="flex items-start justify-between gap-3">
                 <CardTitle>{integration.name}</CardTitle>
-                <span
-                  className="inline-flex items-center rounded-full border border-border px-2 py-0.5 text-xs font-medium"
-                >
-                  {integration.status}
-                </span>
+                <Button asChild variant="outline" size="sm" className="h-7 px-2 text-xs">
+                  <span>{integration.status}</span>
+                </Button>
               </div>
-              <CardDescription>{integration.description}</CardDescription>
+              <CardDescription className="text-sm text-muted-foreground">
+                {integration.description}
+              </CardDescription>
             </CardHeader>
-            <CardContent>
-              <Button variant="outline" className="w-full">
-                Manage <ArrowUpRight className="ml-2 h-4 w-4" />
+            <CardContent className="mt-auto p-6 pt-0">
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-7 w-full justify-between px-2 text-xs"
+              >
+                <span>Manage</span>
+                <span aria-hidden="true">→</span>
               </Button>
             </CardContent>
           </Card>
         ))}
-      </div>
+      </section>
     </div>
   )
 }
