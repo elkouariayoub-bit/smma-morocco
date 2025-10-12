@@ -1,7 +1,7 @@
 // app/api/ai/caption/route.ts
 import { NextResponse } from 'next/server';
 import { GoogleGenAI } from '@google/genai';
-import { env } from '@/lib/env';
+import { requireGeminiApiKey } from '@/lib/env';
 
 const systemInstruction = `You are an expert social media marketer helping small businesses craft compelling social media content.
 When given a topic, generate:
@@ -19,16 +19,15 @@ export async function POST(req: Request) {
       return NextResponse.json({ ok: false, error: 'Missing "topic"' }, { status: 400 });
     }
 
-    // Init client
+    const apiKey = requireGeminiApiKey();
     const ai = new GoogleGenAI({
-      apiKey: env.geminiApiKey,
+      apiKey,
     });
 
-    // The v1+ SDK uses .models.generateContent with model names like 'gemini-2.0-flash' or 'gemini-2.5-flash'
     const response = await ai.models.generateContent({
       model: 'gemini-2.5-flash',
       contents: [
-        { role: 'user', parts: [{ text: `Topic: ${topic}\n\nFollow the instructions.` }] }
+        { role: 'user', parts: [{ text: `Topic: ${topic}\n\nFollow the instructions.` }] },
       ],
       config: {
         systemInstruction,
