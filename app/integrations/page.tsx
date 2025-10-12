@@ -1,36 +1,36 @@
+import type { SVGProps } from "react"
+
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
+import { Facebook, Twitter } from "lucide-react"
+
+const TikTokIcon = (props: SVGProps<SVGSVGElement>) => (
+  <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" {...props}>
+    <path
+      fill="currentColor"
+      d="M16 3.5a3.5 3.5 0 0 0 3.5 3.5V5.1a5 5 0 0 1-3.5-1.4V14a5.5 5.5 0 1 1-5.5-5.5c.35 0 .69.03 1.03.09V6.13A7 7 0 1 0 17 13V3.5Z"
+    />
+  </svg>
+)
 
 const integrations = [
   {
-    name: "Facebook Ads",
-    description: "Connect your campaigns to sync performance data in real time.",
-    status: "Connected",
-  },
-  {
-    name: "Google Analytics",
-    description: "Bring in traffic and conversion data to enrich your SMMA reports.",
+    name: "Meta",
+    description: "Connect your Meta Business account to manage Facebook and Instagram campaigns.",
     status: "Available",
+    icon: Facebook,
   },
   {
-    name: "Stripe",
-    description: "Track revenue and subscription metrics alongside marketing efforts.",
+    name: "X",
+    description: "Connect your X account to schedule posts and track engagement metrics.",
     status: "Available",
+    icon: Twitter,
   },
   {
-    name: "Shopify",
-    description: "Monitor storefront sales and customer cohorts against marketing activity.",
-    status: "Connected",
-  },
-  {
-    name: "Slack",
-    description: "Send campaign alerts to your team channels and keep everyone aligned.",
-    status: "Connected",
-  },
-  {
-    name: "Notion",
-    description: "Sync briefs and content calendars to keep your launch plans in one place.",
+    name: "TikTok",
+    description: "Connect your TikTok Business account to analyze video performance and schedule content.",
     status: "Available",
+    icon: TikTokIcon,
   },
 ]
 
@@ -45,18 +45,27 @@ export default function IntegrationsPage() {
       </header>
 
       <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-        {integrations.map((integration) => (
-          <Card key={integration.name} className="flex h-full flex-col bg-card/60 backdrop-blur">
-            <CardHeader className="space-y-3 p-6 pb-4">
+        {integrations.map(({ name, description, status, icon: Icon }) => (
+          <Card key={name} className="flex h-full flex-col bg-card/60 backdrop-blur">
+            <CardHeader className="space-y-4 p-6 pb-4">
               <div className="flex items-start justify-between gap-3">
-                <CardTitle>{integration.name}</CardTitle>
+                <div className="flex items-start gap-3">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-white/10 text-gray-900 shadow-sm dark:border-white/10 dark:bg-white/5 dark:text-white">
+                    <Icon className="h-5 w-5" aria-hidden="true" />
+                  </div>
+                  <div className="space-y-1">
+                    <CardTitle className="text-base font-semibold text-gray-900 dark:text-gray-50">
+                      {name}
+                    </CardTitle>
+                    <CardDescription className="text-sm text-muted-foreground">
+                      {description}
+                    </CardDescription>
+                  </div>
+                </div>
                 <Button asChild variant="outline" size="sm" className="h-7 px-2 text-xs">
-                  <span>{integration.status}</span>
+                  <span>{status}</span>
                 </Button>
               </div>
-              <CardDescription className="text-sm text-muted-foreground">
-                {integration.description}
-              </CardDescription>
             </CardHeader>
             <CardContent className="mt-auto p-6 pt-0">
               <Button
