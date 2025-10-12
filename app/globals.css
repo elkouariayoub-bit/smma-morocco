@@ -2,6 +2,38 @@
 @tailwind components;
 @tailwind utilities;
 
-:root { color-scheme: light; }
-html, body, #__next { height: 100%; }
-body { @apply antialiased text-gray-800 bg-white; }
+:root {
+  color-scheme: light;
+}
+
+@layer base {
+  html {
+    @apply min-h-full bg-surface text-slate-900;
+  }
+
+  body {
+    @apply min-h-screen bg-surface text-slate-900 antialiased;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-semibold text-slate-900;
+  }
+
+  p {
+    @apply text-slate-600;
+  }
+}
+
+@layer utilities {
+  .card-surface {
+    @apply rounded-2xl border border-slate-200/80 bg-white/80 shadow-subtle backdrop-blur-sm;
+  }
+
+  .glass-panel {
+    @apply rounded-2xl border border-white/60 bg-white/70 shadow-subtle backdrop-blur;
+  }
+
+  .transition-base {
+    @apply transition duration-200 ease-emphasized;
+  }
+}
