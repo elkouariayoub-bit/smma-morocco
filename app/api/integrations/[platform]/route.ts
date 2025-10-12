@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { loadServerEnv } from '@/lib/load-server-env'
-import { encryptSecret } from '@/lib/encryption'
+import { encrypt } from '@/lib/encryption'
 import { applyRateLimit, getSupabaseSession, normalizePlatform } from '../utils'
 
 import type { NextRequest } from 'next/server'
@@ -104,10 +104,18 @@ export async function POST(request: NextRequest, context: { params: { platform?:
     if (key in payload) {
       touchedSensitive = true
       const rawValue = payload[key]
-      const value = typeof rawValue === 'string' && rawValue.trim().length > 0 ? rawValue : null
-      updates[key] = encryptSecret(value)
-      if (value) {
-        hasCredentialUpdate = true
+      const value = typeof rawValue === 'string' ? rawValue.trim() : ''
+
+      if (value.length > 0) {
+        try {
+          updates[key] = encrypt(value)
+          hasCredentialUpdate = true
+        } catch (error) {
+          console.error('Error encrypting integration credential', error)
+          return NextResponse.json({ error: 'Unable to secure credentials' }, { status: 500 })
+        }
+      } else {
+        updates[key] = null
       }
     }
   }
