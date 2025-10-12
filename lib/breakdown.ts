@@ -1,6 +1,7 @@
 export type Metric = "engagement_rate" | "impressions" | "people";
 export type Breakdown = "gender" | "age" | "geo";
 export type Platform = "instagram" | "tiktok" | "facebook" | "x";
+export type PlatformFilter = Platform | "all";
 
 export type BreakdownRow = {
   key: string;            // e.g. "female", "18-24", "US"
@@ -12,10 +13,38 @@ export type BreakdownRow = {
 export type BreakdownResponse = {
   metric: Metric;
   by: Breakdown;
-  platform?: Platform | "all";
+  platform?: PlatformFilter;
   rows: BreakdownRow[];
   total: number;
 };
+
+export const METRICS: Metric[] = ["engagement_rate", "impressions", "people"];
+export const BREAKDOWNS: Breakdown[] = ["gender", "age", "geo"];
+export const PLATFORMS: PlatformFilter[] = ["instagram", "tiktok", "facebook", "x", "all"];
+
+export function parseMetric(value: string | null, fallback: Metric = "impressions"): Metric {
+  if (value && METRICS.includes(value as Metric)) {
+    return value as Metric;
+  }
+  return fallback;
+}
+
+export function parseBreakdown(value: string | null, fallback: Breakdown = "gender"): Breakdown {
+  if (value && BREAKDOWNS.includes(value as Breakdown)) {
+    return value as Breakdown;
+  }
+  return fallback;
+}
+
+export function parsePlatform(
+  value: string | null,
+  fallback: PlatformFilter = "all"
+): PlatformFilter {
+  if (value && PLATFORMS.includes(value as PlatformFilter)) {
+    return value as PlatformFilter;
+  }
+  return fallback;
+}
 
 // MOCK data generator; replace with real connectors later
 const GENDERS: BreakdownRow[] = [
@@ -35,7 +64,7 @@ function seedRand(seed: string) {
 export async function getBreakdown(params: {
   start: string; end: string;
   metric: Metric; by: Breakdown;
-  platform?: Platform | "all";
+  platform?: PlatformFilter;
 }): Promise<BreakdownResponse> {
   const { start, end, metric, by, platform = "all" } = params;
   const rand = seedRand(`${start}|${end}|${metric}|${by}|${platform}`);
