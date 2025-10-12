@@ -27,4 +27,4 @@ export interface Post {
   };
 }
 
-export type Page = 'composer' | 'queue' | 'drafts' | 'analytics';
+export type Page = 'dashboard' | 'composer' | 'queue' | 'drafts' | 'analytics';

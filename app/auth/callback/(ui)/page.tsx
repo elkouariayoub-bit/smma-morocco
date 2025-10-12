@@ -10,10 +10,34 @@ export default function AuthCallbackPage() {
   useEffect(() => {
     const finishSignIn = async () => {
       try {
+        const currentUrl = new URL(window.location.href);
+        const code = currentUrl.searchParams.get('code');
+
+        if (code) {
+          const response = await fetch('/api/auth/callback', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ code }),
+          });
+
+          if (!response.ok) {
+            const errorPayload = (await response.json().catch(() => ({}))) as { error?: string };
+            const message = typeof errorPayload.error === 'string' ? errorPayload.error : 'Sign-in failed';
+            console.error('Error exchanging auth code for session:', message);
+            router.replace('/login?message=' + encodeURIComponent(message));
+            return;
+          }
+
+          router.replace('/composer');
+          return;
+        }
+
         // Supabase magic links include the access_token and refresh_token in the
         // URL fragment (window.location.hash). We'll parse the fragment and call
         // supabase.auth.setSession() to persist the session client-side.
-        const hash = window.location.hash.replace(/^#/, '');
+        const hash = currentUrl.hash.replace(/^#/, '');
         const params = new URLSearchParams(hash);
         const access_token = params.get('access_token');
         const refresh_token = params.get('refresh_token');
@@ -24,7 +48,7 @@ export default function AuthCallbackPage() {
           return;
         }
 
-        const { data, error } = await supabase.auth.setSession({ access_token, refresh_token });
+        const { error } = await supabase.auth.setSession({ access_token, refresh_token });
         if (error) {
           console.error('Error setting session after magic link:', error);
           router.replace('/login?message=' + encodeURIComponent(error.message || 'Sign-in failed'));
