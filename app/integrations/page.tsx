@@ -202,12 +202,14 @@ export default function IntegrationsPage() {
           )
         })}
       </section>
-      <IntegrationModal
-        open={modalOpen}
-        definition={activeDefinition}
-        onClose={handleCloseModal}
-        onIntegrationUpdate={handleIntegrationUpdate}
-      />
+      {modalOpen && activeDefinition ? (
+        <IntegrationModal
+          open={modalOpen}
+          definition={activeDefinition}
+          onClose={handleCloseModal}
+          onIntegrationUpdate={handleIntegrationUpdate}
+        />
+      ) : null}
       {toast ? (
         <div className="pointer-events-none fixed inset-x-0 bottom-6 z-50 flex justify-center px-4">
           <div className="flex w-full max-w-sm items-center justify-between gap-3 rounded-lg border border-emerald-400/40 bg-emerald-500/15 px-4 py-3 text-sm text-emerald-100 shadow-lg">
