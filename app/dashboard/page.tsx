@@ -1,15 +1,6 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import {
-  Area,
-  AreaChart,
-  CartesianGrid,
-  ResponsiveContainer,
-  Tooltip as RechartsTooltip,
-  XAxis,
-  YAxis,
-} from 'recharts';
 import { Activity, CalendarClock, MessageSquareText, Rocket } from 'lucide-react';
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -54,6 +45,109 @@ const engagementTrend = [
   { month: 'Jun', reach: 2145, conversions: 190 },
   { month: 'Jul', reach: 2381, conversions: 214 },
 ];
+
+const chartGradients = [
+  { id: 'reachGradient', color: 'var(--color-primary)' },
+  { id: 'conversionGradient', color: 'var(--color-secondary)' },
+];
+
+function TrendChart({ data }: { data: typeof engagementTrend }) {
+  const chartPadding = 8;
+  const chartHeight = 100 - chartPadding * 2;
+  const chartWidth = 100;
+
+  const maxValue = Math.max(
+    ...data.map((point) => Math.max(point.reach, point.conversions)),
+    1
+  );
+
+  const getCoords = (key: 'reach' | 'conversions') =>
+    data.map((point, index) => {
+      const x = data.length > 1 ? (index / (data.length - 1)) * chartWidth : chartWidth / 2;
+      const y = chartPadding + chartHeight - (point[key] / maxValue) * chartHeight;
+      return { x, y, value: point[key], label: point.month };
+    });
+
+  const reachCoords = getCoords('reach');
+  const conversionsCoords = getCoords('conversions');
+
+  const baseY = chartPadding + chartHeight;
+
+  const buildAreaPath = (coords: typeof reachCoords) => {
+    if (coords.length === 0) {
+      return '';
+    }
+
+    const startX = coords[0]?.x ?? 0;
+    const endX = coords[coords.length - 1]?.x ?? chartWidth;
+
+    const points = coords
+      .map((coord, index) => `${index === 0 ? 'L' : 'L'} ${coord.x} ${coord.y}`)
+      .join(' ');
+
+    return `M ${startX} ${baseY} ${points} L ${endX} ${baseY} Z`;
+  };
+
+  const buildLinePath = (coords: typeof reachCoords) =>
+    coords.map((coord, index) => `${index === 0 ? 'M' : 'L'} ${coord.x} ${coord.y}`).join(' ');
+
+  const horizontalGuides = Array.from({ length: 4 }).map((_, index) => {
+    const y = chartPadding + (chartHeight / 4) * (index + 1);
+    const value = Math.round((maxValue * (4 - (index + 1))) / 4);
+    return { id: index, y, value };
+  });
+
+  return (
+    <div className="flex h-full flex-col">
+      <div className="relative flex-1">
+        <svg viewBox={`0 0 ${chartWidth} 100`} preserveAspectRatio="none" className="h-full w-full">
+          <defs>
+            {chartGradients.map((gradient) => (
+              <linearGradient key={gradient.id} id={gradient.id} x1="0" y1="0" x2="0" y2="1">
+                <stop offset="5%" stopColor={gradient.color} stopOpacity="0.45" />
+                <stop offset="95%" stopColor={gradient.color} stopOpacity="0" />
+              </linearGradient>
+            ))}
+          </defs>
+          <g stroke="rgba(148,163,184,0.25)" strokeWidth="0.4">
+            {horizontalGuides.map((guide) => (
+              <line key={guide.id} x1="0" y1={guide.y} x2={chartWidth} y2={guide.y} strokeDasharray="4 6" />
+            ))}
+          </g>
+          <path d={buildAreaPath(reachCoords)} fill="url(#reachGradient)" />
+          <path d={buildAreaPath(conversionsCoords)} fill="url(#conversionGradient)" />
+          <path d={buildLinePath(reachCoords)} fill="none" stroke="var(--color-primary)" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+          <path
+            d={buildLinePath(conversionsCoords)}
+            fill="none"
+            stroke="var(--color-secondary)"
+            strokeWidth="1.6"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+          {[reachCoords, conversionsCoords].map((coords, seriesIndex) => (
+            <g key={seriesIndex} fill={seriesIndex === 0 ? 'var(--color-primary)' : 'var(--color-secondary)'}>
+              {coords.map((coord) => (
+                <circle key={`${seriesIndex}-${coord.label}`} cx={coord.x} cy={coord.y} r="1.6">
+                  <title>
+                    {coord.label}: {coord.value.toLocaleString()} {seriesIndex === 0 ? 'reach' : 'conversions'}
+                  </title>
+                </circle>
+              ))}
+            </g>
+          ))}
+        </svg>
+      </div>
+      <div className="mt-6 grid grid-cols-7 gap-2 text-xs font-medium text-muted">
+        {data.map((point) => (
+          <span key={point.month} className="text-center tracking-wide">
+            {point.month}
+          </span>
+        ))}
+      </div>
+    </div>
+  );
+}
 
 const pipeline = [
   { id: '1', campaign: 'Summer Launch', platform: 'Instagram', status: 'Queued', scheduledAt: '2024-07-20', reach: '28.4K' },
@@ -161,29 +255,7 @@ export default function DashboardPage() {
             </Button>
           </CardHeader>
           <CardContent className="h-[320px]">
-            <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={engagementTrend} margin={{ top: 20, right: 20, left: 0, bottom: 0 }}>
-                <defs>
-                  <linearGradient id="reachGradient" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="var(--color-primary)" stopOpacity={0.4} />
-                    <stop offset="95%" stopColor="var(--color-primary)" stopOpacity={0.05} />
-                  </linearGradient>
-                  <linearGradient id="conversionGradient" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="var(--color-secondary)" stopOpacity={0.45} />
-                    <stop offset="95%" stopColor="var(--color-secondary)" stopOpacity={0.05} />
-                  </linearGradient>
-                </defs>
-                <CartesianGrid stroke="rgba(148, 163, 184, 0.16)" vertical={false} strokeDasharray="6 6" />
-                <XAxis dataKey="month" stroke="rgba(15,23,42,0.4)" tickLine={false} axisLine={false} />
-                <YAxis stroke="rgba(15,23,42,0.4)" tickLine={false} axisLine={false} tickFormatter={(value: number) => `${value / 1000}k`} />
-                <RechartsTooltip
-                  cursor={{ strokeDasharray: '4 4', stroke: 'rgba(148,163,184,0.45)' }}
-                  contentStyle={{ borderRadius: 16, border: '1px solid var(--color-border)', background: 'var(--color-surface)', boxShadow: 'var(--shadow-sm)' }}
-                />
-                <Area type="monotone" dataKey="reach" stroke="var(--color-primary)" strokeWidth={2.4} fill="url(#reachGradient)" />
-                <Area type="monotone" dataKey="conversions" stroke="var(--color-secondary)" strokeWidth={2.4} fill="url(#conversionGradient)" />
-              </AreaChart>
-            </ResponsiveContainer>
+            <TrendChart data={engagementTrend} />
           </CardContent>
         </Card>
 
