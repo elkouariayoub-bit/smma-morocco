@@ -1,7 +1,10 @@
 // lib/env.ts
-// Split runtime environment into values intended for the server
-// and values intended for the browser. Client-side code should
-// only rely on NEXT_PUBLIC_* variables.
+// Helper utilities to read runtime environment variables without
+// crashing the build when deploy-time configuration is incomplete.
+// These helpers are imported in both server and client modules, so
+// keep the reads side-effect free and only throw when a value is
+// accessed at runtime.
+
 export const env = {
   // Server-only (do NOT expose to client)
   geminiApiKey: process.env.GEMINI_API_KEY,
@@ -12,25 +15,23 @@ export const env = {
   supabaseAnonKey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
 };
 
-function assertEnv() {
-  const missing: string[] = [];
-
-  // The browser bundle should only require the NEXT_PUBLIC_* keys.
-  if (!env.supabaseUrl) missing.push('supabaseUrl');
-  if (!env.supabaseAnonKey) missing.push('supabaseAnonKey');
-
-  // Only assert server-only variables when running on the server.
-  if (typeof window === 'undefined') {
-    if (!env.geminiApiKey) missing.push('geminiApiKey');
-    // service role key is optional but recommended for server DB actions
-    if (!env.supabaseServiceRoleKey) {
-      // don't force it, but log a note in the thrown message if other things missing
-    }
+export function requireBrowserSupabaseEnv() {
+  if (!env.supabaseUrl || !env.supabaseAnonKey) {
+    throw new Error(
+      'Supabase environment variables are missing. Set NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY.'
+    );
   }
 
-  if (missing.length) {
-    throw new Error(`Missing required env vars: ${missing.join(', ')}`);
-  }
+  return {
+    supabaseUrl: env.supabaseUrl,
+    supabaseAnonKey: env.supabaseAnonKey,
+  } as { supabaseUrl: string; supabaseAnonKey: string };
 }
 
-assertEnv();
+export function requireGeminiApiKey() {
+  if (!env.geminiApiKey) {
+    throw new Error('GEMINI_API_KEY is not configured. Add it to your environment settings.');
+  }
+
+  return env.geminiApiKey;
+}

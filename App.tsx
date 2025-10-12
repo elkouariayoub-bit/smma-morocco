@@ -31,7 +31,7 @@ const App: React.FC = () => {
   return (
     <div className="flex h-screen bg-slate-100 dark:bg-slate-900">
       {/* FIX: Pass required props to the Sidebar component to enable navigation. */}
-      <Sidebar currentPage={currentPage} setCurrentPage={setCurrentPage} />
+      <Sidebar currentPage={currentPage} setCurrentPage={setCurrentPage} className="!flex" />
       <main className="flex-1 p-6 sm:p-8 overflow-y-auto">
         {renderContent()}
       </main>

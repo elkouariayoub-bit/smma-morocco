@@ -1,11 +1,12 @@
 "use client";
 
 import { Sidebar } from "@/components/Sidebar";
-import { useEffect, useState } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
+import { DashboardTopbar } from '@/components/layout/dashboard-topbar';
 
-export default function DashboardLayout({ children }: { children: React.ReactNode }) {
+export default function DashboardLayout({ children }: { children: ReactNode }) {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
 
@@ -26,13 +27,16 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   }, [router]);
 
   if (loading) return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center"><p>Loading your dashboard...</p></div>
+    <div className="min-h-screen bg-surface flex items-center justify-center"><p className="text-slate-500">Loading your dashboard…</p></div>
   );
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-surface">
       <Sidebar />
-      <main className="flex-1 p-4 sm:p-6 lg:p-8 ml-64">{children}</main>
+      <div className="lg:pl-72">
+        <DashboardTopbar />
+        <main className="px-4 pb-12 pt-24 sm:px-8">{children}</main>
+      </div>
     </div>
   );
 }
