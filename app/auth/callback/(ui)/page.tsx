@@ -14,10 +14,19 @@ export default function AuthCallbackPage() {
         const code = currentUrl.searchParams.get('code');
 
         if (code) {
-          const { error } = await supabase.auth.exchangeCodeForSession(code);
-          if (error) {
-            console.error('Error exchanging auth code for session:', error);
-            router.replace('/login?message=' + encodeURIComponent(error.message || 'Sign-in failed'));
+          const response = await fetch('/api/auth/callback', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ code }),
+          });
+
+          if (!response.ok) {
+            const errorPayload = (await response.json().catch(() => ({}))) as { error?: string };
+            const message = typeof errorPayload.error === 'string' ? errorPayload.error : 'Sign-in failed';
+            console.error('Error exchanging auth code for session:', message);
+            router.replace('/login?message=' + encodeURIComponent(message));
             return;
           }
 
