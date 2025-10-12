@@ -43,7 +43,7 @@ const config: Config = {
         '2xl': "1.25rem",
       },
       fontFamily: {
-        sans: ['var(--font-inter)', 'system-ui', 'sans-serif'],
+        sans: ['"Segoe UI"', 'ui-sans-serif', 'system-ui', 'sans-serif'],
       },
       transitionTimingFunction: {
         'emphasized': 'cubic-bezier(0.2, 0.8, 0.2, 1)',
