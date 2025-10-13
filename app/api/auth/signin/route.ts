@@ -57,7 +57,7 @@ export async function POST(request: NextRequest) {
 
     const successResponse = NextResponse.json({
       user: { id: data.user.id },
-      redirectTo: safeNext ?? "/dashboard",
+      redirectTo: safeNext ?? "/clients",
     })
     applySupabaseCookies(supabaseResponse, successResponse)
     return successResponse

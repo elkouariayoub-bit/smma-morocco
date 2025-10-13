@@ -26,7 +26,7 @@ type LoginFormProps = {
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/i
 
 export function LoginForm({
-  defaultRedirect = "/dashboard",
+  defaultRedirect = "/clients",
   nextPath = null,
   initialMessage = null,
 }: LoginFormProps) {

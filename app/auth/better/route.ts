@@ -61,7 +61,7 @@ const getRedirectTarget = (
   }
 
   const baseOrigin = getBaseOrigin(env, request);
-  const path = options?.provider === 'google' ? '/api/auth/callback/google' : '/auth/callback';
+  const path = options?.provider === 'google' ? '/api/auth/callback/google' : '/api/auth/callback';
   const target = new URL(path, baseOrigin);
 
   if (options?.next) {

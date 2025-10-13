@@ -27,7 +27,7 @@ export async function GET(request: NextRequest) {
   const supabaseResponse = NextResponse.next()
   const supabase = createClient({ request, response: supabaseResponse })
   const safeNext = sanitizeRedirectPath(url.searchParams.get("next") ?? undefined)
-  const redirectTarget = new URL("/auth/callback", url.origin)
+  const redirectTarget = new URL("/api/auth/callback", url.origin)
   if (safeNext) {
     redirectTarget.searchParams.set("next", safeNext)
   }

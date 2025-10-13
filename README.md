@@ -38,8 +38,8 @@ Open http://localhost:3000
 2. Enable the **Google+ API** for the project.
 3. Navigate to **APIs & Services → Credentials** and choose **Create Credentials → OAuth client ID**.
 4. Select **Web application** as the application type and add the authorized redirect URIs:
-   - Development: `http://localhost:3000/api/auth/callback/google`
-   - Production: `https://yourdomain.com/api/auth/callback/google`
+   - Development: `http://localhost:3000/api/auth/callback`
+   - Production: `https://yourdomain.com/api/auth/callback`
 5. Copy the generated **Client ID** and **Client Secret** into your environment variables:
    - `GOOGLE_CLIENT_ID`
    - `GOOGLE_CLIENT_SECRET`
@@ -65,6 +65,13 @@ Fix “Better Auth secret is not configured” by ensuring the server can read `
 - Visit [`/auth/better`](http://localhost:3000/auth/better) to inspect the live Better Auth configuration. The JSON response lists the enabled providers and whether each required environment variable is loaded.
 - Run `npm run debug:auth` locally to print a masked snapshot of the Better Auth environment variables and confirm that Google is registered before you boot Next.js.
 - The server logs now emit `[better-auth]` messages every time the Google flow is initialised. If Supabase reports `provider is not enabled`, make sure Google is toggled on inside **Supabase → Authentication → Providers** and that its Client ID/Secret match the values in `.env.local`.
+
+#### OAuth callback troubleshooting
+- In **Supabase → Authentication → URL Configuration**, add both `http://localhost:3000/api/auth/callback` and your production domain (for example `https://smma-morocco.vercel.app/api/auth/callback`) to the `Redirect URLs` list. Missing entries cause Supabase to reject the OAuth code exchange.
+- Confirm the **Site URL** in the same settings screen matches the domain you deploy to. Supabase uses this when it needs to craft default redirects.
+- If Google reports a mismatch, double-check that the OAuth client in Google Cloud lists the same callback URLs as above and that there are no trailing slashes.
+- After updating settings, re-run the sign-in flow from an incognito window or clear cookies so the PKCE verifier stored in `sb-<project-ref>-auth-token` is regenerated.
+- When testing locally via tunnels (like `ngrok`), ensure the forwarded hostname is also present in both Supabase and Google console redirect lists.
 
 ### Deploy on Vercel
 1. Push to GitHub.

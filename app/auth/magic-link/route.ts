@@ -92,7 +92,7 @@ export async function POST(request: NextRequest) {
 
   const origin = resolveCanonicalOrigin(env, request);
   const nextPath = normalizeNextPath(payload.next);
-  const callbackUrl = new URL('/auth/callback', origin);
+  const callbackUrl = new URL('/api/auth/callback', origin);
   if (nextPath) {
     callbackUrl.searchParams.set('next', nextPath);
   }

@@ -145,7 +145,7 @@ function useRedirects(redirectTo?: string, oauthRedirectTo?: string) {
         ? window.location.origin
         : undefined;
 
-    const emailRedirect = redirectTo ?? (fallbackOrigin ? `${fallbackOrigin}/auth/callback` : undefined);
+    const emailRedirect = redirectTo ?? (fallbackOrigin ? `${fallbackOrigin}/api/auth/callback` : undefined);
     const oauthRedirect =
       oauthRedirectTo ?? (fallbackOrigin ? `${fallbackOrigin}/api/auth/callback/google` : undefined);
 
