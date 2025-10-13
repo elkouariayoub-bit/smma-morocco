@@ -1,7 +1,8 @@
-import { createMiddlewareClient } from '@supabase/auth-helpers-nextjs'
 import type { Session } from '@supabase/supabase-js'
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
+
+import { applySupabaseCookies, createClient } from '@/lib/supabase'
 
 const PROTECTED_PREFIXES = [
   '/dashboard',
@@ -42,13 +43,7 @@ export async function middleware(req: NextRequest) {
     }
   } else {
     try {
-      const supabase = createMiddlewareClient(
-        { req, res },
-        {
-          supabaseUrl,
-          supabaseKey: supabaseAnonKey,
-        },
-      )
+      const supabase = createClient({ request: req, response: res })
       const {
         data: { session: supabaseSession },
       } = await supabase.auth.getSession()
@@ -67,7 +62,9 @@ export async function middleware(req: NextRequest) {
     const nextPath = `${pathname}${search}`
     loginUrl.searchParams.set('next', nextPath)
     loginUrl.searchParams.set('reason', 'redirect')
-    return NextResponse.redirect(loginUrl)
+    const redirectResponse = NextResponse.redirect(loginUrl)
+    applySupabaseCookies(res, redirectResponse)
+    return redirectResponse
   }
 
   if (
@@ -75,7 +72,9 @@ export async function middleware(req: NextRequest) {
     (pathname === '/login' || pathname === '/auth/login') &&
     !req.nextUrl.searchParams.has('next')
   ) {
-    return NextResponse.redirect(new URL('/dashboard', req.url))
+    const redirectResponse = NextResponse.redirect(new URL('/dashboard', req.url))
+    applySupabaseCookies(res, redirectResponse)
+    return redirectResponse
   }
 
   return res

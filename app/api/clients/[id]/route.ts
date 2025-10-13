@@ -1,13 +1,27 @@
 import { NextRequest, NextResponse } from 'next/server'
 
+import type { PostgrestError } from '@supabase/supabase-js'
 import { decryptContact, encryptContact, mapClient, parseClientForm, ZodError } from '@/lib/clients'
 
-import { applyClientsRateLimit, getSupabaseSession } from '../utils'
+import { applyClientsRateLimit, getSupabaseSession, withSupabaseCookies } from '../utils'
 
 type RouteContext = { params: { id?: string } }
 
 function validateId(id: string | undefined) {
   return typeof id === 'string' && id.length > 0
+}
+
+function isForbidden(error: PostgrestError | null) {
+  if (!error) {
+    return false
+  }
+
+  const code = error.code?.toUpperCase()
+  if (!code) {
+    return error.message.toLowerCase().includes('permission denied')
+  }
+
+  return code === '42501' || code === 'PGRST301' || code === 'PGRST302' || code === 'PGRST303'
 }
 
 export async function GET(request: NextRequest, context: RouteContext) {
@@ -22,13 +36,16 @@ export async function GET(request: NextRequest, context: RouteContext) {
 
   let session
   try {
-    session = await getSupabaseSession()
+    session = await getSupabaseSession(request)
   } catch (error) {
     return NextResponse.json({ error: 'Failed to verify authentication' }, { status: 500 })
   }
 
   if (!session.userId) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    return withSupabaseCookies(
+      NextResponse.json({ error: 'Unauthorized' }, { status: 401 }),
+      session.response,
+    )
   }
 
   const { supabase, userId } = session
@@ -41,15 +58,27 @@ export async function GET(request: NextRequest, context: RouteContext) {
 
   if (error && error.code !== 'PGRST116') {
     console.error('Error loading client', error)
-    return NextResponse.json({ error: 'Unable to load client' }, { status: 500 })
+    if (isForbidden(error)) {
+      return withSupabaseCookies(
+        NextResponse.json({ error: 'Forbidden' }, { status: 403 }),
+        session.response,
+      )
+    }
+    return withSupabaseCookies(
+      NextResponse.json({ error: 'Unable to load client' }, { status: 500 }),
+      session.response,
+    )
   }
 
   if (!data) {
-    return NextResponse.json({ error: 'Client not found' }, { status: 404 })
+    return withSupabaseCookies(
+      NextResponse.json({ error: 'Client not found' }, { status: 404 }),
+      session.response,
+    )
   }
 
   const contact = decryptContact(data.contact_encrypted)
-  return NextResponse.json({ client: mapClient(data, contact) })
+  return withSupabaseCookies(NextResponse.json({ client: mapClient(data, contact) }), session.response)
 }
 
 export async function PATCH(request: NextRequest, context: RouteContext) {
@@ -75,13 +104,16 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
 
   let session
   try {
-    session = await getSupabaseSession()
+    session = await getSupabaseSession(request)
   } catch (error) {
     return NextResponse.json({ error: 'Failed to verify authentication' }, { status: 500 })
   }
 
   if (!session.userId) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    return withSupabaseCookies(
+      NextResponse.json({ error: 'Unauthorized' }, { status: 401 }),
+      session.response,
+    )
   }
 
   const { supabase, userId } = session
@@ -107,11 +139,20 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
 
   if (error) {
     console.error('Error updating client', error)
-    return NextResponse.json({ error: 'Failed to update client' }, { status: 500 })
+    if (isForbidden(error)) {
+      return withSupabaseCookies(
+        NextResponse.json({ error: 'Forbidden' }, { status: 403 }),
+        session.response,
+      )
+    }
+    return withSupabaseCookies(
+      NextResponse.json({ error: 'Failed to update client' }, { status: 500 }),
+      session.response,
+    )
   }
 
   const contact = decryptContact(data.contact_encrypted)
-  return NextResponse.json({ client: mapClient(data, contact) })
+  return withSupabaseCookies(NextResponse.json({ client: mapClient(data, contact) }), session.response)
 }
 
 export async function DELETE(request: NextRequest, context: RouteContext) {
@@ -126,13 +167,16 @@ export async function DELETE(request: NextRequest, context: RouteContext) {
 
   let session
   try {
-    session = await getSupabaseSession()
+    session = await getSupabaseSession(request)
   } catch (error) {
     return NextResponse.json({ error: 'Failed to verify authentication' }, { status: 500 })
   }
 
   if (!session.userId) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    return withSupabaseCookies(
+      NextResponse.json({ error: 'Unauthorized' }, { status: 401 }),
+      session.response,
+    )
   }
 
   const { supabase, userId } = session
@@ -144,8 +188,17 @@ export async function DELETE(request: NextRequest, context: RouteContext) {
 
   if (error) {
     console.error('Error deleting client', error)
-    return NextResponse.json({ error: 'Failed to delete client' }, { status: 500 })
+    if (isForbidden(error)) {
+      return withSupabaseCookies(
+        NextResponse.json({ error: 'Forbidden' }, { status: 403 }),
+        session.response,
+      )
+    }
+    return withSupabaseCookies(
+      NextResponse.json({ error: 'Failed to delete client' }, { status: 500 }),
+      session.response,
+    )
   }
 
-  return NextResponse.json({ success: true })
+  return withSupabaseCookies(NextResponse.json({ success: true }), session.response)
 }

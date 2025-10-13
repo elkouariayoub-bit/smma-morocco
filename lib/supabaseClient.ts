@@ -1,11 +1,10 @@
 import { cookies } from "next/headers"
 import type { NextRequest, NextResponse } from "next/server"
 import {
-  createClientComponentClient,
-  createRouteHandlerClient,
-  createServerComponentClient,
-} from "@supabase/auth-helpers-nextjs"
-import type { CookieOptions } from "@supabase/auth-helpers-shared"
+  createBrowserClient,
+  createServerClient,
+  type CookieOptions,
+} from "@supabase/ssr"
 import type { SupabaseClient } from "@supabase/supabase-js"
 
 // TODO: Replace with generated Supabase types when available.
@@ -21,22 +20,17 @@ type CreateClientOptions = {
   response?: NextResponse
 }
 
-type ExtendedCookieOptions = CookieOptions & {
-  maxAge?: number
-  httpOnly?: boolean
+type CookieAdapter = {
+  get: (name: string) => string | undefined
+  set: (name: string, value: string, options?: CookieOptions) => void
+  remove: (name: string, options?: CookieOptions) => void
 }
 
-const baseCookieOptions: CookieOptions = {
+const BASE_COOKIE_OPTIONS: CookieOptions = {
   path: "/",
   sameSite: "lax",
   secure: process.env.NODE_ENV === "production",
-  domain: undefined,
-}
-
-const responseCookieOptions: ExtendedCookieOptions = {
-  ...baseCookieOptions,
   httpOnly: true,
-  maxAge: 60 * 60 * 24 * 365 * 1_000,
 }
 
 function resolveConfig(context: "server" | "client"): SupabaseConfig {
@@ -57,63 +51,68 @@ function resolveConfig(context: "server" | "client"): SupabaseConfig {
   return { url, anonKey }
 }
 
-function mergeCookieOptions(options?: Partial<ExtendedCookieOptions>): ExtendedCookieOptions {
+function mergeCookieOptions(options?: CookieOptions): CookieOptions {
   return {
-    ...responseCookieOptions,
+    ...BASE_COOKIE_OPTIONS,
     ...options,
   }
 }
 
-function createRouteCookieStore(request: NextRequest, response: NextResponse) {
-  const requestCookies = request.cookies
-
+function createRouteCookieAdapter(request: NextRequest, response: NextResponse): CookieAdapter {
   return {
-    get: requestCookies.get.bind(requestCookies),
-    getAll: requestCookies.getAll.bind(requestCookies),
-    has: requestCookies.has.bind(requestCookies),
-    set(name: string, value: string, options?: ExtendedCookieOptions) {
+    get(name: string) {
+      return request.cookies.get(name)?.value
+    },
+    set(name: string, value: string, options?: CookieOptions) {
       response.cookies.set({
         name,
         value,
         ...mergeCookieOptions(options),
       })
     },
-    delete(name: string) {
+    remove(name: string, options?: CookieOptions) {
       response.cookies.set({
         name,
         value: "",
-        ...mergeCookieOptions({ maxAge: 0 }),
+        ...mergeCookieOptions({ ...options, maxAge: 0 }),
       })
     },
-    [Symbol.iterator]: requestCookies[Symbol.iterator].bind(requestCookies),
-  } as unknown as ReturnType<typeof cookies>
+  }
+}
+
+function createServerCookieAdapter(): CookieAdapter {
+  const cookieStore = cookies()
+
+  return {
+    get(name: string) {
+      return cookieStore.get(name)?.value
+    },
+    set(name: string, value: string, options?: CookieOptions) {
+      cookieStore.set({
+        name,
+        value,
+        ...mergeCookieOptions(options),
+      })
+    },
+    remove(name: string, options?: CookieOptions) {
+      cookieStore.set({
+        name,
+        value: "",
+        ...mergeCookieOptions({ ...options, maxAge: 0 }),
+      })
+    },
+  }
 }
 
 export function createClient(options: CreateClientOptions = {}): SupabaseClient<Database> {
   const { request, response } = options
   const { url, anonKey } = resolveConfig("server")
+  const cookieAdapter =
+    request && response ? createRouteCookieAdapter(request, response) : createServerCookieAdapter()
 
-  if (request && response) {
-    return createRouteHandlerClient<Database>(
-      {
-        cookies: () => createRouteCookieStore(request, response),
-      },
-      {
-        supabaseUrl: url,
-        supabaseKey: anonKey,
-        cookieOptions: baseCookieOptions,
-      },
-    )
-  }
-
-  return createServerComponentClient<Database>(
-    { cookies },
-    {
-      supabaseUrl: url,
-      supabaseKey: anonKey,
-      cookieOptions: baseCookieOptions,
-    },
-  )
+  return createServerClient<Database>(url, anonKey, {
+    cookies: () => cookieAdapter,
+  })
 }
 
 let browserClient: SupabaseClient<Database> | null = null
@@ -125,10 +124,7 @@ export function supabaseBrowser(): SupabaseClient<Database> {
 
   if (!browserClient) {
     const { url, anonKey } = resolveConfig("client")
-    browserClient = createClientComponentClient<Database>({
-      supabaseUrl: url,
-      supabaseKey: anonKey,
-    })
+    browserClient = createBrowserClient<Database>(url, anonKey)
   }
 
   return browserClient

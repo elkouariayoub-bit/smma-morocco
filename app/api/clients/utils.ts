@@ -1,13 +1,14 @@
 import { NextResponse } from 'next/server'
-import { cookies } from 'next/headers'
-import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs'
+
+import { applySupabaseCookies, createClient } from '@/lib/supabase'
 
 import { checkRateLimit, getRateLimitIdentifier } from '@/lib/rate-limit'
 
 import type { NextRequest } from 'next/server'
 
-export async function getSupabaseSession() {
-  const supabase = createRouteHandlerClient({ cookies })
+export async function getSupabaseSession(request: NextRequest) {
+  const supabaseResponse = NextResponse.next()
+  const supabase = createClient({ request, response: supabaseResponse })
   const {
     data: { session },
     error,
@@ -18,7 +19,7 @@ export async function getSupabaseSession() {
     throw new Error('session_error')
   }
 
-  return { supabase, userId: session?.user.id ?? null }
+  return { supabase, session, userId: session?.user.id ?? null, response: supabaseResponse }
 }
 
 export function applyClientsRateLimit(
@@ -41,4 +42,9 @@ export function applyClientsRateLimit(
   }
 
   return null
+}
+
+export function withSupabaseCookies(base: NextResponse, supabaseResponse: NextResponse) {
+  applySupabaseCookies(supabaseResponse, base)
+  return base
 }

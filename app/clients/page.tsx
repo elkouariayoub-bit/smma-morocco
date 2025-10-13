@@ -1,6 +1,5 @@
 import { Suspense } from "react"
 
-import { DashboardShell } from "@/components/dashboard-shell"
 import { ClientTable } from "@/components/clients/ClientTable"
 
 export const metadata = {
@@ -10,10 +9,8 @@ export const metadata = {
 
 export default function ClientsPage() {
   return (
-    <DashboardShell redirectPath="/clients">
-      <Suspense fallback={<div className="text-sm text-gray-400">Loading clients…</div>}>
-        <ClientTable />
-      </Suspense>
-    </DashboardShell>
+    <Suspense fallback={<div className="text-sm text-gray-400">Loading clients…</div>}>
+      <ClientTable />
+    </Suspense>
   )
 }

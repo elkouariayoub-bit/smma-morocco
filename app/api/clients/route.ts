@@ -1,8 +1,22 @@
 import { NextRequest, NextResponse } from 'next/server'
 
+import type { PostgrestError } from '@supabase/supabase-js'
 import { decryptContact, encryptContact, mapClient, parseClientForm, parseClientQuery, ZodError } from '@/lib/clients'
 
-import { applyClientsRateLimit, getSupabaseSession } from './utils'
+import { applyClientsRateLimit, getSupabaseSession, withSupabaseCookies } from './utils'
+
+function isForbidden(error: PostgrestError | null): boolean {
+  if (!error) {
+    return false
+  }
+
+  const code = error.code?.toUpperCase()
+  if (!code) {
+    return error.message.toLowerCase().includes('permission denied')
+  }
+
+  return code === '42501' || code === 'PGRST301' || code === 'PGRST302' || code === 'PGRST303'
+}
 
 export async function GET(request: NextRequest) {
   const rateLimitResponse = applyClientsRateLimit(request, 'list')
@@ -28,13 +42,16 @@ export async function GET(request: NextRequest) {
 
   let session
   try {
-    session = await getSupabaseSession()
+    session = await getSupabaseSession(request)
   } catch (error) {
     return NextResponse.json({ error: 'Failed to verify authentication' }, { status: 500 })
   }
 
   if (!session.userId) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    return withSupabaseCookies(
+      NextResponse.json({ error: 'Unauthorized' }, { status: 401 }),
+      session.response,
+    )
   }
 
   const { supabase, userId } = session
@@ -56,7 +73,16 @@ export async function GET(request: NextRequest) {
 
   if (error) {
     console.error('Error fetching clients', error)
-    return NextResponse.json({ error: 'Unable to load clients' }, { status: 500 })
+    if (isForbidden(error)) {
+      return withSupabaseCookies(
+        NextResponse.json({ error: 'Forbidden' }, { status: 403 }),
+        session.response,
+      )
+    }
+    return withSupabaseCookies(
+      NextResponse.json({ error: 'Unable to load clients' }, { status: 500 }),
+      session.response,
+    )
   }
 
   const clients = (data ?? []).map((row) => {
@@ -64,7 +90,10 @@ export async function GET(request: NextRequest) {
     return mapClient(row, contact)
   })
 
-  return NextResponse.json({ data: clients, total: count ?? clients.length, page: query.page, limit: query.limit })
+  return withSupabaseCookies(
+    NextResponse.json({ data: clients, total: count ?? clients.length, page: query.page, limit: query.limit }),
+    session.response,
+  )
 }
 
 export async function POST(request: NextRequest) {
@@ -88,13 +117,16 @@ export async function POST(request: NextRequest) {
 
   let session
   try {
-    session = await getSupabaseSession()
+    session = await getSupabaseSession(request)
   } catch (error) {
     return NextResponse.json({ error: 'Failed to verify authentication' }, { status: 500 })
   }
 
   if (!session.userId) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    return withSupabaseCookies(
+      NextResponse.json({ error: 'Unauthorized' }, { status: 401 }),
+      session.response,
+    )
   }
 
   const { supabase, userId } = session
@@ -119,11 +151,20 @@ export async function POST(request: NextRequest) {
 
   if (error || !data) {
     console.error('Error creating client', error)
-    return NextResponse.json({ error: 'Failed to create client' }, { status: 500 })
+    if (isForbidden(error ?? null)) {
+      return withSupabaseCookies(
+        NextResponse.json({ error: 'Forbidden' }, { status: 403 }),
+        session.response,
+      )
+    }
+    return withSupabaseCookies(
+      NextResponse.json({ error: 'Failed to create client' }, { status: 500 }),
+      session.response,
+    )
   }
 
   const contact = decryptContact(data.contact_encrypted)
   const client = mapClient(data, contact)
 
-  return NextResponse.json({ client }, { status: 201 })
+  return withSupabaseCookies(NextResponse.json({ client }, { status: 201 }), session.response)
 }

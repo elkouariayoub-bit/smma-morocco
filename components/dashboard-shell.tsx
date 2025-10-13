@@ -1,9 +1,9 @@
 import type { ReactNode } from "react"
 import { cookies } from "next/headers"
 import { redirect } from "next/navigation"
-import { createServerComponentClient } from "@supabase/auth-helpers-nextjs"
 
 import { DashboardLayout } from "@/components/dashboard-layout"
+import { createClient } from "@/lib/supabase"
 
 export async function DashboardShell({
   children,
@@ -12,12 +12,11 @@ export async function DashboardShell({
   children: ReactNode
   redirectPath: string
 }) {
-  const cookieStore = cookies()
-  const supabase = createServerComponentClient({ cookies })
+  const supabase = createClient()
   const {
     data: { session },
   } = await supabase.auth.getSession()
-  const hasCodeSession = cookieStore.get("code-auth")?.value === "true"
+  const hasCodeSession = cookies().get("code-auth")?.value === "true"
 
   if (!session && !hasCodeSession) {
     redirect(`/auth/login?next=${encodeURIComponent(redirectPath)}`)
