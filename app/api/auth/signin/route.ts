@@ -1,9 +1,8 @@
-import { cookies } from "next/headers"
-import { NextResponse } from "next/server"
-import { createRouteHandlerClient } from "@supabase/auth-helpers-nextjs"
+import { NextRequest, NextResponse } from "next/server"
 
 import { sanitizeRedirectPath } from "@/lib/auth"
 import { loadServerEnv } from "@/lib/load-server-env"
+import { applySupabaseCookies, createClient } from "@/lib/supabase"
 
 interface SignInPayload {
   email?: string
@@ -13,7 +12,7 @@ interface SignInPayload {
 
 const normalizeEmail = (value: string) => value.trim().toLowerCase()
 
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
   let payload: SignInPayload
 
   try {
@@ -36,27 +35,36 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Authentication is not configured." }, { status: 503 })
   }
 
-  const supabase = createRouteHandlerClient({ cookies })
+  const supabaseResponse = NextResponse.next()
+  const supabase = createClient({ request, response: supabaseResponse })
 
   try {
     const { data, error } = await supabase.auth.signInWithPassword({ email, password })
 
     if (error) {
-      return NextResponse.json({ error: error.message || "Invalid credentials" }, { status: 401 })
+      const errorResponse = NextResponse.json({ error: error.message || "Invalid credentials" }, { status: 401 })
+      applySupabaseCookies(supabaseResponse, errorResponse)
+      return errorResponse
     }
 
     if (!data?.user?.id) {
-      return NextResponse.json({ error: "Unable to complete sign-in" }, { status: 500 })
+      const errorResponse = NextResponse.json({ error: "Unable to complete sign-in" }, { status: 500 })
+      applySupabaseCookies(supabaseResponse, errorResponse)
+      return errorResponse
     }
 
     const safeNext = sanitizeRedirectPath(payload.next)
 
-    return NextResponse.json({
+    const successResponse = NextResponse.json({
       user: { id: data.user.id },
       redirectTo: safeNext ?? "/dashboard",
     })
+    applySupabaseCookies(supabaseResponse, successResponse)
+    return successResponse
   } catch (error) {
     console.error("Supabase sign-in failed", error)
-    return NextResponse.json({ error: "Unexpected authentication error" }, { status: 500 })
+    const errorResponse = NextResponse.json({ error: "Unexpected authentication error" }, { status: 500 })
+    applySupabaseCookies(supabaseResponse, errorResponse)
+    return errorResponse
   }
 }

@@ -5,7 +5,7 @@ import { useCallback, useState } from "react";
 import { useRouter } from "next/navigation";
 
 import { Button } from "./ui/button";
-import { useSupabaseSession } from "@/hooks/useSupabaseSession";
+import { useUser } from "@/hooks/useUser";
 
 const navLinks = [
     { href: '/dashboard', label: 'Dashboard' },
@@ -16,7 +16,7 @@ const navLinks = [
 
 export function Navbar() {
   const router = useRouter();
-  const { user, refresh } = useSupabaseSession();
+  const { user, refresh } = useUser();
   const [isSigningOut, setIsSigningOut] = useState(false);
 
   const handleSignOut = useCallback(async () => {

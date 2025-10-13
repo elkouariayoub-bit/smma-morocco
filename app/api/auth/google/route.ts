@@ -1,9 +1,8 @@
-import { cookies } from "next/headers"
-import { NextResponse } from "next/server"
-import { createRouteHandlerClient } from "@supabase/auth-helpers-nextjs"
+import { NextRequest, NextResponse } from "next/server"
 
 import { sanitizeRedirectPath } from "@/lib/auth"
 import { loadServerEnv } from "@/lib/load-server-env"
+import { applySupabaseCookies, createClient } from "@/lib/supabase"
 
 const buildLoginRedirect = (origin: string, message: string, next?: string | null) => {
   const fallback = new URL("/auth/login", origin)
@@ -14,7 +13,7 @@ const buildLoginRedirect = (origin: string, message: string, next?: string | nul
   return fallback.toString()
 }
 
-export async function GET(request: Request) {
+export async function GET(request: NextRequest) {
   const url = new URL(request.url)
   loadServerEnv()
   const { env } = await import("@/lib/env")
@@ -25,7 +24,8 @@ export async function GET(request: Request) {
     )
   }
 
-  const supabase = createRouteHandlerClient({ cookies })
+  const supabaseResponse = NextResponse.next()
+  const supabase = createClient({ request, response: supabaseResponse })
   const safeNext = sanitizeRedirectPath(url.searchParams.get("next") ?? undefined)
   const redirectTarget = new URL("/auth/callback", url.origin)
   if (safeNext) {
@@ -43,14 +43,20 @@ export async function GET(request: Request) {
 
     if (error || !data?.url) {
       const message = error?.message ?? "Unable to start Google sign-in. Please try again."
-      return NextResponse.redirect(buildLoginRedirect(url.origin, message, safeNext))
+      const redirectResponse = NextResponse.redirect(buildLoginRedirect(url.origin, message, safeNext))
+      applySupabaseCookies(supabaseResponse, redirectResponse)
+      return redirectResponse
     }
 
-    return NextResponse.redirect(data.url)
+    const redirectResponse = NextResponse.redirect(data.url)
+    applySupabaseCookies(supabaseResponse, redirectResponse)
+    return redirectResponse
   } catch (error) {
     console.error("Failed to initialize Google OAuth", error)
-    return NextResponse.redirect(
+    const redirectResponse = NextResponse.redirect(
       buildLoginRedirect(url.origin, "Unexpected error starting Google sign-in.", safeNext)
     )
+    applySupabaseCookies(supabaseResponse, redirectResponse)
+    return redirectResponse
   }
 }
