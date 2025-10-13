@@ -129,7 +129,7 @@ export function normalizeRange({
 }
 
 export async function recordDashboardEvent(
-  eventName: "dashboard_view" | "metric_filter_applied",
+  eventName: "dashboard_view" | "metric_filter_applied" | "report_exported",
   metadata: Record<string, unknown>,
   userId: string
 ) {

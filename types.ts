@@ -103,3 +103,67 @@ export interface Campaign {
   created_at: string;
   updated_at: string;
 }
+
+export type ReportExportFormat = 'csv' | 'pdf' | 'excel';
+
+export type ReportFilterStatus = CampaignStatus | 'all';
+
+export interface ReportFilters {
+  from: string;
+  to: string;
+  status: ReportFilterStatus;
+  clientId: string | 'all';
+}
+
+export interface ReportMetric {
+  key: string;
+  label: string;
+  value: number;
+  unit?: 'mad' | 'percentage' | 'count';
+  trend?: number;
+}
+
+export interface ReportStatusBreakdownItem {
+  status: CampaignStatus;
+  count: number;
+}
+
+export interface ReportRow {
+  id: string;
+  campaign: string;
+  client: string;
+  status: CampaignStatus;
+  startDate: string;
+  endDate: string | null;
+  impressions: number;
+  clicks: number;
+  spend: number;
+  ctr: number;
+  conversions: number;
+  roi: number;
+}
+
+export interface ReportSeriesPoint {
+  date: string;
+  spend: number;
+  impressions: number;
+  clicks: number;
+}
+
+export interface ReportPreview {
+  filters: ReportFilters;
+  metrics: ReportMetric[];
+  statusBreakdown: ReportStatusBreakdownItem[];
+  rows: ReportRow[];
+  series: ReportSeriesPoint[];
+  availableClients: Array<{ id: string | null; name: string }>;
+  generatedAt: string;
+  totalRows: number;
+  summary: {
+    totalSpend: number;
+    totalImpressions: number;
+    totalClicks: number;
+    averageCtr: number;
+    averageRoi: number;
+  };
+}

@@ -9,6 +9,7 @@ const PROTECTED_PREFIXES = [
   '/analytics',
   '/clients',
   '/campaigns',
+  '/reports',
   '/drafts',
   '/queue',
   '/settings',
