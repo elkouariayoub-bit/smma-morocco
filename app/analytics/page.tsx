@@ -1,12 +1,11 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { createServerComponentClient } from "@supabase/auth-helpers-nextjs";
 import dynamic from "next/dynamic";
-import { cookies } from "next/headers";
 
 import GoalBadge from "@/components/dashboard/GoalBadge";
 import PostingHeatmap from "@/components/dashboard/PostingHeatmap";
 import TopPosts from "@/components/dashboard/TopPosts";
 import { env } from "@/lib/env";
+import { createClient } from "@/lib/supabase";
 
 const BreakdownSection = dynamic(
   () => import("@/components/analytics/BreakdownSection.client"),
@@ -48,7 +47,7 @@ export default async function AnalyticsPage() {
     );
   }
 
-  const supabase = createServerComponentClient({ cookies });
+  const supabase = createClient();
   const { data } = await supabase
     .from("analytics_snapshots")
     .select("impressions, likes, comments");

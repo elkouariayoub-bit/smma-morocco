@@ -1,8 +1,7 @@
 import { NextResponse } from 'next/server'
-import { cookies } from 'next/headers'
-import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs'
 
 import { checkRateLimit, getRateLimitIdentifier } from '@/lib/rate-limit'
+import { createClient } from '@/lib/supabase'
 
 import type { NextRequest } from 'next/server'
 
@@ -21,7 +20,7 @@ export function normalizePlatform(value: string | string[] | undefined): Support
 }
 
 export async function getSupabaseSession() {
-  const supabase = createRouteHandlerClient({ cookies })
+  const supabase = createClient()
   const {
     data: { session },
     error,

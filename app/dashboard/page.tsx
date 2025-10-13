@@ -1,11 +1,9 @@
-import { cookies } from 'next/headers'
-import { createServerComponentClient } from '@supabase/auth-helpers-nextjs'
-
 import { DashboardClient } from './dashboard-client'
 import { buildFilterRange, getDashboardMetrics, recordDashboardEvent } from '@/lib/metrics'
+import { createClient } from '@/lib/supabase'
 
 export default async function DashboardPage() {
-  const supabase = createServerComponentClient({ cookies })
+  const supabase = createClient()
   const {
     data: { session },
   } = await supabase.auth.getSession()

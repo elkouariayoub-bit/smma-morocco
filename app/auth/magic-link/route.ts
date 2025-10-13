@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { cookies } from 'next/headers';
-import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
 import { loadServerEnv } from '@/lib/load-server-env';
+import { applySupabaseCookies, createClient } from '@/lib/supabase';
 
 import type { EnvValues } from '@/lib/env';
 
@@ -71,19 +70,24 @@ function resolveCanonicalOrigin(env: EnvValues, request: NextRequest) {
 export async function POST(request: NextRequest) {
   loadServerEnv();
   const { env } = await import('@/lib/env');
-  const supabase = createRouteHandlerClient({ cookies });
+  const supabaseResponse = NextResponse.next();
+  const supabase = createClient({ request, response: supabaseResponse });
 
   let payload: { email?: string; next?: string };
   try {
     payload = await request.json();
   } catch (error) {
     console.error('Invalid JSON payload in magic link request', error);
-    return NextResponse.json({ error: { message: 'Invalid request body' } }, { status: 400 });
+    const response = NextResponse.json({ error: { message: 'Invalid request body' } }, { status: 400 });
+    applySupabaseCookies(supabaseResponse, response);
+    return response;
   }
 
   const email = payload.email?.trim();
   if (!email) {
-    return NextResponse.json({ error: { message: 'Email is required' } }, { status: 400 });
+    const response = NextResponse.json({ error: { message: 'Email is required' } }, { status: 400 });
+    applySupabaseCookies(supabaseResponse, response);
+    return response;
   }
 
   const origin = resolveCanonicalOrigin(env, request);
@@ -102,8 +106,12 @@ export async function POST(request: NextRequest) {
 
   if (error) {
     console.error('Error sending magic link', error);
-    return NextResponse.json({ error: { message: error.message } }, { status: 400 });
+    const response = NextResponse.json({ error: { message: error.message } }, { status: 400 });
+    applySupabaseCookies(supabaseResponse, response);
+    return response;
   }
 
-  return NextResponse.json({ success: true });
+  const response = NextResponse.json({ success: true });
+  applySupabaseCookies(supabaseResponse, response);
+  return response;
 }

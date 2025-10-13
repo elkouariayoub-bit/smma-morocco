@@ -1,8 +1,7 @@
-import { cookies } from 'next/headers';
-import { NextResponse } from 'next/server';
-import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
+import { NextResponse, type NextRequest } from 'next/server';
 import { loadServerEnv } from '@/lib/load-server-env';
 import { getBetterAuth, getBetterAuthStatus } from '@/lib/auth';
+import { applySupabaseCookies, createClient } from '@/lib/supabase';
 
 import type { EnvValues } from '@/lib/env';
 
@@ -34,7 +33,7 @@ const normalizeOrigin = (value: string | null | undefined) => {
   }
 };
 
-const getBaseOrigin = (env: EnvValues, request: Request) =>
+const getBaseOrigin = (env: EnvValues, request: NextRequest | Request) =>
   normalizeOrigin(env.betterAuthUrl) || normalizeOrigin(env.siteUrl) || new URL(request.url).origin;
 
 const normalizeNextPath = (value?: string | null) => {
@@ -54,7 +53,7 @@ const normalizeNextPath = (value?: string | null) => {
 const getRedirectTarget = (
   env: EnvValues,
   redirectTo: string | undefined,
-  request: Request,
+  request: NextRequest | Request,
   options?: { provider?: SupportedProvider; next?: string }
 ) => {
   if (redirectTo) {
@@ -72,8 +71,13 @@ const getRedirectTarget = (
   return target.toString();
 };
 
-const invalidRequest = (message: string, status = 400) =>
-  NextResponse.json({ error: message }, { status });
+const invalidRequest = (message: string, status = 400, supabaseResponse?: NextResponse) => {
+  const response = NextResponse.json({ error: message }, { status });
+  if (supabaseResponse) {
+    applySupabaseCookies(supabaseResponse, response);
+  }
+  return response;
+};
 
 export async function GET() {
   try {
@@ -127,7 +131,7 @@ export async function GET() {
   }
 }
 
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
   let payload: BetterAuthRequest;
 
   try {
@@ -145,12 +149,13 @@ export async function POST(request: Request) {
 
   loadServerEnv();
   const { env } = await import('@/lib/env');
-  const supabase = createRouteHandlerClient({ cookies });
+  const supabaseResponse = NextResponse.next();
+  const supabase = createClient({ request, response: supabaseResponse });
 
   switch (intent) {
     case 'reset': {
       if (!email?.trim()) {
-        return invalidRequest('Email is required.');
+        return invalidRequest('Email is required.', 400, supabaseResponse);
       }
 
       const { error } = await supabase.auth.resetPasswordForEmail(normalizeEmail(email), {
@@ -158,15 +163,17 @@ export async function POST(request: Request) {
       });
 
       if (error) {
-        return invalidRequest(error.message, 400);
+        return invalidRequest(error.message, 400, supabaseResponse);
       }
 
-      return NextResponse.json({ success: true, message: 'Password reset email sent. Check your inbox!' });
+      const response = NextResponse.json({ success: true, message: 'Password reset email sent. Check your inbox!' });
+      applySupabaseCookies(supabaseResponse, response);
+      return response;
     }
 
     case 'signin': {
       if (!email?.trim() || !password?.trim()) {
-        return invalidRequest('Email and password are required.');
+        return invalidRequest('Email and password are required.', 400, supabaseResponse);
       }
 
       const { error } = await supabase.auth.signInWithPassword({
@@ -175,23 +182,25 @@ export async function POST(request: Request) {
       });
 
       if (error) {
-        return invalidRequest(error.message, 401);
+        return invalidRequest(error.message, 401, supabaseResponse);
       }
 
-      return NextResponse.json({
+      const response = NextResponse.json({
         success: true,
         message: 'Successfully signed in.',
         redirect: nextPath ?? '/dashboard',
       });
+      applySupabaseCookies(supabaseResponse, response);
+      return response;
     }
 
     case 'signup': {
       if (!name?.trim()) {
-        return invalidRequest('Name is required.');
+        return invalidRequest('Name is required.', 400, supabaseResponse);
       }
 
       if (!email?.trim() || !password?.trim()) {
-        return invalidRequest('Email and password are required.');
+        return invalidRequest('Email and password are required.', 400, supabaseResponse);
       }
 
       const cleanedName = name.trim();
@@ -208,12 +217,12 @@ export async function POST(request: Request) {
       });
 
       if (error) {
-        return invalidRequest(error.message, 400);
+        return invalidRequest(error.message, 400, supabaseResponse);
       }
 
       const requiresConfirmation = !data.session;
 
-      return NextResponse.json({
+      const response = NextResponse.json({
         success: true,
         message: requiresConfirmation
           ? 'Account created! Check your email to confirm your address.'
@@ -221,26 +230,32 @@ export async function POST(request: Request) {
         requiresConfirmation,
         redirect: requiresConfirmation ? undefined : nextPath ?? '/dashboard',
       });
+      applySupabaseCookies(supabaseResponse, response);
+      return response;
     }
 
     case 'oauth': {
       if (!provider) {
-        return invalidRequest('Provider is required.');
+        return invalidRequest('Provider is required.', 400, supabaseResponse);
       }
 
       if (provider !== 'google') {
-        return invalidRequest('Unsupported OAuth provider.');
+        return invalidRequest('Unsupported OAuth provider.', 400, supabaseResponse);
       }
 
       const status = await getBetterAuthStatus();
       if (!status.configured) {
-        return invalidRequest('Google OAuth is not configured. Please contact your administrator.', 503);
+        return invalidRequest(
+          'Google OAuth is not configured. Please contact your administrator.',
+          503,
+          supabaseResponse,
+        );
       }
 
       const auth = await getBetterAuth();
 
       if (!auth || !auth.providers.google) {
-        return invalidRequest('Google OAuth is not available right now.');
+        return invalidRequest('Google OAuth is not available right now.', 400, supabaseResponse);
       }
 
       const redirectTarget = getRedirectTarget(env, redirectTo, request, { provider, next: nextPath });
@@ -260,17 +275,19 @@ export async function POST(request: Request) {
 
       if (error) {
         console.error('[better-auth] OAuth error', error);
-        return invalidRequest(error.message || 'Google sign-in failed.');
+        return invalidRequest(error.message || 'Google sign-in failed.', 400, supabaseResponse);
       }
 
-      return NextResponse.json({
+      const response = NextResponse.json({
         success: true,
         provider,
         url: data.url,
       });
+      applySupabaseCookies(supabaseResponse, response);
+      return response;
     }
 
     default:
-      return invalidRequest(`Unsupported intent: ${intent}`);
+      return invalidRequest(`Unsupported intent: ${intent}`, 400, supabaseResponse);
   }
 }

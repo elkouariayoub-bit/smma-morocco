@@ -1,11 +1,10 @@
-import { cookies } from 'next/headers'
 import { NextRequest, NextResponse } from 'next/server'
-import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs'
 
 import { checkRateLimit, getRateLimitIdentifier } from '@/lib/rate-limit'
 import { createReportBuffer, getReportContentType, getReportFileName } from '@/lib/report-export'
 import { getReportPreview, normalizeReportFilters, recordReportExport } from '@/lib/reports'
 import type { ReportExportFormat } from '@/types'
+import { applySupabaseCookies, createClient } from '@/lib/supabase'
 
 function parseFiltersFromRequest(url: URL) {
   const raw: Record<string, string | null> = {
@@ -42,7 +41,8 @@ export async function GET(request: NextRequest) {
   const url = new URL(request.url)
   const type = url.searchParams.get('type') ?? 'preview'
 
-  const supabase = createRouteHandlerClient({ cookies })
+  const supabaseResponse = NextResponse.next()
+  const supabase = createClient({ request, response: supabaseResponse })
   const {
     data: { session },
     error: sessionError,
@@ -50,11 +50,15 @@ export async function GET(request: NextRequest) {
 
   if (sessionError) {
     console.error('Failed to retrieve session for reports API', sessionError)
-    return NextResponse.json({ error: 'Unable to verify authentication' }, { status: 500 })
+    const response = NextResponse.json({ error: 'Unable to verify authentication' }, { status: 500 })
+    applySupabaseCookies(supabaseResponse, response)
+    return response
   }
 
   if (!session?.user?.id) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    const response = NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    applySupabaseCookies(supabaseResponse, response)
+    return response
   }
 
   const filtersInput = parseFiltersFromRequest(url)
@@ -64,11 +68,15 @@ export async function GET(request: NextRequest) {
     const preview = await getReportPreview(filters, { userId: session.user.id })
 
     if (type === 'preview') {
-      return NextResponse.json({ report: preview })
+      const response = NextResponse.json({ report: preview })
+      applySupabaseCookies(supabaseResponse, response)
+      return response
     }
 
     if (!isExportFormat(type)) {
-      return NextResponse.json({ error: 'Unsupported report format' }, { status: 400 })
+      const response = NextResponse.json({ error: 'Unsupported report format' }, { status: 400 })
+      applySupabaseCookies(supabaseResponse, response)
+      return response
     }
 
     const ip = request.ip || request.headers.get('x-forwarded-for')?.split(',')[0]
@@ -80,7 +88,12 @@ export async function GET(request: NextRequest) {
       if (rateLimit.retryAfter !== undefined) {
         headers['Retry-After'] = Math.ceil(rateLimit.retryAfter / 1000).toString()
       }
-      return NextResponse.json({ error: 'Too many export requests. Please try again shortly.' }, { status: 429, headers })
+      const response = NextResponse.json(
+        { error: 'Too many export requests. Please try again shortly.' },
+        { status: 429, headers }
+      )
+      applySupabaseCookies(supabaseResponse, response)
+      return response
     }
 
     const buffer = await createReportBuffer(preview, type)
@@ -96,9 +109,12 @@ export async function GET(request: NextRequest) {
       },
     })
 
+    applySupabaseCookies(supabaseResponse, response)
     return response
   } catch (error) {
     console.error('Failed to generate report', error)
-    return NextResponse.json({ error: 'Unable to generate report at this time' }, { status: 500 })
+    const response = NextResponse.json({ error: 'Unable to generate report at this time' }, { status: 500 })
+    applySupabaseCookies(supabaseResponse, response)
+    return response
   }
 }

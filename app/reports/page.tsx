@@ -1,11 +1,9 @@
-import { cookies } from 'next/headers'
-import { createServerComponentClient } from '@supabase/auth-helpers-nextjs'
-
 import { buildDefaultReportFilters, getReportPreview } from '@/lib/reports'
+import { createClient } from '@/lib/supabase'
 import { ReportsClient } from './reports-client'
 
 export default async function ReportsPage() {
-  const supabase = createServerComponentClient({ cookies })
+  const supabase = createClient()
   const {
     data: { session },
   } = await supabase.auth.getSession()

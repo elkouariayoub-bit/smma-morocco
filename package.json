@@ -16,7 +16,8 @@
   },
   "dependencies": {
     "@google/genai": "^1.21.0",
-    "@supabase/auth-helpers-nextjs": "^0.10.0",
+    "@supabase/nextjs": "^0.11.1",
+    "@supabase/ssr": "^0.5.1",
     "@supabase/supabase-js": "^2.45.4",
     "@tanstack/react-table": "^8.20.4",
     "better-auth": "file:better-auth",

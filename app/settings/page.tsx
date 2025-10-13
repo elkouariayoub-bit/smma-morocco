@@ -1,9 +1,7 @@
-import { cookies } from 'next/headers'
-import { createServerComponentClient } from '@supabase/auth-helpers-nextjs'
-
 import { getOrCreateUserSettings } from '@/lib/settings'
 import type { SettingsView } from '@/lib/settings-shared'
 import { SettingsClient } from './settings-client'
+import { createClient } from '@/lib/supabase'
 
 export const metadata = {
   title: 'Settings',
@@ -11,7 +9,7 @@ export const metadata = {
 }
 
 export default async function SettingsPage() {
-  const supabase = createServerComponentClient({ cookies })
+  const supabase = createClient()
   const {
     data: { session },
   } = await supabase.auth.getSession()

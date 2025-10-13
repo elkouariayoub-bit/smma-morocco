@@ -1,6 +1,4 @@
 import { NextResponse } from 'next/server'
-import { cookies } from 'next/headers'
-import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs'
 import type { NextRequest } from 'next/server'
 import { ZodError } from 'zod'
 
@@ -17,6 +15,7 @@ import {
   updateThemeSetting,
 } from '@/lib/settings'
 import type { SettingsView } from '@/lib/settings-shared'
+import { applySupabaseCookies, createClient } from '@/lib/supabase'
 
 const RATE_LIMIT_WINDOW = 60_000
 const RATE_LIMIT_MAX = 20
@@ -46,7 +45,8 @@ export async function GET(request: NextRequest) {
     return rateLimited
   }
 
-  const supabase = createRouteHandlerClient({ cookies })
+  const supabaseResponse = NextResponse.next()
+  const supabase = createClient({ request, response: supabaseResponse })
   const {
     data: { session },
     error,
@@ -54,12 +54,16 @@ export async function GET(request: NextRequest) {
 
   if (error) {
     console.error('Unable to verify Supabase session for settings request', error)
-    return NextResponse.json({ error: 'Failed to verify authentication' }, { status: 500 })
+    const response = NextResponse.json({ error: 'Failed to verify authentication' }, { status: 500 })
+    applySupabaseCookies(supabaseResponse, response)
+    return response
   }
 
   const user = session?.user
   if (!user?.id) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    const response = NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    applySupabaseCookies(supabaseResponse, response)
+    return response
   }
 
   try {
@@ -69,10 +73,14 @@ export async function GET(request: NextRequest) {
       role: typeof user.user_metadata?.role === 'string' ? user.user_metadata.role : undefined,
     })
 
-    return NextResponse.json({ settings })
+    const response = NextResponse.json({ settings })
+    applySupabaseCookies(supabaseResponse, response)
+    return response
   } catch (settingsError) {
     console.error('Failed to load user settings', settingsError)
-    return NextResponse.json({ error: 'Unable to load settings' }, { status: 500 })
+    const response = NextResponse.json({ error: 'Unable to load settings' }, { status: 500 })
+    applySupabaseCookies(supabaseResponse, response)
+    return response
   }
 }
 
@@ -84,7 +92,8 @@ export async function PATCH(request: NextRequest) {
     return rateLimited
   }
 
-  const supabase = createRouteHandlerClient({ cookies })
+  const supabaseResponse = NextResponse.next()
+  const supabase = createClient({ request, response: supabaseResponse })
   const {
     data: { session },
     error,
@@ -92,19 +101,25 @@ export async function PATCH(request: NextRequest) {
 
   if (error) {
     console.error('Unable to verify Supabase session for settings update', error)
-    return NextResponse.json({ error: 'Failed to verify authentication' }, { status: 500 })
+    const response = NextResponse.json({ error: 'Failed to verify authentication' }, { status: 500 })
+    applySupabaseCookies(supabaseResponse, response)
+    return response
   }
 
   const user = session?.user
   if (!user?.id) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    const response = NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    applySupabaseCookies(supabaseResponse, response)
+    return response
   }
 
   let payload: unknown
   try {
     payload = await request.json()
   } catch {
-    return NextResponse.json({ error: 'Invalid JSON payload' }, { status: 400 })
+    const response = NextResponse.json({ error: 'Invalid JSON payload' }, { status: 400 })
+    applySupabaseCookies(supabaseResponse, response)
+    return response
   }
 
   let patch
@@ -112,12 +127,16 @@ export async function PATCH(request: NextRequest) {
     patch = parseSettingsPatch(payload)
   } catch (validationError) {
     if (validationError instanceof ZodError) {
-      return NextResponse.json(
+      const response = NextResponse.json(
         { error: 'Invalid request body', details: validationError.issues },
         { status: 400 },
       )
+      applySupabaseCookies(supabaseResponse, response)
+      return response
     }
-    return NextResponse.json({ error: 'Invalid request body' }, { status: 400 })
+    const response = NextResponse.json({ error: 'Invalid request body' }, { status: 400 })
+    applySupabaseCookies(supabaseResponse, response)
+    return response
   }
 
   try {
@@ -128,7 +147,9 @@ export async function PATCH(request: NextRequest) {
     })
   } catch (settingsError) {
     console.error('Unable to ensure settings record', settingsError)
-    return NextResponse.json({ error: 'Unable to update settings' }, { status: 500 })
+    const response = NextResponse.json({ error: 'Unable to update settings' }, { status: 500 })
+    applySupabaseCookies(supabaseResponse, response)
+    return response
   }
 
   let updated: SettingsView
@@ -157,11 +178,15 @@ export async function PATCH(request: NextRequest) {
         section = 'theme'
         break
       default:
-        return NextResponse.json({ error: 'Unsupported settings update' }, { status: 400 })
+        const response = NextResponse.json({ error: 'Unsupported settings update' }, { status: 400 })
+        applySupabaseCookies(supabaseResponse, response)
+        return response
     }
   } catch (updateError) {
     console.error('Failed to update settings', updateError)
-    return NextResponse.json({ error: 'Unable to update settings' }, { status: 500 })
+    const response = NextResponse.json({ error: 'Unable to update settings' }, { status: 500 })
+    applySupabaseCookies(supabaseResponse, response)
+    return response
   }
 
   await recordSettingsEvent(user.id, {
@@ -170,5 +195,7 @@ export async function PATCH(request: NextRequest) {
     hasApiKey: updated.hasApiKey,
   })
 
-  return NextResponse.json({ success: true, settings: updated })
+  const response = NextResponse.json({ success: true, settings: updated })
+  applySupabaseCookies(supabaseResponse, response)
+  return response
 }

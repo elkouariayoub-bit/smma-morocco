@@ -1,18 +1,20 @@
-import { cookies } from "next/headers"
 import { NextRequest, NextResponse } from "next/server"
-import { createRouteHandlerClient } from "@supabase/auth-helpers-nextjs"
 
 import { buildFilterRange, getDashboardMetrics, normalizeRange, recordDashboardEvent } from "@/lib/metrics"
 import type { DashboardFilterPreset } from "@/types"
+import { applySupabaseCookies, createClient } from "@/lib/supabase"
 
 export async function GET(request: NextRequest) {
-  const supabase = createRouteHandlerClient({ cookies })
+  const supabaseResponse = NextResponse.next()
+  const supabase = createClient({ request, response: supabaseResponse })
   const {
     data: { session },
   } = await supabase.auth.getSession()
 
   if (!session) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    const unauthorized = NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    applySupabaseCookies(supabaseResponse, unauthorized)
+    return unauthorized
   }
 
   const url = new URL(request.url)
@@ -32,5 +34,7 @@ export async function GET(request: NextRequest) {
     )
   }
 
-  return NextResponse.json(payload)
+  const response = NextResponse.json(payload)
+  applySupabaseCookies(supabaseResponse, response)
+  return response
 }
