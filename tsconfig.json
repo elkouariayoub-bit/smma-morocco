@@ -43,6 +43,7 @@
       "@vercel/analytics/next": ["./stubs/vercel-analytics.tsx"],
       "framer-motion": ["./stubs/framer-motion.tsx"],
       "recharts": ["./stubs/recharts.tsx"],
+      "zustand": ["./stubs/zustand.ts"],
       "swr": ["./stubs/swr.ts"],
       "tailwindcss": ["./stubs/tailwindcss.css"],
       "tw-animate-css": ["./stubs/tw-animate-css.css"]

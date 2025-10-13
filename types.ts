@@ -43,3 +43,25 @@ export interface UserIntegration {
   created_at: string;
   updated_at: string;
 }
+
+export interface DashboardMetric {
+  key: string;
+  value: number;
+  change: number;
+}
+
+export interface DashboardSeriesPoint {
+  metric: string;
+  date: string;
+  value: number;
+}
+
+export interface DashboardMetricsResponse {
+  clients: number;
+  campaigns: number;
+  metrics: DashboardMetric[];
+  series: DashboardSeriesPoint[];
+  generatedAt: string;
+}
+
+export type DashboardFilterPreset = 'last_7_days' | 'last_30_days' | 'last_90_days';
