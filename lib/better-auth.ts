@@ -1,64 +1,94 @@
 import { betterAuth } from 'better-auth';
 import { google } from 'better-auth/providers';
-import { env } from './env';
+
 import { loadServerEnv } from './load-server-env';
 
 import type { BetterAuthInstance } from 'better-auth';
 
-const mask = (value: string | null | undefined) => {
-  if (!value) return 'missing';
-  if (value.length <= 8) return 'set';
-  return `${value.slice(0, 4)}…${value.slice(-4)}`;
+type BetterAuthConfig = {
+  googleClientId: string;
+  googleClientSecret: string;
+  betterAuthSecret: string;
+  betterAuthUrl: string;
 };
 
-let instance: BetterAuthInstance | null = null;
-let initializing: Promise<BetterAuthInstance> | null = null;
+type BetterAuthConfigState =
+  | { status: 'ready'; config: BetterAuthConfig }
+  | { status: 'missing'; config: Partial<BetterAuthConfig>; missing: string[] };
 
-async function createBetterAuth(): Promise<BetterAuthInstance> {
+export type BetterAuthStatus = {
+  configured: boolean;
+  missing: string[];
+  providers: string[];
+  baseUrl: string | null;
+};
+
+export class BetterAuthUnavailableError extends Error {
+  statusCode = 503;
+
+  constructor(message: string) {
+    super(message);
+    this.name = 'BetterAuthUnavailableError';
+  }
+}
+
+let instance: BetterAuthInstance | null | undefined;
+let initializing: Promise<BetterAuthInstance | null> | null = null;
+let cachedState: BetterAuthConfigState | null = null;
+
+async function resolveConfigState(forceRefresh = false): Promise<BetterAuthConfigState> {
+  if (!forceRefresh && cachedState) {
+    return cachedState;
+  }
+
   loadServerEnv();
+  const { env } = await import('./env');
+
+  const config: Partial<BetterAuthConfig> = {
+    googleClientId: env.googleClientId ?? undefined,
+    googleClientSecret: env.googleClientSecret ?? undefined,
+    betterAuthSecret: env.betterAuthSecret ?? undefined,
+    betterAuthUrl: env.betterAuthUrl ?? undefined,
+  };
 
   const missing: string[] = [];
 
-  if (!env.googleClientId) missing.push('GOOGLE_CLIENT_ID');
-  if (!env.googleClientSecret) missing.push('GOOGLE_CLIENT_SECRET');
-  if (!env.betterAuthUrl) missing.push('BETTER_AUTH_URL');
+  if (!config.googleClientId) missing.push('GOOGLE_CLIENT_ID');
+  if (!config.googleClientSecret) missing.push('GOOGLE_CLIENT_SECRET');
+  if (!config.betterAuthSecret) missing.push('BETTER_AUTH_SECRET');
+  if (!config.betterAuthUrl) missing.push('BETTER_AUTH_URL');
 
-  if (!env.betterAuthSecret) {
-    throw new Error(
-      [
-        'Better Auth secret is not configured.',
-        'Generate one with `node -e "console.log(require(\'crypto\').randomBytes(32).toString(\'hex\'))"`',
-        'and add BETTER_AUTH_SECRET to your .env.local (and hosting provider) before restarting.',
-      ].join(' ')
-    );
-  }
+  cachedState =
+    missing.length === 0
+      ? { status: 'ready', config: config as BetterAuthConfig }
+      : { status: 'missing', config, missing };
 
-  if (missing.length) {
-    throw new Error(`Better Auth is missing configuration: ${missing.join(', ')}`);
+  return cachedState;
+}
+
+async function createBetterAuth(): Promise<BetterAuthInstance | null> {
+  const state = await resolveConfigState();
+
+  if (state.status === 'missing') {
+    if (process.env.NODE_ENV !== 'production') {
+      console.warn(
+        '[better-auth] Authentication disabled – missing configuration:',
+        state.missing
+      );
+    }
+    return null;
   }
 
   const auth = betterAuth({
-    secret: env.betterAuthSecret!,
-    baseURL: env.betterAuthUrl!,
+    secret: state.config.betterAuthSecret,
+    baseURL: state.config.betterAuthUrl,
     providers: [
       google({
-        clientId: env.googleClientId!,
-        clientSecret: env.googleClientSecret!,
+        clientId: state.config.googleClientId,
+        clientSecret: state.config.googleClientSecret,
       }),
     ],
   });
-
-  const providerIds = Object.keys(auth.providers);
-  console.info('[better-auth] Configuration check', {
-    googleClientId: mask(env.googleClientId),
-    googleClientSecret: mask(env.googleClientSecret),
-    betterAuthSecret: mask(env.betterAuthSecret),
-    betterAuthUrl: env.betterAuthUrl ?? 'not set',
-  });
-  console.info(
-    '[better-auth] Registered providers:',
-    providerIds.length ? providerIds.join(', ') : 'none'
-  );
 
   if (!auth.providers.google) {
     throw new Error(
@@ -69,8 +99,8 @@ async function createBetterAuth(): Promise<BetterAuthInstance> {
   return auth;
 }
 
-export async function getBetterAuth(): Promise<BetterAuthInstance> {
-  if (instance) {
+export async function getBetterAuth(): Promise<BetterAuthInstance | null> {
+  if (instance !== undefined) {
     return instance;
   }
 
@@ -86,4 +116,31 @@ export async function getBetterAuth(): Promise<BetterAuthInstance> {
   }
 
   return initializing;
+}
+
+export async function getBetterAuthStatus(options: {
+  forceRefresh?: boolean;
+} = {}): Promise<BetterAuthStatus> {
+  const state = await resolveConfigState(options.forceRefresh ?? false);
+
+  if (state.status === 'ready') {
+    return {
+      configured: true,
+      missing: [],
+      providers: ['google'],
+      baseUrl: state.config.betterAuthUrl,
+    };
+  }
+
+  return {
+    configured: false,
+    missing: [...state.missing],
+    providers: [],
+    baseUrl: state.config.betterAuthUrl ?? null,
+  };
+}
+
+export function resetBetterAuthCache() {
+  instance = undefined;
+  cachedState = null;
 }

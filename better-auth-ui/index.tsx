@@ -7,6 +7,7 @@ import { getOptionalSupabaseBrowserClient } from '@/lib/supabase';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { LogOut } from 'lucide-react';
+import type { AuthChangeEvent, Session } from '@supabase/supabase-js';
 
 type AuthComponentProps = {
   redirectTo?: string;
@@ -144,7 +145,7 @@ function useRedirects(redirectTo?: string, oauthRedirectTo?: string) {
         ? window.location.origin
         : undefined;
 
-    const emailRedirect = redirectTo ?? (fallbackOrigin ? `${fallbackOrigin}/auth/callback` : undefined);
+    const emailRedirect = redirectTo ?? (fallbackOrigin ? `${fallbackOrigin}/api/auth/callback` : undefined);
     const oauthRedirect =
       oauthRedirectTo ?? (fallbackOrigin ? `${fallbackOrigin}/api/auth/callback/google` : undefined);
 
@@ -794,11 +795,13 @@ export function UserButton({ onSignOut, hasCodeSession = false }: UserButtonProp
 
     loadUser();
 
-    const { data } = supabase.auth.onAuthStateChange((_event, session) => {
-      const email = session?.user?.email ?? (hasCodeSession ? 'access@smma-morocco.com' : null);
-      setUserEmail(email);
-      setInitials(email ? email[0].toUpperCase() : 'A');
-    });
+    const { data } = supabase.auth.onAuthStateChange(
+      (_event: AuthChangeEvent, session: Session | null) => {
+        const email = session?.user?.email ?? (hasCodeSession ? 'access@smma-morocco.com' : null);
+        setUserEmail(email);
+        setInitials(email ? email[0].toUpperCase() : 'A');
+      }
+    );
 
     return () => {
       isActive = false;

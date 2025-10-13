@@ -1,0 +1,57 @@
+import { NextResponse } from 'next/server'
+
+import { checkRateLimit, getRateLimitIdentifier } from '@/lib/rate-limit'
+import { createClient } from '@/lib/supabase'
+
+import type { NextRequest } from 'next/server'
+
+export const SUPPORTED_PLATFORMS = ['meta', 'x', 'tiktok'] as const
+export type SupportedPlatform = (typeof SUPPORTED_PLATFORMS)[number]
+
+export function normalizePlatform(value: string | string[] | undefined): SupportedPlatform | null {
+  if (!value || Array.isArray(value)) {
+    return null
+  }
+
+  const normalized = value.toLowerCase()
+  return SUPPORTED_PLATFORMS.includes(normalized as SupportedPlatform)
+    ? (normalized as SupportedPlatform)
+    : null
+}
+
+export async function getSupabaseSession() {
+  const supabase = createClient()
+  const {
+    data: { session },
+    error,
+  } = await supabase.auth.getSession()
+
+  if (error) {
+    console.error('Error retrieving Supabase session', error)
+    throw new Error('session_error')
+  }
+
+  return { supabase, userId: session?.user.id ?? null }
+}
+
+export function applyRateLimit(
+  request: NextRequest,
+  action: string,
+  limit = 20,
+  windowMs = 60_000,
+) {
+  const ip = request.ip || request.headers.get('x-forwarded-for')?.split(',')[0]
+  const identifier = getRateLimitIdentifier(ip, `integrations-${action}`)
+  const result = checkRateLimit(identifier, limit, windowMs)
+
+  if (!result.allowed) {
+    const headers: Record<string, string> = {}
+    if (result.retryAfter !== undefined) {
+      headers['Retry-After'] = Math.ceil(result.retryAfter / 1000).toString()
+    }
+
+    return NextResponse.json({ error: 'Too many requests' }, { status: 429, headers })
+  }
+
+  return null
+}

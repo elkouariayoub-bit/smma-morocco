@@ -1,8 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { createServerComponentClient } from "@supabase/auth-helpers-nextjs";
-import { cookies } from "next/headers";
 
 import { env } from "@/lib/env";
+import { createClient } from "@/lib/supabase";
 
 // Revalidate data periodically to keep the queue fresh
 export const revalidate = 60;
@@ -28,7 +27,7 @@ export default async function QueuePage() {
     );
   }
 
-  const supabase = createServerComponentClient({ cookies });
+  const supabase = createClient();
   const { data: posts, error } = await supabase
     .from('scheduled_posts')
     .select('*')

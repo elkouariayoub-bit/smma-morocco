@@ -36,12 +36,12 @@ export default function Page() {
         <div className="container mx-auto flex items-center justify-between px-6 py-6">
           <div className="text-lg font-semibold tracking-tight">SMMA Morocco</div>
           <div className="flex items-center gap-3">
-            <Link href="/login">
+            <Link href="/auth/login">
               <Button variant="outline" className="border-white/20 bg-transparent text-slate-50 hover:bg-white/10">
                 Sign in
               </Button>
             </Link>
-            <Link href="/login">
+            <Link href="/auth/login">
               <Button className="gap-2 bg-blue-600 hover:bg-blue-500">
                 Sign up
                 <ArrowRight className="h-4 w-4" />
@@ -71,13 +71,13 @@ export default function Page() {
           </FadeIn>
           <FadeIn delay={0.12}>
             <div className="flex flex-col items-center gap-3 sm:flex-row">
-              <Link href="/login" className="w-full sm:w-auto">
+              <Link href="/auth/login" className="w-full sm:w-auto">
                 <Button className="w-full gap-2 bg-blue-600 hover:bg-blue-500">
                   Get started for free
                   <ArrowRight className="h-4 w-4" />
                 </Button>
               </Link>
-              <Link href="/login" className="w-full sm:w-auto">
+              <Link href="/auth/login" className="w-full sm:w-auto">
                 <Button
                   variant="outline"
                   className="w-full border-white/20 bg-transparent text-slate-50 hover:bg-white/10"
@@ -155,13 +155,13 @@ export default function Page() {
               ))}
             </ul>
             <div className="flex flex-wrap gap-3">
-              <Link href="/login">
+              <Link href="/auth/login">
                 <Button className="gap-2 bg-blue-600 hover:bg-blue-500">
                   Create your account
                   <ArrowRight className="h-4 w-4" />
                 </Button>
               </Link>
-              <Link href="/login">
+              <Link href="/auth/login">
                 <Button variant="outline" className="border-white/20 bg-transparent text-slate-50 hover:bg-white/10">
                   Book a demo
                 </Button>
@@ -197,8 +197,8 @@ export default function Page() {
         <div className="container mx-auto flex flex-col gap-4 px-6 text-center text-sm text-slate-400 sm:flex-row sm:items-center sm:justify-between">
           <p>© {new Date().getFullYear()} SMMA Morocco. All rights reserved.</p>
           <div className="flex justify-center gap-6">
-            <Link href="/login" className="hover:text-slate-200">Sign in</Link>
-            <Link href="/login" className="hover:text-slate-200">Create account</Link>
+            <Link href="/auth/login" className="hover:text-slate-200">Sign in</Link>
+            <Link href="/auth/login" className="hover:text-slate-200">Create account</Link>
           </div>
         </div>
       </footer>

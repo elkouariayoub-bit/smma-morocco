@@ -29,7 +29,17 @@ export function toNextJsHandler(auth: AuthFactory) {
       const message =
         error instanceof Error ? error.message : 'Unable to initialize Better Auth.';
 
-      return NextResponse.json({ error: message }, { status: 500 });
+      const statusCode = (() => {
+        if (error && typeof error === 'object' && 'statusCode' in error) {
+          const candidate = Number((error as { statusCode?: unknown }).statusCode);
+          if (Number.isFinite(candidate) && candidate >= 400 && candidate < 600) {
+            return candidate;
+          }
+        }
+        return 500;
+      })();
+
+      return NextResponse.json({ error: message }, { status: statusCode });
     }
   };
 
