@@ -44,6 +44,24 @@ export interface UserIntegration {
   updated_at: string;
 }
 
+export interface UserSettings {
+  id: string;
+  user_id: string;
+  full_name?: string | null;
+  company?: string | null;
+  role?: string | null;
+  contact_email?: string | null;
+  language: string;
+  timezone: string;
+  theme: 'light' | 'dark';
+  api_key_label?: string | null;
+  api_key_last_four?: string | null;
+  api_key_hash?: string | null;
+  notifications?: Record<string, unknown> | null;
+  created_at: string;
+  updated_at: string;
+}
+
 export interface DashboardMetric {
   key: string;
   value: number;
