@@ -1,4 +1,10 @@
-export { getBetterAuth } from './better-auth';
+export {
+  getBetterAuth,
+  getBetterAuthStatus,
+  resetBetterAuthCache,
+  BetterAuthUnavailableError,
+} from './better-auth';
+export type { BetterAuthStatus } from './better-auth';
 export type { BetterAuthInstance } from 'better-auth';
 
 const SAFE_NEXT_PATTERN = /^\/(?!\/)/;

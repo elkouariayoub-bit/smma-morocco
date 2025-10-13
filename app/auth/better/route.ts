@@ -2,7 +2,7 @@ import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
 import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
 import { loadServerEnv } from '@/lib/load-server-env';
-import { getBetterAuth } from '@/lib/auth';
+import { getBetterAuth, getBetterAuthStatus } from '@/lib/auth';
 
 import type { EnvValues } from '@/lib/env';
 
@@ -79,8 +79,34 @@ export async function GET() {
   try {
     loadServerEnv();
     const { env } = await import('@/lib/env');
+
+    const status = await getBetterAuthStatus();
+
+    if (!status.configured) {
+      const includeMissing = process.env.NODE_ENV !== 'production' && status.missing.length;
+
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'Better Auth is not fully configured.',
+          ...(includeMissing ? { missing: status.missing } : {}),
+        },
+        { status: 503 }
+      );
+    }
+
     const auth = await getBetterAuth();
-    const providers = Object.keys(auth.providers);
+    const providers = auth ? Object.keys(auth.providers) : [];
+
+    if (!auth || providers.length === 0) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'Better Auth did not initialize any providers.',
+        },
+        { status: 503 }
+      );
+    }
 
     return NextResponse.json({
       success: true,
@@ -206,16 +232,14 @@ export async function POST(request: Request) {
         return invalidRequest('Unsupported OAuth provider.');
       }
 
-      let auth;
-      try {
-        auth = await getBetterAuth();
-      } catch (error) {
-        const message =
-          error instanceof Error ? error.message : 'Google OAuth is not configured. Please try again later.';
-        return invalidRequest(message, 500);
+      const status = await getBetterAuthStatus();
+      if (!status.configured) {
+        return invalidRequest('Google OAuth is not configured. Please contact your administrator.', 503);
       }
 
-      if (!auth.providers.google) {
+      const auth = await getBetterAuth();
+
+      if (!auth || !auth.providers.google) {
         return invalidRequest('Google OAuth is not available right now.');
       }
 
