@@ -76,3 +76,30 @@ export interface Client {
 }
 
 export type DashboardFilterPreset = 'last_7_days' | 'last_30_days' | 'last_90_days';
+
+export type CampaignStatus = 'planned' | 'active' | 'paused' | 'completed' | 'archived';
+export type CampaignMilestoneStatus = 'pending' | 'in_progress' | 'completed';
+
+export interface CampaignMilestone {
+  id: string;
+  label: string;
+  date: string;
+  status: CampaignMilestoneStatus;
+}
+
+export interface Campaign {
+  id: string;
+  user_id: string;
+  client_id: string | null;
+  client_name?: string;
+  name: string;
+  description?: string;
+  status: CampaignStatus;
+  startDate: string;
+  endDate?: string | null;
+  position: number;
+  milestones: CampaignMilestone[];
+  metadata?: Record<string, unknown>;
+  created_at: string;
+  updated_at: string;
+}

@@ -46,6 +46,7 @@
       "recharts": ["./stubs/recharts.tsx"],
       "zustand": ["./stubs/zustand.ts"],
       "zod": ["./stubs/zod.ts"],
+      "date-fns": ["./stubs/date-fns.ts"],
       "swr": ["./stubs/swr.ts"],
       "tailwindcss": ["./stubs/tailwindcss.css"],
       "tw-animate-css": ["./stubs/tw-animate-css.css"]

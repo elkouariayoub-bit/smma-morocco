@@ -8,6 +8,7 @@ const PROTECTED_PREFIXES = [
   '/composer',
   '/analytics',
   '/clients',
+  '/campaigns',
   '/drafts',
   '/queue',
   '/settings',
