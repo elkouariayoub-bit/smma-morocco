@@ -42,8 +42,10 @@
       "geist/font/mono": ["./stubs/geist-font-mono.ts"],
       "@vercel/analytics/next": ["./stubs/vercel-analytics.tsx"],
       "framer-motion": ["./stubs/framer-motion.tsx"],
+      "@tanstack/react-table": ["./stubs/tanstack-react-table.ts"],
       "recharts": ["./stubs/recharts.tsx"],
       "zustand": ["./stubs/zustand.ts"],
+      "zod": ["./stubs/zod.ts"],
       "swr": ["./stubs/swr.ts"],
       "tailwindcss": ["./stubs/tailwindcss.css"],
       "tw-animate-css": ["./stubs/tw-animate-css.css"]

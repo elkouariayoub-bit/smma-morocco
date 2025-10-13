@@ -27,7 +27,7 @@ export interface Post {
   };
 }
 
-export type Page = 'composer' | 'queue' | 'drafts' | 'analytics';
+export type Page = 'composer' | 'queue' | 'drafts' | 'analytics' | 'clients';
 
 export interface UserIntegration {
   id: string;
@@ -62,6 +62,17 @@ export interface DashboardMetricsResponse {
   metrics: DashboardMetric[];
   series: DashboardSeriesPoint[];
   generatedAt: string;
+}
+
+export interface Client {
+  id: string;
+  user_id: string;
+  name: string;
+  contact: string;
+  status: 'active' | 'inactive';
+  metadata?: Record<string, unknown>;
+  created_at: string;
+  updated_at: string;
 }
 
 export type DashboardFilterPreset = 'last_7_days' | 'last_30_days' | 'last_90_days';
