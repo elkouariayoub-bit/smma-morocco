@@ -29,6 +29,7 @@ import {
   type CampaignStatusOption,
 } from '@/lib/campaigns'
 import { getOptionalSupabaseBrowserClient } from '@/lib/supabase'
+import type { RealtimePostgresChangesPayload } from '@supabase/supabase-js'
 import type { Campaign, CampaignMilestone, CampaignStatus } from '@/types'
 import { useCampaignById, useCampaignStore } from '@/hooks/useCampaignStore'
 import { CampaignCreationModal } from './CampaignCreationModal'
@@ -132,33 +133,37 @@ export function CampaignWorkspace() {
 
     const channel = supabase
       .channel('campaigns-realtime')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'campaigns' }, async (payload) => {
-        if (payload.eventType === 'DELETE') {
-          const campaignId = (payload.old as { id?: string }).id
-          if (campaignId) {
-            removeCampaignFromState(campaignId)
-          }
-          return
-        }
-
-        const campaignId = (payload.new as { id?: string }).id
-        if (!campaignId) {
-          return
-        }
-
-        try {
-          const response = await fetch(`/api/campaigns/${campaignId}`)
-          if (!response.ok) {
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'campaigns' },
+        async (payload: RealtimePostgresChangesPayload<Record<string, unknown>>) => {
+          if (payload.eventType === 'DELETE') {
+            const campaignId = (payload.old as { id?: string }).id
+            if (campaignId) {
+              removeCampaignFromState(campaignId)
+            }
             return
           }
-          const data = await response.json()
-          if (data?.campaign) {
-            upsertCampaign(data.campaign as Campaign)
+
+          const campaignId = (payload.new as { id?: string }).id
+          if (!campaignId) {
+            return
           }
-        } catch (error) {
-          console.warn('Failed to refresh campaign from realtime event', error)
+
+          try {
+            const response = await fetch(`/api/campaigns/${campaignId}`)
+            if (!response.ok) {
+              return
+            }
+            const data = await response.json()
+            if (data?.campaign) {
+              upsertCampaign(data.campaign as Campaign)
+            }
+          } catch (error) {
+            console.warn('Failed to refresh campaign from realtime event', error)
+          }
         }
-      })
+      )
       .subscribe()
 
     return () => {

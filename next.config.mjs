@@ -68,6 +68,7 @@ const nextConfig = {
     config.resolve.alias['swr'] = path.resolve(process.cwd(), 'stubs/swr.ts');
     config.resolve.alias['tailwindcss'] = path.resolve(process.cwd(), 'stubs/tailwindcss.css');
     config.resolve.alias['tw-animate-css'] = path.resolve(process.cwd(), 'stubs/tw-animate-css.css');
+    aliasWhenMissing(config, '@supabase/ssr', 'stubs/supabase-ssr.ts');
     aliasWhenMissing(config, 'exceljs', 'stubs/exceljs.ts');
     aliasWhenMissing(config, 'pdf-lib', 'stubs/pdf-lib.ts');
     aliasWhenMissing(config, 'xlsx', 'stubs/xlsx.ts');
