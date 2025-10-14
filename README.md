@@ -19,6 +19,20 @@ pnpm dev
 
 Open http://localhost:3000
 
+### Supabase client dependencies
+
+Install the latest Supabase helpers locally to ensure server components can
+hydrate correctly:
+
+```bash
+npm install @supabase/ssr @supabase/supabase-js
+```
+
+> **Note:** The sandbox used for automated tasks cannot currently download
+> `@supabase/ssr` from npm (it returns `403 Forbidden`). Run the install
+> command on your own machine where you have the appropriate registry access.
+> This keeps your environment in sync with the project configuration.
+
 ### Reporting exports
 - CSV, Excel, and PDF downloads are powered by `xlsx` and `pdf-lib`.
 - These packages are already listed in `package.json`, but make sure your environment can install them:

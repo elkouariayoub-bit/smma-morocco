@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useCallback } from 'react'
-import { BarChart3, HelpCircle, Home, Settings } from 'lucide-react'
+import { BarChart3, HelpCircle, Home, Server, Settings } from 'lucide-react'
 
 import type { Page } from '../types'
 import { cn } from '@/lib/utils'
@@ -33,6 +33,7 @@ export const sidebarNavItems: Array<{
 }> = [
   { href: '/dashboard', label: 'Home', icon: Home, legacyPage: 'composer' },
   { href: '/analytics', label: 'Analytics', icon: BarChart3, legacyPage: 'analytics' },
+  { href: '/deployments', label: 'Deployments', icon: Server },
   { href: '/settings', label: 'Settings', icon: Settings },
   { href: '/help', label: 'Help', icon: HelpCircle },
 ]

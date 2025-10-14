@@ -8,6 +8,7 @@ import { Queue } from './components/Queue';
 import { Analytics } from './components/Analytics';
 import type { Page } from './types';
 import { Drafts } from './components/Drafts';
+import { GoalsProvider } from '@/app/providers/goals';
 
 const App: React.FC = () => {
   // FIX: Re-instated state for page navigation. This was removed previously, but is required for the correct sidebar to function and also fixes type errors in `renderContent`.
@@ -29,13 +30,13 @@ const App: React.FC = () => {
   };
 
   return (
-    <div className="flex h-screen bg-slate-100 dark:bg-slate-900">
-      {/* FIX: Pass required props to the Sidebar component to enable navigation. */}
-      <Sidebar currentPage={currentPage} setCurrentPage={setCurrentPage} />
-      <main className="flex-1 p-6 sm:p-8 overflow-y-auto">
-        {renderContent()}
-      </main>
-    </div>
+    <GoalsProvider>
+      <div className="flex h-screen bg-slate-100 dark:bg-slate-900">
+        {/* FIX: Pass required props to the Sidebar component to enable navigation. */}
+        <Sidebar currentPage={currentPage} setCurrentPage={setCurrentPage} />
+        <main className="flex-1 overflow-y-auto p-6 sm:p-8">{renderContent()}</main>
+      </div>
+    </GoalsProvider>
   );
 };
 
