@@ -225,7 +225,7 @@ function nameFromEmail(email: string) {
     .join(' ')
 }
 
-export function RoleBadge({ role }: { role: Role }) {
+function RoleBadge({ role }: { role: Role }) {
   const variant: BadgeProps['variant'] =
     role === 'owner' ? 'default' : role === 'admin' ? 'secondary' : 'outline'
 
