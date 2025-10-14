@@ -43,7 +43,9 @@
       "recharts": ["./stubs/recharts.tsx"],
       "swr": ["./stubs/swr.ts"],
       "tailwindcss": ["./stubs/tailwindcss.css"],
-      "tw-animate-css": ["./stubs/tw-animate-css.css"]
+      "tw-animate-css": ["./stubs/tw-animate-css.css"],
+      "@supabase/ssr": ["./stubs/supabase-ssr"],
+      "@supabase/ssr/*": ["./stubs/supabase-ssr/*"]
     }
   },
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],

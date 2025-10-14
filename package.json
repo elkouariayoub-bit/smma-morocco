@@ -16,6 +16,7 @@
   },
   "dependencies": {
     "@google/genai": "^1.21.0",
+    "@supabase/ssr": "file:stubs/supabase-ssr",
     "@supabase/auth-helpers-nextjs": "^0.10.0",
     "@supabase/supabase-js": "^2.45.4",
     "lucide-react": "^0.441.0",
