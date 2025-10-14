@@ -54,6 +54,11 @@ export function Sidebar({ currentPage, setCurrentPage, onNavigate, variant = 'de
     pathname = undefined
   }
 
+  const orgIdMatch = pathname?.match(/\/org\/([^/]+)/)
+  const resolvedOrgId = orgIdMatch?.[1]
+  const defaultOrgId = 'demo'
+  // TODO: Replace this fallback orgId with real routing context once it's available globally.
+
   const handleNavigate = useCallback(
     (legacyPage?: Page) => {
       if (legacyPage && setCurrentPage) {
@@ -91,6 +96,9 @@ export function Sidebar({ currentPage, setCurrentPage, onNavigate, variant = 'de
           .filter((item) => !item.roles || item.roles.includes(role))
           .map((item) => {
             const isDynamicUsersLink = item.href.includes('/org/[orgId]/users')
+            const targetHref = isDynamicUsersLink
+              ? item.href.replace('[orgId]', resolvedOrgId ?? defaultOrgId)
+              : item.href
             const isActive = isDynamicUsersLink
               ? pathname?.includes('/org/') && pathname?.includes('/users')
               : pathname === item.href || (!!currentPage && currentPage === item.legacyPage)
@@ -98,7 +106,7 @@ export function Sidebar({ currentPage, setCurrentPage, onNavigate, variant = 'de
             return (
               <Link
                 key={item.href}
-                href={item.href}
+                href={targetHref}
                 aria-current={isActive ? 'page' : undefined}
                 onClick={() => handleNavigate(item.legacyPage)}
                 className={cn(
