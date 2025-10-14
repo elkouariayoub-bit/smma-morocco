@@ -40,10 +40,12 @@
       "geist/font/mono": ["./stubs/geist-font-mono.ts"],
       "@vercel/analytics/next": ["./stubs/vercel-analytics.tsx"],
       "framer-motion": ["./stubs/framer-motion.tsx"],
-      "recharts": ["./stubs/recharts.tsx"],
+      "recharts": ["./stubs/recharts"],
       "swr": ["./stubs/swr.ts"],
       "tailwindcss": ["./stubs/tailwindcss.css"],
-      "tw-animate-css": ["./stubs/tw-animate-css.css"]
+      "tw-animate-css": ["./stubs/tw-animate-css.css"],
+      "@supabase/ssr": ["./stubs/supabase-ssr"],
+      "@supabase/ssr/*": ["./stubs/supabase-ssr/*"]
     }
   },
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],

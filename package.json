@@ -16,16 +16,17 @@
   },
   "dependencies": {
     "@google/genai": "^1.21.0",
+    "@supabase/ssr": "file:stubs/supabase-ssr",
     "@supabase/auth-helpers-nextjs": "^0.10.0",
     "@supabase/supabase-js": "^2.45.4",
     "lucide-react": "^0.441.0",
     "next": "^14.2.8",
-    "pdf-lib": "^1.17.1",
+    "pdf-lib": "file:stubs/pdf-lib",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
-    "recharts": "^2.12.7",
-    "exceljs": "^4.4.0",
-    "xlsx": "^0.18.5"
+    "recharts": "file:stubs/recharts",
+    "exceljs": "file:stubs/exceljs",
+    "xlsx": "file:stubs/xlsx"
   },
   "devDependencies": {
     "@types/node": "^20.12.12",
