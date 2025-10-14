@@ -3,10 +3,11 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useCallback } from 'react'
-import { BarChart3, HelpCircle, Home, Server, Settings } from 'lucide-react'
+import { BarChart3, HelpCircle, Home, Server, Settings, Users } from 'lucide-react'
 
 import type { Page } from '../types'
 import { cn } from '@/lib/utils'
+import { useCurrentRole, type Role } from '@/hooks/use-current-role'
 
 type SidebarProps = {
   /**
@@ -30,15 +31,23 @@ export const sidebarNavItems: Array<{
   label: string
   icon: typeof Home
   legacyPage?: Page
+  roles?: Role[]
 }> = [
   { href: '/dashboard', label: 'Home', icon: Home, legacyPage: 'composer' },
   { href: '/analytics', label: 'Analytics', icon: BarChart3, legacyPage: 'analytics' },
   { href: '/deployments', label: 'Deployments', icon: Server },
+  {
+    href: '/org/[orgId]/users',
+    label: 'Users',
+    icon: Users,
+    roles: ['owner', 'admin'],
+  },
   { href: '/settings', label: 'Settings', icon: Settings },
   { href: '/help', label: 'Help', icon: HelpCircle },
 ]
 
 export function Sidebar({ currentPage, setCurrentPage, onNavigate, variant = 'desktop' }: SidebarProps) {
+  const role = useCurrentRole()
   let pathname: string | undefined
   try {
     pathname = usePathname()
@@ -79,34 +88,40 @@ export function Sidebar({ currentPage, setCurrentPage, onNavigate, variant = 'de
       <nav className={cn('flex flex-1 flex-col gap-1.5 py-4', variant === 'mobile' ? 'px-4' : 'px-3')}
         aria-label="Primary"
       >
-        {sidebarNavItems.map((item) => {
-          const isActive = pathname === item.href || (!!currentPage && currentPage === item.legacyPage)
+        {sidebarNavItems
+          .filter((item) => !item.roles || item.roles.includes(role))
+          .map((item) => {
+            const isDynamicUsersLink = item.href.includes('/org/[orgId]/users')
+            const isActive = isDynamicUsersLink
+              ? pathname?.includes('/org/') && pathname?.includes('/users')
+              : pathname === item.href || (!!currentPage && currentPage === item.legacyPage)
 
-          return (
-            <Link
-              key={item.href}
-              href={item.href}
-              onClick={() => handleNavigate(item.legacyPage)}
-              className={cn(
-                'group relative flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-all duration-200',
-                'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2563eb]',
-                isActive
-                  ? 'bg-[#2563eb]/10 text-[#2563eb] shadow-sm dark:bg-[#2563eb]/20'
-                  : 'text-gray-600 hover:-translate-y-0.5 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-gray-100',
-              )}
-            >
-              <item.icon
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                aria-current={isActive ? 'page' : undefined}
+                onClick={() => handleNavigate(item.legacyPage)}
                 className={cn(
-                  'h-5 w-5 transition-colors duration-200',
+                  'group relative flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-all duration-200',
+                  'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2563eb]',
                   isActive
-                    ? 'text-[#2563eb]'
-                    : 'text-gray-400 group-hover:text-gray-700 dark:text-gray-500 dark:group-hover:text-gray-300',
+                    ? 'bg-[#2563eb]/10 text-[#2563eb] shadow-sm dark:bg-[#2563eb]/20'
+                    : 'text-gray-600 hover:-translate-y-0.5 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-gray-100',
                 )}
-              />
-              <span>{item.label}</span>
-            </Link>
-          )
-        })}
+              >
+                <item.icon
+                  className={cn(
+                    'h-5 w-5 transition-colors duration-200',
+                    isActive
+                      ? 'text-[#2563eb]'
+                      : 'text-gray-400 group-hover:text-gray-700 dark:text-gray-500 dark:group-hover:text-gray-300',
+                  )}
+                />
+                <span>{item.label}</span>
+              </Link>
+            )
+          })}
       </nav>
     </div>
   )
