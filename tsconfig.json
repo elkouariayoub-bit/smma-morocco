@@ -6,6 +6,7 @@
       "dom.iterable",
       "es2020"
     ],
+    "baseUrl": ".",
     "allowJs": false,
     "skipLibCheck": true,
     "strict": true,
@@ -24,11 +25,8 @@
       }
     ],
     "paths": {
-      "@/components/*": [
-        "./components/*"
-      ],
-      "@/lib/*": [
-        "./lib/*"
+      "@/*": [
+        "./*"
       ],
       "sonner": [
         "./lib/mock-sonner"
