@@ -6,7 +6,7 @@ import { getSupabaseAdminClient } from "@/lib/supabaseAdmin";
 
 type RouteContext = { params: { orgId: string } };
 
-export function createRouteClient() {
+function createRouteClient() {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
