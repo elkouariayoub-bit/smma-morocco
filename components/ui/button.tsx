@@ -9,6 +9,7 @@ const buttonStyles = cva(
       variant: {
         default: 'bg-black text-white hover:bg-gray-800',
         secondary: 'bg-gray-100 text-gray-900 hover:bg-gray-200',
+        outline: 'border border-gray-300 bg-white text-gray-900 hover:bg-gray-100',
         ghost: 'hover:bg-gray-100',
       },
       size: {
@@ -21,7 +22,7 @@ const buttonStyles = cva(
 );
 
 export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: 'default' | 'secondary' | 'ghost';
+  variant?: 'default' | 'secondary' | 'outline' | 'ghost';
   size?: 'default' | 'sm';
 }
 
