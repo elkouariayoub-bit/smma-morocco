@@ -13,8 +13,9 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
-import { Trash2, Shield, Crown, User2, UserPlus } from "lucide-react";
+import { Trash2, Plus, Shield, Crown, User2, UserPlus } from "lucide-react";
 
 type Role = "owner" | "admin" | "editor";
 
@@ -31,7 +32,7 @@ const initialMembers: Member[] = [
   { id: "3", name: "Carol Chen", email: "carol@company.com", role: "editor" },
 ];
 
-const initialSeatLimit = 5;
+const initialSeatLimit = 5; // pretend this comes from subscription
 
 const RoleBadge: React.FC<{ role: Role }> = ({ role }) => {
   const label = role.charAt(0).toUpperCase() + role.slice(1);
@@ -63,10 +64,12 @@ function initials(name?: string, email?: string) {
   return base.slice(0, 2).toUpperCase();
 }
 
-export default function TeamManagementPreview() {
+export default function UsersPagePreview() {
   const [viewerRole, setViewerRole] = useState<Role>("owner");
+
   const [members, setMembers] = useState<Member[]>(initialMembers);
-  const [seatLimit] = useState<number>(initialSeatLimit);
+  const [seatLimit, setSeatLimit] = useState<number>(initialSeatLimit);
+
   const [email, setEmail] = useState("");
   const [name, setName] = useState("");
   const [newRole, setNewRole] = useState<Role>("editor");
@@ -77,18 +80,9 @@ export default function TeamManagementPreview() {
   const canManageUsers = viewerRole === "owner" || viewerRole === "admin";
 
   const handleAdd = () => {
-    if (!canManageUsers) {
-      toast.error("You don't have permission to add users.");
-      return;
-    }
-    if (seatsFull) {
-      toast.error("Seat limit reached. Upgrade your plan to add more.");
-      return;
-    }
-    if (!email) {
-      toast.error("Please enter an email.");
-      return;
-    }
+    if (!canManageUsers) return toast.error("You don't have permission to add users.");
+    if (seatsFull) return toast.error("Seat limit reached. Upgrade your plan to add more.");
+    if (!email) return toast.error("Please enter an email.");
 
     const id = Math.random().toString(36).slice(2);
     const member: Member = {
@@ -97,7 +91,7 @@ export default function TeamManagementPreview() {
       email,
       role: newRole,
     };
-    setMembers((prev) => [...prev, member]);
+    setMembers((m) => [...m, member]);
     setEmail("");
     setName("");
     setNewRole("editor");
@@ -105,40 +99,41 @@ export default function TeamManagementPreview() {
   };
 
   const handleRemove = (id: string) => {
-    if (!canManageUsers) {
-      toast.error("You don't have permission to remove users.");
-      return;
-    }
-    setMembers((prev) => prev.filter((member) => member.id !== id));
+    if (!canManageUsers) return toast.error("You don't have permission to remove users.");
+    setMembers((m) => m.filter((x) => x.id !== id));
     toast.success("User removed (mock)");
   };
 
-  const usedOverLimit = useMemo(
-    () => `${seatsUsed} / ${seatLimit} seats`,
-    [seatsUsed, seatLimit]
-  );
+  const usedOverLimit = useMemo(() => `${seatsUsed} / ${seatLimit} seats`, [seatsUsed, seatLimit]);
+
+  const allowSeatIncrease = seatLimit < 10;
 
   return (
     <div className="mx-auto max-w-5xl space-y-6 p-6">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-2xl font-semibold tracking-tight">Team</h1>
-          <p className="text-sm text-muted-foreground">
-            Manage members of your workspace
-          </p>
+          <p className="text-sm text-muted-foreground">Manage members of your workspace</p>
         </div>
         <div className="flex items-center gap-3">
           <Badge variant={seatsFull ? "destructive" : "secondary"}>{usedOverLimit}</Badge>
-          {seatsFull && (
+          {seatsFull ? (
+            <Button variant="outline" onClick={() => toast.info("Navigate to billing (mock)")}>
+              Upgrade plan
+            </Button>
+          ) : (
             <Button
               variant="outline"
-              onClick={() => toast.info("Navigate to billing (mock)")}
+              onClick={() => setSeatLimit((limit) => Math.min(limit + 1, 10))}
+              disabled={!allowSeatIncrease}
             >
-              Upgrade plan
+              <Plus className="mr-2 h-4 w-4" /> Add seat
             </Button>
           )}
         </div>
       </div>
+
+      <Separator />
 
       <Card>
         <CardHeader className="py-4">
@@ -168,11 +163,7 @@ export default function TeamManagementPreview() {
           <CardTitle className="text-base">Add user</CardTitle>
         </CardHeader>
         <CardContent className="grid gap-3 md:grid-cols-[1fr_1fr_180px_auto]">
-          <Input
-            placeholder="Full name (optional)"
-            value={name}
-            onChange={(event) => setName(event.target.value)}
-          />
+          <Input placeholder="Full name (optional)" value={name} onChange={(event) => setName(event.target.value)} />
           <Input
             type="email"
             placeholder="user@example.com"
@@ -221,16 +212,18 @@ export default function TeamManagementPreview() {
                     <div className="text-xs text-muted-foreground">{member.email}</div>
                   </div>
                 </div>
+
                 <div className="flex items-center gap-3">
                   <RoleBadge role={member.role} />
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => handleRemove(member.id)}
-                    disabled={!canManageUsers}
-                  >
-                    <Trash2 className="mr-1 h-4 w-4" /> Remove
-                  </Button>
+                  {canManageUsers ? (
+                    <Button variant="ghost" size="sm" onClick={() => handleRemove(member.id)}>
+                      <Trash2 className="mr-1 h-4 w-4" /> Remove
+                    </Button>
+                  ) : (
+                    <Button variant="ghost" size="sm" disabled>
+                      <Trash2 className="mr-1 h-4 w-4" /> Remove
+                    </Button>
+                  )}
                 </div>
               </div>
             ))}
