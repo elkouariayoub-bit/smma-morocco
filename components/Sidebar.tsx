@@ -9,7 +9,7 @@ import type { Page } from '../types'
 import { cn } from '@/lib/utils'
 import { useCurrentRole, type Role } from '@/hooks/use-current-role'
 
-type SidebarProps = {
+export type SidebarProps = {
   /**
    * Support the legacy multi-page SPA shell by allowing callers to track the current page.
    * Next.js routes rely on the current pathname instead.
