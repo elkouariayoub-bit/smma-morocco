@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
-import ToastProvider from "@/components/ToastProvider";
+import { Toaster } from "sonner";
 
 export const metadata: Metadata = {
   title: "SMMA Morocco",
@@ -12,7 +12,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en">
       <body>
         {children}
-        <ToastProvider />
+        <Toaster />
       </body>
     </html>
   );

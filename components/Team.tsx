@@ -5,8 +5,15 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { toast } from "@/lib/toast";
+import { toast } from "sonner";
 import { Trash2, Shield, Crown, User2, UserPlus } from "lucide-react";
 
 type Role = "owner" | "admin" | "editor";
@@ -25,9 +32,6 @@ const initialMembers: Member[] = [
 ];
 
 const initialSeatLimit = 5;
-
-const selectClasses =
-  "flex h-9 w-full rounded-2xl border border-gray-300 bg-white px-3 py-1 text-sm outline-none focus:ring-2 focus:ring-gray-400";
 
 const RoleBadge: React.FC<{ role: Role }> = ({ role }) => {
   const label = role.charAt(0).toUpperCase() + role.slice(1);
@@ -59,7 +63,7 @@ function initials(name?: string, email?: string) {
   return base.slice(0, 2).toUpperCase();
 }
 
-export function TeamManagementPreview() {
+export default function TeamManagementPreview() {
   const [viewerRole, setViewerRole] = useState<Role>("owner");
   const [members, setMembers] = useState<Member[]>(initialMembers);
   const [seatLimit] = useState<number>(initialSeatLimit);
@@ -69,6 +73,7 @@ export function TeamManagementPreview() {
 
   const seatsUsed = members.length;
   const seatsFull = seatsUsed >= seatLimit;
+
   const canManageUsers = viewerRole === "owner" || viewerRole === "admin";
 
   const handleAdd = () => {
@@ -92,7 +97,7 @@ export function TeamManagementPreview() {
       email,
       role: newRole,
     };
-    setMembers((m) => [...m, member]);
+    setMembers((prev) => [...prev, member]);
     setEmail("");
     setName("");
     setNewRole("editor");
@@ -104,7 +109,7 @@ export function TeamManagementPreview() {
       toast.error("You don't have permission to remove users.");
       return;
     }
-    setMembers((m) => m.filter((x) => x.id !== id));
+    setMembers((prev) => prev.filter((member) => member.id !== id));
     toast.success("User removed (mock)");
   };
 
@@ -118,7 +123,9 @@ export function TeamManagementPreview() {
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-2xl font-semibold tracking-tight">Team</h1>
-          <p className="text-sm text-gray-500">Manage members of your workspace</p>
+          <p className="text-sm text-muted-foreground">
+            Manage members of your workspace
+          </p>
         </div>
         <div className="flex items-center gap-3">
           <Badge variant={seatsFull ? "destructive" : "secondary"}>{usedOverLimit}</Badge>
@@ -138,17 +145,18 @@ export function TeamManagementPreview() {
           <CardTitle className="text-base">Preview as</CardTitle>
         </CardHeader>
         <CardContent className="flex flex-wrap items-center gap-3">
-          <select
-            value={viewerRole}
-            onChange={(e) => setViewerRole(e.target.value as Role)}
-            className={`${selectClasses} w-44`}
-          >
-            <option value="owner">Owner</option>
-            <option value="admin">Admin</option>
-            <option value="editor">Editor</option>
-          </select>
+          <Select value={viewerRole} onValueChange={(value: string) => setViewerRole(value as Role)}>
+            <SelectTrigger className="w-44">
+              <SelectValue placeholder="Select role" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="owner">Owner</SelectItem>
+              <SelectItem value="admin">Admin</SelectItem>
+              <SelectItem value="editor">Editor</SelectItem>
+            </SelectContent>
+          </Select>
           {!canManageUsers && (
-            <p className="text-sm text-gray-500">
+            <p className="text-sm text-muted-foreground">
               Editors cannot manage users; controls are hidden or disabled.
             </p>
           )}
@@ -163,32 +171,33 @@ export function TeamManagementPreview() {
           <Input
             placeholder="Full name (optional)"
             value={name}
-            onChange={(e) => setName(e.target.value)}
+            onChange={(event) => setName(event.target.value)}
           />
           <Input
             type="email"
             placeholder="user@example.com"
             value={email}
-            onChange={(e) => setEmail(e.target.value)}
+            onChange={(event) => setEmail(event.target.value)}
           />
-          <select
-            value={newRole}
-            onChange={(e) => setNewRole(e.target.value as Role)}
-            className={selectClasses}
-          >
-            <option value="admin">Admin</option>
-            <option value="editor">Editor</option>
-          </select>
+          <Select value={newRole} onValueChange={(value: string) => setNewRole(value as Role)}>
+            <SelectTrigger>
+              <SelectValue placeholder="Select role" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="admin">Admin</SelectItem>
+              <SelectItem value="editor">Editor</SelectItem>
+            </SelectContent>
+          </Select>
           <Button onClick={handleAdd} disabled={!canManageUsers || seatsFull || !email}>
             <UserPlus className="mr-2 h-4 w-4" /> Add user
           </Button>
           {!canManageUsers && (
-            <p className="-mt-1 text-sm text-gray-500 md:col-span-4">
+            <p className="-mt-1 text-sm text-muted-foreground md:col-span-4">
               You do not have permission to add users.
             </p>
           )}
           {seatsFull && (
-            <p className="-mt-1 text-sm text-gray-500 md:col-span-4">
+            <p className="-mt-1 text-sm text-muted-foreground md:col-span-4">
               Seat limit reached. Upgrade your plan to add more seats.
             </p>
           )}
@@ -209,7 +218,7 @@ export function TeamManagementPreview() {
                   </Avatar>
                   <div className="leading-tight">
                     <div className="font-medium">{member.name || member.email}</div>
-                    <div className="text-xs text-gray-500">{member.email}</div>
+                    <div className="text-xs text-muted-foreground">{member.email}</div>
                   </div>
                 </div>
                 <div className="flex items-center gap-3">
@@ -226,17 +235,15 @@ export function TeamManagementPreview() {
               </div>
             ))}
             {members.length === 0 && (
-              <div className="p-6 text-sm text-gray-500">No members yet.</div>
+              <div className="p-6 text-sm text-muted-foreground">No members yet.</div>
             )}
           </div>
         </CardContent>
       </Card>
 
-      <div className="text-xs text-gray-500">
+      <div className="text-xs text-muted-foreground">
         This is a frontend-only preview. Hook up your API to persist changes and enforce seat limits server-side.
       </div>
     </div>
   );
 }
-
-export default TeamManagementPreview;

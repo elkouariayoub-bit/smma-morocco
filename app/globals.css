@@ -5,3 +5,7 @@
 :root { color-scheme: light; }
 html, body, #__next { height: 100%; }
 body { @apply antialiased text-gray-800 bg-white; }
+
+.text-muted-foreground {
+  @apply text-gray-500;
+}
