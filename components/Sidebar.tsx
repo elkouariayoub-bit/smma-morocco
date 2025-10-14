@@ -6,13 +6,14 @@ import { supabase } from '@/lib/supabase';
 import { User, type Session } from '@supabase/supabase-js';
 import { useEffect, useState, type Dispatch, type SetStateAction } from 'react';
 import type { Page } from '../types';
-import { PenSquare, Clock, Archive, BarChart2, LogOut } from 'lucide-react';
+import { PenSquare, Clock, Archive, BarChart2, LogOut, Users } from 'lucide-react';
 
 const navItems = [
   { href: '/composer', label: 'Composer', icon: PenSquare },
   { href: '/queue', label: 'Queue', icon: Clock },
   { href: '/drafts', label: 'Drafts', icon: Archive },
   { href: '/analytics', label: 'Analytics', icon: BarChart2 },
+  { href: '/team', label: 'Team', icon: Users },
 ];
 
 interface SidebarProps {

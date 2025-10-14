@@ -8,6 +8,7 @@ import { Queue } from './components/Queue';
 import { Analytics } from './components/Analytics';
 import type { Page } from './types';
 import { Drafts } from './components/Drafts';
+import TeamManagementPreview from './components/Team';
 
 const App: React.FC = () => {
   // FIX: Re-instated state for page navigation. This was removed previously, but is required for the correct sidebar to function and also fixes type errors in `renderContent`.
@@ -23,6 +24,8 @@ const App: React.FC = () => {
         return <Drafts />;
       case 'analytics':
         return <Analytics />;
+      case 'team':
+        return <TeamManagementPreview />;
       default:
         return <Composer />;
     }
