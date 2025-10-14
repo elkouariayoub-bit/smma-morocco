@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { usePathname } from 'next/navigation'
+import { useParams, usePathname } from 'next/navigation'
 import { useCallback } from 'react'
 import { BarChart3, HelpCircle, Home, Settings, Users } from 'lucide-react'
 
@@ -47,16 +47,11 @@ export const sidebarNavItems: Array<{
 
 export function Sidebar({ currentPage, setCurrentPage, onNavigate, variant = 'desktop' }: SidebarProps) {
   const role = useCurrentRole()
-  let pathname: string | undefined
-  try {
-    pathname = usePathname()
-  } catch (error) {
-    pathname = undefined
-  }
+  const pathname = usePathname()
+  const params = useParams<{ orgId?: string }>()
 
-  const orgIdMatch = pathname?.match(/\/org\/([^/]+)/)
-  const resolvedOrgId = orgIdMatch?.[1]
   const defaultOrgId = 'demo'
+  const resolvedOrgId = params?.orgId ?? defaultOrgId
   // TODO: Replace this fallback orgId with real routing context once it's available globally.
 
   const handleNavigate = useCallback(
@@ -97,10 +92,10 @@ export function Sidebar({ currentPage, setCurrentPage, onNavigate, variant = 'de
           .map((item) => {
             const isDynamicUsersLink = item.href.includes('/org/[orgId]/users')
             const targetHref = isDynamicUsersLink
-              ? item.href.replace('[orgId]', resolvedOrgId ?? defaultOrgId)
+              ? `/org/${resolvedOrgId}/users`
               : item.href
             const isActive = isDynamicUsersLink
-              ? pathname?.includes('/org/') && pathname?.includes('/users')
+              ? pathname.startsWith(`/org/${resolvedOrgId}/users`)
               : pathname === item.href || (!!currentPage && currentPage === item.legacyPage)
 
             return (
