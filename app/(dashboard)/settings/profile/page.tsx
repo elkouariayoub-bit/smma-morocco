@@ -19,7 +19,8 @@ import { Separator } from '@/components/ui/separator';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 
-type Language = 'en' | 'fr' | 'ar';
+const SUPPORTED_LANGUAGES = ['en', 'fr', 'ar'] as const;
+type Language = (typeof SUPPORTED_LANGUAGES)[number];
 
 const ProfileSchema = z.object({
   name: z.string().min(1, 'Name is required').max(80),
@@ -29,7 +30,7 @@ const ProfileSchema = z.object({
     .max(24)
     .regex(/^[a-z0-9_]+$/i, 'Only letters, numbers and underscores'),
   email: z.string().email('Invalid email address'),
-  language: z.string().regex(/^(en|fr|ar)$/i, 'Select a supported language'),
+  language: z.enum(SUPPORTED_LANGUAGES),
 });
 
 type ProfileValues = z.infer<typeof ProfileSchema>;
@@ -43,24 +44,22 @@ const MOCK = {
   canChangeUsername: true, // set false to lock the input (e.g., only every 30 days)
 };
 
+function isLanguage(value: string | null): value is Language {
+  return !!value && SUPPORTED_LANGUAGES.includes(value as Language);
+}
+
 // --- helpers to apply language immediately (frontend-only) ---
 function applyLanguage(lang: Language) {
+  if (typeof document === 'undefined' || typeof window === 'undefined') return;
   const root = document.documentElement;
   root.setAttribute('lang', lang);
   root.setAttribute('dir', lang === 'ar' ? 'rtl' : 'ltr');
-  localStorage.setItem('app:lang', lang);
+  window.localStorage.setItem('app:lang', lang);
 }
 
 export default function ProfileSettingsPage() {
   const [saving, setSaving] = React.useState(false);
-
-  const storedLang =
-    typeof window !== 'undefined'
-      ? ((localStorage.getItem('app:lang') as Language | null) ?? undefined)
-      : undefined;
-  const initialLang: Language = storedLang && ['en', 'fr', 'ar'].includes(storedLang)
-    ? storedLang
-    : 'en';
+  const initialLanguageRef = React.useRef<Language>('en');
 
   const form = useForm<ProfileValues>({
     resolver: zodResolver(ProfileSchema),
@@ -68,14 +67,19 @@ export default function ProfileSettingsPage() {
       name: MOCK.name,
       username: MOCK.username,
       email: MOCK.email,
-      language: initialLang,
+      language: 'en',
     },
     mode: 'onChange',
   });
 
   React.useEffect(() => {
-    applyLanguage(initialLang);
-  }, [initialLang]);
+    if (typeof window === 'undefined') return;
+    const storedLang = window.localStorage.getItem('app:lang');
+    const resolvedLang = isLanguage(storedLang) ? storedLang : 'en';
+    initialLanguageRef.current = resolvedLang;
+    form.setValue('language', resolvedLang, { shouldValidate: true });
+    applyLanguage(resolvedLang);
+  }, [form]);
 
   async function onSubmit(values: ProfileValues) {
     setSaving(true);
@@ -87,8 +91,7 @@ export default function ProfileSettingsPage() {
       //   body: JSON.stringify(values),
       // });
       await new Promise((r) => setTimeout(r, 500));
-      const normalizedLang = (values.language.toLowerCase() as Language) ?? 'en';
-      applyLanguage(normalizedLang);
+      applyLanguage(values.language);
       toast.success('Profile updated');
     } catch (e: any) {
       toast.error(e?.message ?? 'Something went wrong');
@@ -175,7 +178,7 @@ export default function ProfileSettingsPage() {
               <Select
                 value={languageValue}
                 onValueChange={(lang) => {
-                  const nextLang = (lang.toLowerCase() as Language) ?? 'en';
+                  const nextLang = isLanguage(lang) ? lang : 'en';
                   form.setValue('language', nextLang, { shouldValidate: true });
                   applyLanguage(nextLang);
                   toast.success('Language updated', {
@@ -208,7 +211,11 @@ export default function ProfileSettingsPage() {
                 variant="outline"
                 onClick={() => {
                   form.reset();
-                  applyLanguage(initialLang);
+                  form.setValue('name', MOCK.name, { shouldValidate: true });
+                  form.setValue('username', MOCK.username, { shouldValidate: true });
+                  form.setValue('email', MOCK.email, { shouldValidate: true });
+                  form.setValue('language', initialLanguageRef.current, { shouldValidate: true });
+                  applyLanguage(initialLanguageRef.current);
                 }}
               >
                 Reset

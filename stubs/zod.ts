@@ -99,11 +99,33 @@ class ZodObject<T extends Record<string, ZodType<any>>> extends ZodType<{ [K in 
   }
 }
 
+class ZodEnum<T extends readonly [string, ...string[]]> extends ZodType<T[number]> {
+  constructor(private readonly values: T) {
+    super();
+  }
+
+  safeParse(data: unknown): SafeParseSuccess<T[number]> | SafeParseError {
+    if (typeof data !== 'string') {
+      return { success: false, error: { issues: [{ path: [], message: 'Expected string' }] } };
+    }
+
+    if (!this.values.includes(data)) {
+      return {
+        success: false,
+        error: { issues: [{ path: [], message: `Expected one of: ${this.values.join(', ')}` }] },
+      };
+    }
+
+    return { success: true, data: data as T[number] };
+  }
+}
+
 type InferType<T> = T extends ZodType<infer U> ? U : never;
 
 export const z = {
   string: () => new ZodString(),
   object: <T extends Record<string, ZodType<any>>>(shape: T) => new ZodObject(shape),
+  enum: <T extends readonly [string, ...string[]]>(values: T) => new ZodEnum(values),
 };
 
 export type ZodTypeAny = ZodType<any>;
