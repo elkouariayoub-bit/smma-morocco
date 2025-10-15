@@ -55,6 +55,14 @@ export async function middleware(req: NextRequest) {
 }
 
 export const config = {
+  /**
+   * The Supabase helpers depend on Node.js specific APIs. Running the
+   * middleware on the default edge runtime triggers build-time failures in
+   * production (Vercel) because those APIs are unavailable there. Forcing the
+   * Node.js runtime keeps the helpers compatible while the rest of the app
+   * continues to deploy normally.
+   */
+  runtime: 'nodejs',
   matcher: [
     /*
      * Match all request paths except for the ones starting with:
