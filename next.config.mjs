@@ -55,10 +55,7 @@ const nextConfig = {
       process.cwd(),
       'stubs/radix-popover.tsx'
     );
-    config.resolve.alias['@radix-ui/react-scroll-area'] = path.resolve(
-      process.cwd(),
-      'stubs/radix-scroll-area.tsx'
-    );
+    aliasWhenMissing(config, '@radix-ui/react-scroll-area', 'stubs/radix-scroll-area.tsx');
     config.resolve.alias['@radix-ui/react-dialog'] = path.resolve(
       process.cwd(),
       'stubs/radix-dialog.tsx'
@@ -74,6 +71,12 @@ const nextConfig = {
     config.resolve.alias['swr'] = path.resolve(process.cwd(), 'stubs/swr.ts');
     config.resolve.alias['tailwindcss'] = path.resolve(process.cwd(), 'stubs/tailwindcss.css');
     config.resolve.alias['tw-animate-css'] = path.resolve(process.cwd(), 'stubs/tw-animate-css.css');
+    aliasWhenMissing(config, '@radix-ui/react-select', 'stubs/radix-select.tsx');
+    aliasWhenMissing(config, '@radix-ui/react-separator', 'stubs/radix-separator.tsx');
+    aliasWhenMissing(config, 'react-hook-form', 'stubs/react-hook-form.ts');
+    aliasWhenMissing(config, '@hookform/resolvers/zod', 'stubs/hookform-resolvers-zod.ts');
+    aliasWhenMissing(config, 'zod', 'stubs/zod.ts');
+    aliasWhenMissing(config, 'sonner', 'stubs/sonner.tsx');
     aliasWhenMissing(config, 'exceljs', 'stubs/exceljs.ts');
     aliasWhenMissing(config, 'pdf-lib', 'stubs/pdf-lib.ts');
     aliasWhenMissing(config, 'xlsx', 'stubs/xlsx.ts');

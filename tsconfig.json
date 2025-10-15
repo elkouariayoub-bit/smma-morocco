@@ -64,9 +64,6 @@
       "@radix-ui/react-slot": [
         "./stubs/radix-slot.tsx"
       ],
-      "@radix-ui/react-scroll-area": [
-        "./stubs/radix-scroll-area.tsx"
-      ],
       "@radix-ui/react-dialog": [
         "./stubs/radix-dialog.tsx"
       ],
@@ -93,24 +90,6 @@
       ],
       "tw-animate-css": [
         "./stubs/tw-animate-css.css"
-      ],
-      "@radix-ui/react-select": [
-        "./stubs/radix-select.tsx"
-      ],
-      "@radix-ui/react-separator": [
-        "./stubs/radix-separator.tsx"
-      ],
-      "react-hook-form": [
-        "./stubs/react-hook-form.ts"
-      ],
-      "@hookform/resolvers/zod": [
-        "./stubs/hookform-resolvers-zod.ts"
-      ],
-      "zod": [
-        "./stubs/zod.ts"
-      ],
-      "sonner": [
-        "./stubs/sonner.tsx"
       ]
     }
   },
@@ -118,7 +97,8 @@
     "next-env.d.ts",
     "**/*.ts",
     "**/*.tsx",
-    ".next/types/**/*.ts"
+    ".next/types/**/*.ts",
+    "types/**/*.d.ts"
   ],
   "exclude": [
     "node_modules"
