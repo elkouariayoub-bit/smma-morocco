@@ -88,6 +88,12 @@
       "swr": [
         "./stubs/swr.ts"
       ],
+      "next-auth": [
+        "./stubs/next-auth.ts"
+      ],
+      "next-auth/react": [
+        "./stubs/next-auth-react.ts"
+      ],
       "tailwindcss": [
         "./stubs/tailwindcss.css"
       ],

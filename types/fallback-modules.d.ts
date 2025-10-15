@@ -24,6 +24,26 @@ declare module 'sonner' {
   export function Toaster(): ReturnType<typeof import('../stubs/sonner').Toaster>;
 }
 
+declare module 'next-auth' {
+  export type Session = import('../stubs/next-auth').Session;
+  export type NextAuthOptions = import('../stubs/next-auth').NextAuthOptions;
+  export function getServerSession(): Promise<Session>;
+  const nextAuth: typeof import('../stubs/next-auth').default;
+  export default nextAuth;
+}
+
+declare module 'next-auth/react' {
+  export type Session = import('../stubs/next-auth-react').Session;
+  export function useSession(): ReturnType<typeof import('../stubs/next-auth-react').useSession>;
+  export function signIn(
+    provider?: string,
+    options?: Record<string, unknown>
+  ): ReturnType<typeof import('../stubs/next-auth-react').signIn>;
+  export function signOut(
+    options?: Record<string, unknown>
+  ): ReturnType<typeof import('../stubs/next-auth-react').signOut>;
+}
+
 declare module '@radix-ui/react-separator' {
   export const Root: typeof import('../stubs/radix-separator').Root;
 }
