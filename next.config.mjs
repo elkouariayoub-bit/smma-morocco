@@ -17,6 +17,12 @@ const nextConfig = {
   experimental: {
     serverComponentsExternalPackages: ['exceljs', 'pdf-lib'],
   },
+  async redirects() {
+    return [
+      { source: '/settings/apps', destination: '/settings', permanent: false },
+      { source: '/settings/notifications', destination: '/settings', permanent: false },
+    ]
+  },
   webpack(config) {
     config.resolve.alias['@daveyplate/better-auth-ui'] = path.resolve(
       process.cwd(),
