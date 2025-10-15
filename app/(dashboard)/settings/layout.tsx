@@ -14,6 +14,8 @@ const items = [
   { href: '/settings/profile', label: 'Profile' },
   { href: '/settings/billing', label: 'Billing' },
   { href: '/settings/plans', label: 'Plans' },
+  { href: '/settings/apps', label: 'Connected Apps' },
+  { href: '/settings/notifications', label: 'Notifications' },
 ]
 
 export default function SettingsLayout({ children }: { children: ReactNode }) {
