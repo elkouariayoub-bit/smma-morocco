@@ -20,7 +20,15 @@ import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 
 const SUPPORTED_LANGUAGES = ['en', 'fr', 'ar'] as const;
-type Language = (typeof SUPPORTED_LANGUAGES)[number];
+const LANGUAGE_STORAGE_KEY = 'app:lang';
+
+type BrowserRuntime = typeof globalThis & {
+  document?: Document;
+  localStorage?: Storage;
+};
+
+const runtime: BrowserRuntime =
+  typeof globalThis !== 'undefined' ? (globalThis as BrowserRuntime) : ({} as BrowserRuntime);
 
 const ProfileSchema = z.object({
   name: z.string().min(1, 'Name is required').max(80),
@@ -33,6 +41,7 @@ const ProfileSchema = z.object({
   language: z.enum(SUPPORTED_LANGUAGES),
 });
 
+type Language = (typeof SUPPORTED_LANGUAGES)[number];
 type ProfileValues = z.infer<typeof ProfileSchema>;
 
 // Mocked user (replace with real data from your API)
@@ -48,13 +57,50 @@ function isLanguage(value: string | null): value is Language {
   return !!value && SUPPORTED_LANGUAGES.includes(value as Language);
 }
 
-// --- helpers to apply language immediately (frontend-only) ---
+function getDocumentElement(): HTMLElement | null {
+  return runtime.document?.documentElement ?? null;
+}
+
+function getLocalStorage(): Storage | null {
+  return runtime.localStorage ?? null;
+}
+
+function readStoredLanguage(): Language | null {
+  const storage = getLocalStorage();
+  if (!storage) {
+    return null;
+  }
+
+  try {
+    const stored = storage.getItem(LANGUAGE_STORAGE_KEY);
+    return isLanguage(stored) ? stored : null;
+  } catch (error) {
+    if (process.env.NODE_ENV !== 'production') {
+      console.warn('Unable to read stored language preference', error);
+    }
+    return null;
+  }
+}
+
 function applyLanguage(lang: Language) {
-  if (typeof document === 'undefined' || typeof window === 'undefined') return;
-  const root = document.documentElement;
-  root.setAttribute('lang', lang);
-  root.setAttribute('dir', lang === 'ar' ? 'rtl' : 'ltr');
-  window.localStorage.setItem('app:lang', lang);
+  const root = getDocumentElement();
+  if (root) {
+    root.setAttribute('lang', lang);
+    root.setAttribute('dir', lang === 'ar' ? 'rtl' : 'ltr');
+  }
+
+  const storage = getLocalStorage();
+  if (!storage) {
+    return;
+  }
+
+  try {
+    storage.setItem(LANGUAGE_STORAGE_KEY, lang);
+  } catch (error) {
+    if (process.env.NODE_ENV !== 'production') {
+      console.warn('Unable to persist language preference', error);
+    }
+  }
 }
 
 export default function ProfileSettingsPage() {
@@ -73,12 +119,12 @@ export default function ProfileSettingsPage() {
   });
 
   React.useEffect(() => {
-    if (typeof window === 'undefined') return;
-    const storedLang = window.localStorage.getItem('app:lang');
-    const resolvedLang = isLanguage(storedLang) ? storedLang : 'en';
-    initialLanguageRef.current = resolvedLang;
-    form.setValue('language', resolvedLang, { shouldValidate: true });
-    applyLanguage(resolvedLang);
+    const storedLanguage = readStoredLanguage();
+    const resolvedLanguage = storedLanguage ?? 'en';
+
+    initialLanguageRef.current = resolvedLanguage;
+    form.setValue('language', resolvedLanguage, { shouldValidate: true });
+    applyLanguage(resolvedLanguage);
   }, [form]);
 
   async function onSubmit(values: ProfileValues) {
@@ -90,11 +136,12 @@ export default function ProfileSettingsPage() {
       //   headers: { 'Content-Type': 'application/json' },
       //   body: JSON.stringify(values),
       // });
-      await new Promise((r) => setTimeout(r, 500));
+      await new Promise((resolve) => setTimeout(resolve, 500));
       applyLanguage(values.language);
       toast.success('Profile updated');
-    } catch (e: any) {
-      toast.error(e?.message ?? 'Something went wrong');
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Something went wrong';
+      toast.error(message);
     } finally {
       setSaving(false);
     }
@@ -151,15 +198,15 @@ export default function ProfileSettingsPage() {
               <Label>Email</Label>
               <Select
                 value={emailValue}
-                onValueChange={(v) => form.setValue('email', v, { shouldValidate: true })}
+                onValueChange={(value) => form.setValue('email', value, { shouldValidate: true })}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Select a verified email to display" />
                 </SelectTrigger>
                 <SelectContent>
-                  {MOCK.verifiedEmails.map((e) => (
-                    <SelectItem key={e} value={e}>
-                      {e}
+                  {MOCK.verifiedEmails.map((email) => (
+                    <SelectItem key={email} value={email}>
+                      {email}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -177,12 +224,12 @@ export default function ProfileSettingsPage() {
               <Label>Language</Label>
               <Select
                 value={languageValue}
-                onValueChange={(lang) => {
-                  const nextLang = isLanguage(lang) ? lang : 'en';
-                  form.setValue('language', nextLang, { shouldValidate: true });
-                  applyLanguage(nextLang);
+                onValueChange={(value) => {
+                  const nextLanguage = isLanguage(value) ? value : 'en';
+                  form.setValue('language', nextLanguage, { shouldValidate: true });
+                  applyLanguage(nextLanguage);
                   toast.success('Language updated', {
-                    description: `Current: ${nextLang.toUpperCase()}`,
+                    description: `Current: ${nextLanguage.toUpperCase()}`,
                   });
                 }}
               >
@@ -198,6 +245,9 @@ export default function ProfileSettingsPage() {
               <p className="text-xs text-muted-foreground">
                 Arabic uses right-to-left layout automatically.
               </p>
+              {form.formState.errors.language && (
+                <p className="text-xs text-destructive">{form.formState.errors.language.message}</p>
+              )}
             </div>
 
             <Separator />
@@ -210,12 +260,10 @@ export default function ProfileSettingsPage() {
                 type="button"
                 variant="outline"
                 onClick={() => {
+                  const fallbackLanguage = initialLanguageRef.current;
                   form.reset();
-                  form.setValue('name', MOCK.name, { shouldValidate: true });
-                  form.setValue('username', MOCK.username, { shouldValidate: true });
-                  form.setValue('email', MOCK.email, { shouldValidate: true });
-                  form.setValue('language', initialLanguageRef.current, { shouldValidate: true });
-                  applyLanguage(initialLanguageRef.current);
+                  form.setValue('language', fallbackLanguage, { shouldValidate: true });
+                  applyLanguage(fallbackLanguage);
                 }}
               >
                 Reset
