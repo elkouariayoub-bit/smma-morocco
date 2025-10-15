@@ -24,24 +24,6 @@ declare module 'sonner' {
   export function Toaster(): ReturnType<typeof import('../stubs/sonner').Toaster>;
 }
 
-declare module '@radix-ui/react-select' {
-  export const Root: typeof import('../stubs/radix-select').Root;
-  export const Group: typeof import('../stubs/radix-select').Group;
-  export const Value: typeof import('../stubs/radix-select').Value;
-  export const Trigger: typeof import('../stubs/radix-select').Trigger;
-  export const Icon: typeof import('../stubs/radix-select').Icon;
-  export const Portal: typeof import('../stubs/radix-select').Portal;
-  export const Content: typeof import('../stubs/radix-select').Content;
-  export const Viewport: typeof import('../stubs/radix-select').Viewport;
-  export const Label: typeof import('../stubs/radix-select').Label;
-  export const Separator: typeof import('../stubs/radix-select').Separator;
-  export const Item: typeof import('../stubs/radix-select').Item;
-  export const ItemText: typeof import('../stubs/radix-select').ItemText;
-  export const ItemIndicator: typeof import('../stubs/radix-select').ItemIndicator;
-  export const ScrollUpButton: typeof import('../stubs/radix-select').ScrollUpButton;
-  export const ScrollDownButton: typeof import('../stubs/radix-select').ScrollDownButton;
-}
-
 declare module '@radix-ui/react-separator' {
   export const Root: typeof import('../stubs/radix-separator').Root;
 }
