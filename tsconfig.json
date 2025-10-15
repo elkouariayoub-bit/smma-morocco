@@ -99,6 +99,18 @@
       ],
       "@radix-ui/react-separator": [
         "./stubs/radix-separator.tsx"
+      ],
+      "react-hook-form": [
+        "./stubs/react-hook-form.ts"
+      ],
+      "@hookform/resolvers/zod": [
+        "./stubs/hookform-resolvers-zod.ts"
+      ],
+      "zod": [
+        "./stubs/zod.ts"
+      ],
+      "sonner": [
+        "./stubs/sonner.tsx"
       ]
     }
   },
