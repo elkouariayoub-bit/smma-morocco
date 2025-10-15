@@ -56,7 +56,11 @@ export default function ProfileSettingsPage() {
     setSaving(true);
     try {
       // 🔗 Replace with your API call:
-      // await fetch('/api/me', { method: 'PATCH', body: JSON.stringify(values) })
+      // await fetch('/api/me', {
+      //   method: 'PATCH',
+      //   headers: { 'Content-Type': 'application/json' },
+      //   body: JSON.stringify(values),
+      // })
       await new Promise((r) => setTimeout(r, 700));
       toast.success('Profile updated');
     } catch (e: any) {
