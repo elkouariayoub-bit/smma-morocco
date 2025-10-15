@@ -23,6 +23,8 @@ const nextConfig = {
     ]
   },
   webpack(config) {
+    config.resolve = config.resolve || {};
+    config.resolve.alias = config.resolve.alias || {};
     config.resolve.alias['@daveyplate/better-auth-ui'] = path.resolve(
       process.cwd(),
       'better-auth-ui'
