@@ -79,7 +79,10 @@ const nextConfig = {
     alias['swr'] = path.resolve(process.cwd(), 'stubs/swr.ts');
     alias['tailwindcss'] = path.resolve(process.cwd(), 'stubs/tailwindcss.css');
     alias['tw-animate-css'] = path.resolve(process.cwd(), 'stubs/tw-animate-css.css');
-    aliasWhenMissing(config, '@radix-ui/react-select', 'stubs/radix-select.tsx');
+    alias['@radix-ui/react-select'] = path.resolve(
+      process.cwd(),
+      'stubs/radix-select.tsx'
+    );
     aliasWhenMissing(config, '@radix-ui/react-separator', 'stubs/radix-separator.tsx');
     aliasWhenMissing(config, 'react-hook-form', 'stubs/react-hook-form.ts');
     aliasWhenMissing(config, '@hookform/resolvers/zod', 'stubs/hookform-resolvers-zod.ts');
