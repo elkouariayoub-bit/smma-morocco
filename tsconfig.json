@@ -58,6 +58,9 @@
       "class-variance-authority": [
         "./stubs/class-variance-authority.ts"
       ],
+      "@radix-ui/react-select": [
+        "./stubs/radix-select.tsx"
+      ],
       "@radix-ui/react-popover": [
         "./stubs/radix-popover.tsx"
       ],

@@ -63,6 +63,10 @@ const nextConfig = {
       process.cwd(),
       'stubs/radix-popover.tsx'
     );
+    alias['@radix-ui/react-select'] = path.resolve(
+      process.cwd(),
+      'stubs/radix-select.tsx'
+    );
     aliasWhenMissing(config, '@radix-ui/react-scroll-area', 'stubs/radix-scroll-area.tsx');
     alias['@radix-ui/react-dialog'] = path.resolve(
       process.cwd(),

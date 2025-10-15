@@ -35,3 +35,16 @@ declare module '@radix-ui/react-scroll-area' {
   export const Thumb: typeof import('../stubs/radix-scroll-area').Thumb;
   export const Corner: typeof import('../stubs/radix-scroll-area').Corner;
 }
+
+declare module '@radix-ui/react-select' {
+  export const Root: typeof import('../stubs/radix-select').Root;
+  export const Group: typeof import('../stubs/radix-select').Group;
+  export const Value: typeof import('../stubs/radix-select').Value;
+  export const Trigger: typeof import('../stubs/radix-select').Trigger;
+  export const Content: typeof import('../stubs/radix-select').Content;
+  export const Label: typeof import('../stubs/radix-select').Label;
+  export const Item: typeof import('../stubs/radix-select').Item;
+  export const Separator: typeof import('../stubs/radix-select').Separator;
+  export const ScrollUpButton: typeof import('../stubs/radix-select').ScrollUpButton;
+  export const ScrollDownButton: typeof import('../stubs/radix-select').ScrollDownButton;
+}
