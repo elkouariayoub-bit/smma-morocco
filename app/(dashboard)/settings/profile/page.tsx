@@ -19,6 +19,8 @@ import { Separator } from '@/components/ui/separator';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 
+type Language = 'en' | 'fr' | 'ar';
+
 const ProfileSchema = z.object({
   name: z.string().min(1, 'Name is required').max(80),
   username: z
@@ -27,6 +29,7 @@ const ProfileSchema = z.object({
     .max(24)
     .regex(/^[a-z0-9_]+$/i, 'Only letters, numbers and underscores'),
   email: z.string().email('Invalid email address'),
+  language: z.string().regex(/^(en|fr|ar)$/i, 'Select a supported language'),
 });
 
 type ProfileValues = z.infer<typeof ProfileSchema>;
@@ -40,28 +43,52 @@ const MOCK = {
   canChangeUsername: true, // set false to lock the input (e.g., only every 30 days)
 };
 
+// --- helpers to apply language immediately (frontend-only) ---
+function applyLanguage(lang: Language) {
+  const root = document.documentElement;
+  root.setAttribute('lang', lang);
+  root.setAttribute('dir', lang === 'ar' ? 'rtl' : 'ltr');
+  localStorage.setItem('app:lang', lang);
+}
+
 export default function ProfileSettingsPage() {
   const [saving, setSaving] = React.useState(false);
+
+  const storedLang =
+    typeof window !== 'undefined'
+      ? ((localStorage.getItem('app:lang') as Language | null) ?? undefined)
+      : undefined;
+  const initialLang: Language = storedLang && ['en', 'fr', 'ar'].includes(storedLang)
+    ? storedLang
+    : 'en';
+
   const form = useForm<ProfileValues>({
     resolver: zodResolver(ProfileSchema),
     defaultValues: {
       name: MOCK.name,
       username: MOCK.username,
       email: MOCK.email,
+      language: initialLang,
     },
     mode: 'onChange',
   });
 
+  React.useEffect(() => {
+    applyLanguage(initialLang);
+  }, [initialLang]);
+
   async function onSubmit(values: ProfileValues) {
     setSaving(true);
     try {
-      // 🔗 Replace with your API call:
+      // 🔗 Replace with your API call later
       // await fetch('/api/me', {
       //   method: 'PATCH',
       //   headers: { 'Content-Type': 'application/json' },
       //   body: JSON.stringify(values),
-      // })
-      await new Promise((r) => setTimeout(r, 700));
+      // });
+      await new Promise((r) => setTimeout(r, 500));
+      const normalizedLang = (values.language.toLowerCase() as Language) ?? 'en';
+      applyLanguage(normalizedLang);
       toast.success('Profile updated');
     } catch (e: any) {
       toast.error(e?.message ?? 'Something went wrong');
@@ -69,6 +96,9 @@ export default function ProfileSettingsPage() {
       setSaving(false);
     }
   }
+
+  const emailValue = form.watch('email');
+  const languageValue = form.watch('language') as Language;
 
   return (
     <div className="space-y-6">
@@ -106,8 +136,7 @@ export default function ProfileSettingsPage() {
                 {...form.register('username')}
               />
               <p className="text-xs text-muted-foreground">
-                This is your public display name. It can be your real name or a pseudonym.
-                You can only change this once every 30 days.
+                This is your public display name. You can only change this once every 30 days.
               </p>
               {form.formState.errors.username && (
                 <p className="text-xs text-destructive">{form.formState.errors.username.message}</p>
@@ -118,7 +147,7 @@ export default function ProfileSettingsPage() {
             <div className="space-y-2">
               <Label>Email</Label>
               <Select
-                value={form.watch('email')}
+                value={emailValue}
                 onValueChange={(v) => form.setValue('email', v, { shouldValidate: true })}
               >
                 <SelectTrigger>
@@ -140,13 +169,48 @@ export default function ProfileSettingsPage() {
               )}
             </div>
 
+            {/* Language */}
+            <div className="space-y-2">
+              <Label>Language</Label>
+              <Select
+                value={languageValue}
+                onValueChange={(lang) => {
+                  const nextLang = (lang.toLowerCase() as Language) ?? 'en';
+                  form.setValue('language', nextLang, { shouldValidate: true });
+                  applyLanguage(nextLang);
+                  toast.success('Language updated', {
+                    description: `Current: ${nextLang.toUpperCase()}`,
+                  });
+                }}
+              >
+                <SelectTrigger className="max-w-xs">
+                  <SelectValue placeholder="Choose language" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="en">English</SelectItem>
+                  <SelectItem value="fr">Français</SelectItem>
+                  <SelectItem value="ar">العربية</SelectItem>
+                </SelectContent>
+              </Select>
+              <p className="text-xs text-muted-foreground">
+                Arabic uses right-to-left layout automatically.
+              </p>
+            </div>
+
             <Separator />
 
             <div className="flex items-center gap-3">
               <Button type="submit" disabled={saving}>
                 {saving ? 'Saving…' : 'Save changes'}
               </Button>
-              <Button type="button" variant="outline" onClick={() => form.reset()}>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => {
+                  form.reset();
+                  applyLanguage(initialLang);
+                }}
+              >
                 Reset
               </Button>
             </div>
