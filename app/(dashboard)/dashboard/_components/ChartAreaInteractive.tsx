@@ -28,7 +28,9 @@ import {
 
 export const description = "An interactive area chart"
 
-const chartData: { date: string; desktop: number; mobile: number }[] = [
+type ChartDatum = { date: string; desktop: number; mobile: number }
+
+const chartData: ChartDatum[] = [
   { date: "2024-04-01", desktop: 222, mobile: 150 },
   { date: "2024-04-02", desktop: 97, mobile: 180 },
   { date: "2024-04-03", desktop: 167, mobile: 120 },
