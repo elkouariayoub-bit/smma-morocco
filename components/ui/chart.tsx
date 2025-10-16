@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { Legend, ResponsiveContainer, Tooltip } from "recharts"
+import { Legend, Tooltip } from "recharts"
 
 type RechartsTooltipProps = React.ComponentProps<typeof Tooltip>
 type RechartsLegendProps = React.ComponentProps<typeof Legend>
@@ -37,6 +37,8 @@ interface ChartContainerProps extends React.HTMLAttributes<HTMLDivElement> {
   children: React.ReactElement
 }
 
+type ChartDimensions = { width: number; height: number }
+
 export function ChartContainer({
   className,
   config,
@@ -44,6 +46,52 @@ export function ChartContainer({
   style,
   ...props
 }: ChartContainerProps) {
+  const containerRef = React.useRef<HTMLDivElement | null>(null)
+  const [dimensions, setDimensions] = React.useState<ChartDimensions>({ width: 0, height: 0 })
+
+  React.useEffect(() => {
+    const element = containerRef.current
+    if (!element) {
+      return
+    }
+
+    const updateSize = () => {
+      const rect = element.getBoundingClientRect()
+      setDimensions((prev) => {
+        const next = { width: rect.width, height: rect.height }
+        return prev.width === next.width && prev.height === next.height ? prev : next
+      })
+    }
+
+    updateSize()
+
+    let resizeObserver: ResizeObserver | null = null
+
+    if (typeof ResizeObserver !== "undefined") {
+      resizeObserver = new ResizeObserver((entries) => {
+        const entry = entries[0]
+        if (!entry) {
+          return
+        }
+        const { width, height } = entry.contentRect
+        setDimensions((prev) => {
+          return prev.width === width && prev.height === height ? prev : { width, height }
+        })
+      })
+
+      resizeObserver.observe(element)
+
+      return () => {
+        resizeObserver?.disconnect()
+      }
+    }
+
+    window.addEventListener("resize", updateSize)
+    return () => {
+      window.removeEventListener("resize", updateSize)
+    }
+  }, [])
+
   const colorVars = React.useMemo<React.CSSProperties>(() => {
     const vars: Record<string, string> = {
       "--color-desktop": "var(--chart-1)",
@@ -59,17 +107,29 @@ export function ChartContainer({
     return vars as React.CSSProperties
   }, [config])
 
+  const chartElement = React.useMemo(() => {
+    if (!React.isValidElement(children)) {
+      return null
+    }
+
+    if (dimensions.width === 0 || dimensions.height === 0) {
+      return null
+    }
+
+    return React.cloneElement(children as React.ReactElement<any>, {
+      width: dimensions.width,
+      height: dimensions.height,
+    })
+  }, [children, dimensions.height, dimensions.width])
+
   return (
     <div
+      ref={containerRef}
       className={cn("relative flex h-full w-full flex-col", className)}
       style={{ ...colorVars, ...style }}
       {...props}
     >
-      <ChartContext.Provider value={{ config }}>
-        <ResponsiveContainer width="100%" height="100%">
-          {children}
-        </ResponsiveContainer>
-      </ChartContext.Provider>
+      <ChartContext.Provider value={{ config }}>{chartElement}</ChartContext.Provider>
     </div>
   )
 }
