@@ -10,6 +10,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
+import { Badge } from "@/components/ui/badge"
 import {
   ChartConfig,
   ChartContainer,
@@ -25,6 +26,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import { Separator } from "@/components/ui/separator"
 
 export const description = "An interactive area chart"
 
@@ -498,6 +500,49 @@ const chartConfig = {
   mobile: { label: "Mobile", color: "var(--chart-2)" },
 } satisfies ChartConfig
 
+type AgeSegment = { label: string; value: number }
+type GenderSegment = { label: string; value: number }
+type GeoSegment = { label: string; value: number; trend: string }
+
+const AGE_DISTRIBUTION: AgeSegment[] = [
+  { label: "18-24 ans", value: 22 },
+  { label: "25-34 ans", value: 36 },
+  { label: "35-44 ans", value: 18 },
+  { label: "45-54 ans", value: 14 },
+  { label: "55+", value: 10 },
+]
+
+const GENDER_DISTRIBUTION: GenderSegment[] = [
+  { label: "Femmes", value: 58 },
+  { label: "Hommes", value: 38 },
+  { label: "Autres", value: 4 },
+]
+
+const GEO_DISTRIBUTION: GeoSegment[] = [
+  { label: "Casablanca, MA", value: 34, trend: "+6%" },
+  { label: "Rabat, MA", value: 21, trend: "+2%" },
+  { label: "Marrakech, MA", value: 17, trend: "+1%" },
+  { label: "Fès, MA", value: 11, trend: "=" },
+  { label: "Autres", value: 17, trend: "-3%" },
+]
+
+const AGE_ACCENT = "var(--chart-1, hsl(var(--primary)))"
+const GENDER_ACCENT = "var(--chart-2, hsl(var(--primary)))"
+const GEO_ACCENT = "var(--chart-3, hsl(var(--primary)))"
+
+const formatNumber = (value: number) => value.toLocaleString("fr-FR")
+
+function DistributionBar({ value, accent }: { value: number; accent: string }) {
+  return (
+    <div className="h-2 w-full rounded-full bg-muted">
+      <div
+        className="h-2 rounded-full transition-[width] duration-300"
+        style={{ width: `${Math.min(100, Math.max(0, value))}%`, backgroundColor: accent }}
+      />
+    </div>
+  )
+}
+
 export function ChartAreaInteractive() {
   const [timeRange, setTimeRange] = React.useState("90d")
 
@@ -518,8 +563,10 @@ export function ChartAreaInteractive() {
     if (filteredData.length === 0) {
       return {
         totalVisitors: 0,
-        desktopShare: "0%",
-        trendLabel: "Stable",
+        engagementRate: 0,
+        impressions: 0,
+        peopleReached: 0,
+        trendDelta: 0,
       }
     }
 
@@ -533,31 +580,95 @@ export function ChartAreaInteractive() {
     )
 
     const totalVisitors = totals.desktop + totals.mobile
-    const desktopShare = totalVisitors
-      ? `${Math.round((totals.desktop / totalVisitors) * 100)}%`
-      : "0%"
+    const impressions = Math.round(totalVisitors * 2.15)
+    const peopleReached = Math.round(totalVisitors * 0.62)
+    const engagementRate = totalVisitors
+      ? Number(((totals.mobile / totalVisitors) * 8 + 2).toFixed(1))
+      : 0
 
     const firstPoint = filteredData[0]
     const lastPoint = filteredData[filteredData.length - 1]
     const firstTotal = firstPoint.desktop + firstPoint.mobile
     const lastTotal = lastPoint.desktop + lastPoint.mobile
     const delta = firstTotal ? ((lastTotal - firstTotal) / firstTotal) * 100 : 0
-    const roundedDelta = Number.isFinite(delta) ? delta : 0
-    const trendLabel = `${roundedDelta >= 0 ? "▲" : "▼"} ${Math.abs(roundedDelta).toFixed(1)}% vs start`
 
     return {
       totalVisitors,
-      desktopShare,
-      trendLabel,
+      engagementRate,
+      impressions,
+      peopleReached,
+      trendDelta: Number.isFinite(delta) ? delta : 0,
     }
   }, [filteredData])
+
+  const ageSegments = React.useMemo(
+    () =>
+      AGE_DISTRIBUTION.map((segment) => ({
+        ...segment,
+        count: Math.round((segment.value / 100) * stats.peopleReached),
+      })),
+    [stats.peopleReached],
+  )
+
+  const youngShare = React.useMemo(
+    () => ageSegments.slice(0, 2).reduce((acc, segment) => acc + segment.value, 0),
+    [ageSegments],
+  )
+
+  const genderSegments = React.useMemo(
+    () =>
+      GENDER_DISTRIBUTION.map((segment) => ({
+        ...segment,
+        count: Math.round((segment.value / 100) * stats.peopleReached),
+      })),
+    [stats.peopleReached],
+  )
+
+  const dominantGender = React.useMemo(() => {
+    if (genderSegments.length === 0) {
+      return null
+    }
+    return genderSegments.reduce((prev, current) => (current.value > prev.value ? current : prev))
+  }, [genderSegments])
+
+  const geoSegments = React.useMemo(
+    () =>
+      GEO_DISTRIBUTION.map((segment) => ({
+        ...segment,
+        count: Math.round((segment.value / 100) * stats.peopleReached),
+      })),
+    [stats.peopleReached],
+  )
+
+  const topMarket = geoSegments[0] ?? null
+
+  const summaryCards = React.useMemo(
+    () => [
+      {
+        label: "Taux d'engagement",
+        value: `${stats.engagementRate.toFixed(1)}%`,
+        helper: `${stats.trendDelta >= 0 ? "+" : "−"}${Math.abs(stats.trendDelta).toFixed(1)} pts vs période précédente`,
+      },
+      {
+        label: "Impressions",
+        value: formatNumber(stats.impressions),
+        helper: "Total sur la période sélectionnée",
+      },
+      {
+        label: "Personnes atteintes",
+        value: formatNumber(stats.peopleReached),
+        helper: `${formatNumber(stats.totalVisitors)} visites enregistrées`,
+      },
+    ],
+    [stats.engagementRate, stats.impressions, stats.peopleReached, stats.totalVisitors, stats.trendDelta],
+  )
 
   return (
     <Card className="pt-0">
       <CardHeader className="flex items-center gap-2 space-y-0 border-b py-5 sm:flex-row">
         <div className="grid flex-1 gap-1">
           <CardTitle>Audience Overview</CardTitle>
-          <CardDescription>Visitors over time</CardDescription>
+          <CardDescription>Engagement et audience détaillés</CardDescription>
         </div>
         <Select value={timeRange} onValueChange={setTimeRange}>
           <SelectTrigger className="hidden w-[160px] rounded-lg sm:ml-auto sm:flex" aria-label="Select a value">
@@ -576,22 +687,15 @@ export function ChartAreaInteractive() {
           </SelectContent>
         </Select>
       </CardHeader>
-      <CardContent className="space-y-6 px-2 pt-4 sm:px-6 sm:pt-6">
+      <CardContent className="space-y-8 px-2 pt-4 sm:px-6 sm:pt-6">
         <div className="grid gap-3 sm:grid-cols-3">
-          <div className="rounded-lg border bg-muted/40 p-4">
-            <p className="text-xs uppercase text-muted-foreground">Total visitors</p>
-            <p className="text-2xl font-semibold tracking-tight">
-              {stats.totalVisitors.toLocaleString()}
-            </p>
-          </div>
-          <div className="rounded-lg border bg-muted/40 p-4">
-            <p className="text-xs uppercase text-muted-foreground">Desktop share</p>
-            <p className="text-2xl font-semibold tracking-tight">{stats.desktopShare}</p>
-          </div>
-          <div className="rounded-lg border bg-muted/40 p-4">
-            <p className="text-xs uppercase text-muted-foreground">Trend</p>
-            <p className="text-2xl font-semibold tracking-tight">{stats.trendLabel}</p>
-          </div>
+          {summaryCards.map((card) => (
+            <div key={card.label} className="rounded-lg border bg-muted/40 p-4">
+              <p className="text-xs uppercase tracking-wide text-muted-foreground">{card.label}</p>
+              <p className="text-2xl font-semibold tracking-tight">{card.value}</p>
+              <p className="text-xs text-muted-foreground">{card.helper}</p>
+            </div>
+          ))}
         </div>
         <ChartContainer config={chartConfig} className="aspect-auto h-[250px] w-full">
           <AreaChart data={filteredData}>
@@ -633,6 +737,88 @@ export function ChartAreaInteractive() {
             <ChartLegend content={<ChartLegendContent />} />
           </AreaChart>
         </ChartContainer>
+        <Separator />
+        <div className="grid gap-6 lg:grid-cols-3">
+          <div className="rounded-lg border bg-muted/40 p-4">
+            <div className="flex items-center justify-between gap-2">
+              <p className="text-sm font-medium">Répartition par âge</p>
+              <Badge variant="outline" className="text-xs font-normal">
+                {youngShare}% ≤ 34 ans
+              </Badge>
+            </div>
+            <ul className="mt-4 space-y-3">
+              {ageSegments.map((segment) => (
+                <li key={segment.label} className="space-y-1">
+                  <div className="flex items-center justify-between text-xs font-medium">
+                    <span>{segment.label}</span>
+                    <span>
+                      {segment.value}% · {formatNumber(segment.count)}
+                    </span>
+                  </div>
+                  <DistributionBar value={segment.value} accent={AGE_ACCENT} />
+                </li>
+              ))}
+            </ul>
+          </div>
+          <div className="rounded-lg border bg-muted/40 p-4">
+            <div className="flex items-center justify-between gap-2">
+              <p className="text-sm font-medium">Répartition par genre</p>
+              {dominantGender ? (
+                <Badge variant="secondary" className="text-xs font-normal">
+                  {dominantGender.label} {dominantGender.value}%
+                </Badge>
+              ) : null}
+            </div>
+            <ul className="mt-4 space-y-3">
+              {genderSegments.map((segment) => (
+                <li key={segment.label} className="space-y-1">
+                  <div className="flex items-center justify-between text-xs font-medium">
+                    <span>{segment.label}</span>
+                    <span>
+                      {segment.value}% · {formatNumber(segment.count)}
+                    </span>
+                  </div>
+                  <DistributionBar value={segment.value} accent={GENDER_ACCENT} />
+                </li>
+              ))}
+            </ul>
+          </div>
+          <div className="rounded-lg border bg-muted/40 p-4">
+            <div className="flex items-center justify-between gap-2">
+              <p className="text-sm font-medium">Top zones géographiques</p>
+              {topMarket ? (
+                <Badge variant="outline" className="text-xs font-normal">
+                  {topMarket.label}
+                </Badge>
+              ) : null}
+            </div>
+            <ul className="mt-4 space-y-3">
+              {geoSegments.map((segment) => (
+                <li key={segment.label} className="space-y-2">
+                  <div className="flex items-center justify-between text-xs font-medium">
+                    <span>{segment.label}</span>
+                    <span>{segment.value}%</span>
+                  </div>
+                  <div className="flex items-center justify-between text-[11px] text-muted-foreground">
+                    <span>{formatNumber(segment.count)} personnes</span>
+                    <span
+                      className={`font-medium ${
+                        segment.trend.startsWith("+")
+                          ? "text-emerald-500 dark:text-emerald-400"
+                          : segment.trend.startsWith("-")
+                            ? "text-destructive"
+                            : "text-muted-foreground"
+                      }`}
+                    >
+                      {segment.trend}
+                    </span>
+                  </div>
+                  <DistributionBar value={segment.value} accent={GEO_ACCENT} />
+                </li>
+              ))}
+            </ul>
+          </div>
+        </div>
       </CardContent>
     </Card>
   )
