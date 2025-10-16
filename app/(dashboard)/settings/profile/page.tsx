@@ -19,7 +19,7 @@ import { Separator } from '@/components/ui/separator';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 
-const SUPPORTED_LANGUAGES = ['en', 'fr', 'ar'] as const;
+const SUPPORTED_LANGUAGES = ['en', 'fr'] as const;
 const LANGUAGE_STORAGE_KEY = 'app:lang';
 
 type BrowserRuntime = typeof globalThis & {
@@ -86,7 +86,7 @@ function applyLanguage(lang: Language) {
   const root = getDocumentElement();
   if (root) {
     root.setAttribute('lang', lang);
-    root.setAttribute('dir', lang === 'ar' ? 'rtl' : 'ltr');
+    root.setAttribute('dir', 'ltr');
   }
 
   const storage = getLocalStorage();
@@ -239,12 +239,9 @@ export default function ProfileSettingsPage() {
                 <SelectContent>
                   <SelectItem value="en">English</SelectItem>
                   <SelectItem value="fr">Français</SelectItem>
-                  <SelectItem value="ar">العربية</SelectItem>
                 </SelectContent>
               </Select>
-              <p className="text-xs text-muted-foreground">
-                Arabic uses right-to-left layout automatically.
-              </p>
+              <p className="text-xs text-muted-foreground">Choose your preferred interface language.</p>
               {form.formState.errors.language && (
                 <p className="text-xs text-destructive">{form.formState.errors.language.message}</p>
               )}
