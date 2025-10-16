@@ -77,14 +77,6 @@ export default function GeneralSettingsPage() {
             <p className="text-xs text-muted-foreground">Set the font used in the dashboard.</p>
           </div>
 
-          {/* Business Tax ID */}
-          <div className="space-y-2">
-            <Label>Business Tax ID</Label>
-            <div className="flex max-w-sm items-center gap-2">
-              <Input placeholder="Business Tax ID" />
-              <Button variant="outline">Save</Button>
-            </div>
-          </div>
         </CardContent>
       </Card>
     </div>

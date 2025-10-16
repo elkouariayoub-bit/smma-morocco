@@ -45,7 +45,6 @@ type PaymentMethod = {
 type BillingContact = {
   fullName: string
   city: string
-  taxId: string
   email: string
 }
 
@@ -60,7 +59,6 @@ type Invoice = {
 const initialContact: BillingContact = {
   fullName: 'Shadow Dashboard',
   city: 'Casablanca',
-  taxId: 'MA-219445',
   email: 'billing@shadowdash.co',
 }
 
@@ -406,14 +404,6 @@ export default function BillingSettingsPage() {
                     id="billing-city"
                     value={contact.city}
                     onChange={(event) => updateContact('city', event.target.value)}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="billing-tax">Tax ID</Label>
-                  <Input
-                    id="billing-tax"
-                    value={contact.taxId}
-                    onChange={(event) => updateContact('taxId', event.target.value)}
                   />
                 </div>
                 <div className="flex flex-col gap-3 sm:flex-row sm:justify-end">
