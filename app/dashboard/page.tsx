@@ -10,7 +10,7 @@ import { Plus, TrendingUp, Facebook as FacebookIcon, Instagram as InstagramIcon,
 
 import DateRangeToolbar from "@/components/DateRangeToolbar"
 import ExportMenu from "@/components/ExportMenu.client"
-import DashboardMetricsLoader from "@/components/DashboardMetricsLoader.client"
+import { ChartAreaInteractive } from "@/app/(dashboard)/dashboard/_components/ChartAreaInteractive"
 
 interface Platform {
   name: string
@@ -77,7 +77,9 @@ export default function DashboardPage() {
       </FadeIn>
 
       <FadeIn delay={0.14}>
-        <DashboardMetricsLoader />
+        <section className="space-y-4">
+          <ChartAreaInteractive />
+        </section>
       </FadeIn>
 
       <FadeIn delay={0.18}>
