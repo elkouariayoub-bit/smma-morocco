@@ -161,7 +161,15 @@ export function ChartAreaInteractive() {
         </Select>
       </CardHeader>
       <CardContent className="px-2 pt-4 sm:px-6 sm:pt-6">
-        <ChartContainer config={chartConfig} className="aspect-auto h-[250px] w-full">
+        {/* Inline map of theme tokens to concrete colors so chart is visible */}
+        <ChartContainer
+          config={chartConfig}
+          className="aspect-auto h-[250px] w-full"
+          style={{
+            ["--color-desktop" as any]: "hsl(var(--chart-1))",
+            ["--color-mobile" as any]: "hsl(var(--chart-2))",
+          }}
+        >
           <AreaChart data={filteredData}>
             <defs>
               <linearGradient id="fillDesktop" x1="0" y1="0" x2="0" y2="1">
@@ -180,10 +188,9 @@ export function ChartAreaInteractive() {
               axisLine={false}
               tickMargin={8}
               minTickGap={32}
-              tickFormatter={(value: string | number) => {
-                const date = new Date(value)
-                return date.toLocaleDateString("en-US", { month: "short", day: "numeric" })
-              }}
+              tickFormatter={(value: string | number) =>
+                new Date(value).toLocaleDateString("en-US", { month: "short", day: "numeric" })
+              }
             />
             <ChartTooltip
               cursor={false}
