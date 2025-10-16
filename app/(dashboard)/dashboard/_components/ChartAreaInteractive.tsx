@@ -514,6 +514,44 @@ export function ChartAreaInteractive() {
     })
   }, [timeRange])
 
+  const stats = React.useMemo(() => {
+    if (filteredData.length === 0) {
+      return {
+        totalVisitors: 0,
+        desktopShare: "0%",
+        trendLabel: "Stable",
+      }
+    }
+
+    const totals = filteredData.reduce(
+      (acc, point) => {
+        acc.desktop += point.desktop
+        acc.mobile += point.mobile
+        return acc
+      },
+      { desktop: 0, mobile: 0 },
+    )
+
+    const totalVisitors = totals.desktop + totals.mobile
+    const desktopShare = totalVisitors
+      ? `${Math.round((totals.desktop / totalVisitors) * 100)}%`
+      : "0%"
+
+    const firstPoint = filteredData[0]
+    const lastPoint = filteredData[filteredData.length - 1]
+    const firstTotal = firstPoint.desktop + firstPoint.mobile
+    const lastTotal = lastPoint.desktop + lastPoint.mobile
+    const delta = firstTotal ? ((lastTotal - firstTotal) / firstTotal) * 100 : 0
+    const roundedDelta = Number.isFinite(delta) ? delta : 0
+    const trendLabel = `${roundedDelta >= 0 ? "▲" : "▼"} ${Math.abs(roundedDelta).toFixed(1)}% vs start`
+
+    return {
+      totalVisitors,
+      desktopShare,
+      trendLabel,
+    }
+  }, [filteredData])
+
   return (
     <Card className="pt-0">
       <CardHeader className="flex items-center gap-2 space-y-0 border-b py-5 sm:flex-row">
@@ -538,7 +576,23 @@ export function ChartAreaInteractive() {
           </SelectContent>
         </Select>
       </CardHeader>
-      <CardContent className="px-2 pt-4 sm:px-6 sm:pt-6">
+      <CardContent className="space-y-6 px-2 pt-4 sm:px-6 sm:pt-6">
+        <div className="grid gap-3 sm:grid-cols-3">
+          <div className="rounded-lg border bg-muted/40 p-4">
+            <p className="text-xs uppercase text-muted-foreground">Total visitors</p>
+            <p className="text-2xl font-semibold tracking-tight">
+              {stats.totalVisitors.toLocaleString()}
+            </p>
+          </div>
+          <div className="rounded-lg border bg-muted/40 p-4">
+            <p className="text-xs uppercase text-muted-foreground">Desktop share</p>
+            <p className="text-2xl font-semibold tracking-tight">{stats.desktopShare}</p>
+          </div>
+          <div className="rounded-lg border bg-muted/40 p-4">
+            <p className="text-xs uppercase text-muted-foreground">Trend</p>
+            <p className="text-2xl font-semibold tracking-tight">{stats.trendLabel}</p>
+          </div>
+        </div>
         <ChartContainer config={chartConfig} className="aspect-auto h-[250px] w-full">
           <AreaChart data={filteredData}>
             <defs>
