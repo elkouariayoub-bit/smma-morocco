@@ -1,7 +1,14 @@
 'use client'
 
 import * as React from 'react'
-import { Apple, CreditCard, Wallet2 } from 'lucide-react'
+import {
+  ArrowUpRight,
+  BadgeCheck,
+  CalendarClock,
+  CreditCard,
+  MoreHorizontal,
+  PiggyBank,
+} from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
 import {
@@ -24,55 +31,62 @@ import {
 import { cn } from '@/lib/utils'
 import { toast } from 'sonner'
 
-type PaymentMethod = 'card' | 'paypal' | 'apple'
+type PaymentMethodType = 'card' | 'paypal'
 
-type BillingState = {
-  username: string
+type PaymentMethod = {
+  id: string
+  type: PaymentMethodType
+  brand: string
+  last4?: string
+  expiry?: string
+  email?: string
+}
+
+type BillingContact = {
+  fullName: string
   city: string
-  paymentMethod: PaymentMethod
-  cardNumber: string
-  expiryMonth: string
-  expiryYear: string
-  cvc: string
+  taxId: string
+  email: string
 }
 
-const initialState: BillingState = {
-  username: 'shadowdashboard',
+type Invoice = {
+  id: string
+  date: string
+  total: string
+  status: 'paid' | 'due'
+  url: string
+}
+
+const initialContact: BillingContact = {
+  fullName: 'Shadow Dashboard',
   city: 'Casablanca',
-  paymentMethod: 'card',
-  cardNumber: '4242 4242 4242 4242',
-  expiryMonth: '04',
-  expiryYear: '2026',
-  cvc: '123',
+  taxId: 'MA-219445',
+  email: 'billing@shadowdash.co',
 }
 
-const paymentOptions: Array<{
-  value: PaymentMethod
-  label: string
-  description: string
-  icon: React.ComponentType<React.SVGProps<SVGSVGElement>>
-}> = [
+const initialMethods: PaymentMethod[] = [
   {
-    value: 'card',
-    label: 'Card',
-    description: 'Visa, Mastercard, AMEX',
-    icon: CreditCard,
+    id: 'pm_visa',
+    type: 'card',
+    brand: 'Visa',
+    last4: '4242',
+    expiry: '04 / 26',
   },
   {
-    value: 'paypal',
-    label: 'Paypal',
-    description: 'Pay from your PayPal balance',
-    icon: Wallet2,
-  },
-  {
-    value: 'apple',
-    label: 'Apple',
-    description: 'Apple Pay on eligible devices',
-    icon: Apple,
+    id: 'pm_paypal',
+    type: 'paypal',
+    brand: 'PayPal',
+    email: 'finance@shadowdash.co',
   },
 ]
 
-const months = [
+const invoices: Invoice[] = [
+  { id: 'INV-00251', date: 'Apr 2, 2024', total: '$129.00', status: 'paid', url: '#' },
+  { id: 'INV-00238', date: 'Mar 2, 2024', total: '$129.00', status: 'paid', url: '#' },
+  { id: 'INV-00221', date: 'Feb 2, 2024', total: '$129.00', status: 'paid', url: '#' },
+]
+
+const expiryMonths = [
   { value: '01', label: 'January' },
   { value: '02', label: 'February' },
   { value: '03', label: 'March' },
@@ -87,200 +101,384 @@ const months = [
   { value: '12', label: 'December' },
 ]
 
-const years = Array.from({ length: 10 }, (_, index) => (new Date().getFullYear() + index).toString())
+const expiryYears = Array.from({ length: 10 }, (_, index) => (new Date().getFullYear() + index).toString())
 
 export default function BillingSettingsPage() {
-  const [values, setValues] = React.useState<BillingState>(initialState)
-  const [isSaving, setIsSaving] = React.useState(false)
+  const [contact, setContact] = React.useState<BillingContact>(initialContact)
+  const [activeMethod, setActiveMethod] = React.useState(initialMethods[0]!.id)
+  const [methods, setMethods] = React.useState<PaymentMethod[]>(initialMethods)
+  const [isSavingContact, setIsSavingContact] = React.useState(false)
+  const [isSavingCard, setIsSavingCard] = React.useState(false)
+  const [newCard, setNewCard] = React.useState({
+    number: '4242 4242 4242 4242',
+    month: '04',
+    year: expiryYears[2]!,
+    cvc: '123',
+  })
 
-  const isCard = values.paymentMethod === 'card'
+  const selectedMethod = methods.find((method) => method.id === activeMethod)
 
-  function updateField<Field extends keyof BillingState>(field: Field, next: BillingState[Field]) {
-    setValues((prev) => ({
+  function updateContact<Field extends keyof BillingContact>(field: Field, value: BillingContact[Field]) {
+    setContact((prev) => ({
       ...prev,
-      [field]: next,
+      [field]: value,
     }))
   }
 
-  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+  async function saveContact(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
-    setIsSaving(true)
+    setIsSavingContact(true)
     try {
       // 🔗 Replace with your API call later
-      // await fetch('/api/billing', {
-      //   method: 'POST',
+      // await fetch('/api/billing/contact', {
+      //   method: 'PATCH',
       //   headers: { 'Content-Type': 'application/json' },
-      //   body: JSON.stringify(values),
+      //   body: JSON.stringify(contact),
       // })
       await new Promise((resolve) => setTimeout(resolve, 600))
-      toast.success('Billing details saved')
+      toast.success('Billing contact updated')
     } catch (error: any) {
-      toast.error(error?.message ?? 'Something went wrong while saving your billing details')
+      toast.error(error?.message ?? 'Something went wrong while saving your contact details')
     } finally {
-      setIsSaving(false)
+      setIsSavingContact(false)
     }
   }
 
-  function handleReset() {
-    setValues(initialState)
-    toast.success('Changes discarded', {
-      description: 'We restored your previous billing details.',
-    })
+  async function saveCard(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault()
+    setIsSavingCard(true)
+    try {
+      // 🔗 Replace with your API call later
+      // await fetch('/api/billing/payment-methods', {
+      //   method: 'POST',
+      //   headers: { 'Content-Type': 'application/json' },
+      //   body: JSON.stringify({
+      //     number: newCard.number,
+      //     expMonth: newCard.month,
+      //     expYear: newCard.year,
+      //     cvc: newCard.cvc,
+      //   }),
+      // })
+      await new Promise((resolve) => setTimeout(resolve, 700))
+      const id = `pm_${Math.random().toString(36).slice(2, 7)}`
+      const last4 = newCard.number.slice(-4)
+      const card: PaymentMethod = {
+        id,
+        type: 'card',
+        brand: 'Visa',
+        last4,
+        expiry: `${newCard.month} / ${newCard.year.slice(-2)}`,
+      }
+      setMethods((prev) => [card, ...prev])
+      setActiveMethod(id)
+      toast.success('Card added', { description: `•••• ${last4} is now your default method.` })
+    } catch (error: any) {
+      toast.error(error?.message ?? 'Unable to add the card right now')
+    } finally {
+      setIsSavingCard(false)
+    }
+  }
+
+  function removeMethod(id: string) {
+    setMethods((prev) => prev.filter((method) => method.id !== id))
+    if (activeMethod === id && methods.length > 1) {
+      const fallback = methods.find((method) => method.id !== id)
+      if (fallback) {
+        setActiveMethod(fallback.id)
+      }
+    }
+    toast.success('Payment method removed')
   }
 
   return (
     <div className="space-y-6">
       <div className="space-y-1">
         <h1 className="text-2xl font-semibold tracking-tight">Billing</h1>
-        <p className="text-sm text-muted-foreground">Update your payment details and manage your subscription.</p>
+        <p className="text-sm text-muted-foreground">
+          Manage your subscription, invoices, and saved payment methods from one place.
+        </p>
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-xl">Payment information</CardTitle>
-          <CardDescription>Securely store your payment method to keep your workspace active.</CardDescription>
-        </CardHeader>
-        <form onSubmit={handleSubmit} className="space-y-8">
-          <CardContent className="space-y-8">
-            <div className="grid gap-4 md:grid-cols-2">
-              <div className="space-y-2">
-                <Label htmlFor="username">Username</Label>
-                <Input
-                  id="username"
-                  value={values.username}
-                  onChange={(event) => updateField('username', event.target.value)}
-                  placeholder="Enter username"
-                  autoComplete="username"
-                />
+      <div className="grid gap-6 lg:grid-cols-[1.6fr_1fr]">
+        <div className="space-y-6">
+          <Card className="border-primary/20 bg-primary/5">
+            <CardHeader className="flex flex-row items-start justify-between gap-4">
+              <div className="space-y-1">
+                <CardTitle className="text-xl">Pro Workspace</CardTitle>
+                <CardDescription>
+                  Billed annually • Next payment on <span className="font-medium text-foreground">July 12, 2024</span>
+                </CardDescription>
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="city">City</Label>
-                <Input
-                  id="city"
-                  value={values.city}
-                  onChange={(event) => updateField('city', event.target.value)}
-                  placeholder="Enter city"
-                  autoComplete="address-level2"
-                />
+              <PiggyBank className="h-9 w-9 text-primary" />
+            </CardHeader>
+            <CardContent className="grid gap-4 sm:grid-cols-2">
+              <div>
+                <div className="text-sm text-muted-foreground">Seats used</div>
+                <p className="text-lg font-semibold">12 / 20</p>
               </div>
-            </div>
+              <div>
+                <div className="text-sm text-muted-foreground">Annual total</div>
+                <p className="text-lg font-semibold">$1,548.00</p>
+              </div>
+            </CardContent>
+            <CardFooter className="flex flex-wrap gap-3">
+              <Button type="button" size="sm" variant="outline">
+                Upgrade plan
+              </Button>
+              <Button type="button" size="sm" variant="ghost" className="gap-1">
+                View usage
+                <ArrowUpRight className="h-4 w-4" />
+              </Button>
+            </CardFooter>
+          </Card>
 
-            <div className="space-y-3">
-              <Label className="text-sm font-medium">Payment</Label>
-              <div role="radiogroup" className="grid gap-3 sm:grid-cols-3">
-                {paymentOptions.map((option) => {
-                  const Icon = option.icon
-                  const selected = values.paymentMethod === option.value
+          <Card>
+            <CardHeader className="flex flex-row items-start justify-between">
+              <div>
+                <CardTitle className="text-xl">Payment methods</CardTitle>
+                <CardDescription>Select the default method used for renewals.</CardDescription>
+              </div>
+              <Button type="button" variant="ghost" size="icon" className="h-8 w-8">
+                <MoreHorizontal className="h-4 w-4" />
+              </Button>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-3">
+                {methods.map((method) => {
+                  const isActive = activeMethod === method.id
                   return (
-                    <button
-                      key={option.value}
-                      type="button"
-                      role="radio"
-                      aria-checked={selected}
-                      onClick={() => updateField('paymentMethod', option.value)}
+                    <div
+                      key={method.id}
                       className={cn(
-                        'flex h-full flex-col gap-2 rounded-lg border px-4 py-3 text-left transition-colors',
-                        'bg-card/40 hover:border-primary/60 hover:bg-muted/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
-                        selected
-                          ? 'border-primary bg-primary/10 text-primary-foreground/90 shadow-sm ring-1 ring-primary'
-                          : 'border-border text-muted-foreground',
+                        'flex items-center justify-between gap-3 rounded-lg border px-4 py-3 transition-colors',
+                        isActive ? 'border-primary bg-primary/5' : 'border-border hover:bg-muted/60',
                       )}
                     >
-                      <Icon className="h-5 w-5" />
-                      <div>
-                        <div className="text-sm font-semibold text-foreground">{option.label}</div>
-                        <p className="text-xs text-muted-foreground">{option.description}</p>
+                      <button
+                        type="button"
+                        onClick={() => setActiveMethod(method.id)}
+                        className="flex flex-1 items-center gap-3 text-left"
+                        aria-pressed={isActive}
+                      >
+                        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-muted">
+                          <CreditCard className="h-5 w-5" />
+                        </div>
+                        <div className="space-y-1">
+                          <p className="text-sm font-medium text-foreground">
+                            {method.brand}
+                            {method.last4 ? ` •••• ${method.last4}` : ''}
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            {method.type === 'card' ? `Expires ${method.expiry}` : method.email}
+                          </p>
+                        </div>
+                      </button>
+                      <div className="flex items-center gap-2">
+                        {isActive && (
+                          <span className="flex items-center gap-1 rounded-full bg-primary/10 px-2 py-1 text-[11px] font-medium text-primary">
+                            <BadgeCheck className="h-3 w-3" />
+                            Default
+                          </span>
+                        )}
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => removeMethod(method.id)}
+                          disabled={methods.length === 1}
+                        >
+                          Remove
+                        </Button>
                       </div>
-                    </button>
+                    </div>
                   )
                 })}
               </div>
-            </div>
 
-            <fieldset
-              className={cn('grid gap-4 md:grid-cols-2', !isCard && 'pointer-events-none opacity-60')}
-              disabled={!isCard}
-            >
-              <div className="space-y-2 md:col-span-2">
-                <Label htmlFor="card-number">Card Number</Label>
+              <form onSubmit={saveCard} className="grid gap-4 rounded-lg border border-dashed p-4">
+                <div className="flex items-center justify-between gap-3">
+                  <div>
+                    <p className="text-sm font-medium">Add a new card</p>
+                    <p className="text-xs text-muted-foreground">We support Visa, Mastercard, and AMEX.</p>
+                  </div>
+                  <CreditCard className="h-5 w-5 text-muted-foreground" />
+                </div>
+                <Label htmlFor="new-card-number">Card number</Label>
                 <Input
-                  id="card-number"
+                  id="new-card-number"
+                  value={newCard.number}
+                  onChange={(event) => setNewCard((prev) => ({ ...prev, number: event.target.value }))}
                   inputMode="numeric"
-                  value={values.cardNumber}
-                  onChange={(event) => updateField('cardNumber', event.target.value)}
-                  placeholder="0000 0000 0000 0000"
                   autoComplete="cc-number"
                 />
-              </div>
+                <div className="grid gap-4 sm:grid-cols-3">
+                  <div className="space-y-2">
+                    <Label htmlFor="new-card-month">Month</Label>
+                    <Select
+                      value={newCard.month}
+                      onValueChange={(month) => setNewCard((prev) => ({ ...prev, month }))}
+                    >
+                      <SelectTrigger id="new-card-month">
+                        <SelectValue placeholder="MM" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {expiryMonths.map((month) => (
+                          <SelectItem key={month.value} value={month.value}>
+                            {month.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="new-card-year">Year</Label>
+                    <Select value={newCard.year} onValueChange={(year) => setNewCard((prev) => ({ ...prev, year }))}>
+                      <SelectTrigger id="new-card-year">
+                        <SelectValue placeholder="YY" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {expiryYears.map((year) => (
+                          <SelectItem key={year} value={year}>
+                            {year}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="new-card-cvc">CVC</Label>
+                    <Input
+                      id="new-card-cvc"
+                      value={newCard.cvc}
+                      onChange={(event) => setNewCard((prev) => ({ ...prev, cvc: event.target.value }))}
+                      inputMode="numeric"
+                      autoComplete="cc-csc"
+                    />
+                  </div>
+                </div>
+                <div className="flex flex-col gap-2 sm:flex-row sm:justify-end">
+                  <Button type="button" variant="ghost" size="sm" onClick={() => setNewCard({
+                    number: '4242 4242 4242 4242',
+                    month: '04',
+                    year: expiryYears[2]!,
+                    cvc: '123',
+                  })}>
+                    Reset
+                  </Button>
+                  <Button type="submit" size="sm" disabled={isSavingCard}>
+                    {isSavingCard ? 'Saving…' : 'Save card'}
+                  </Button>
+                </div>
+              </form>
+            </CardContent>
+          </Card>
+        </div>
 
-              <div className="grid gap-4 sm:grid-cols-3 md:col-span-2">
+        <div className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg">Billing contact</CardTitle>
+              <CardDescription>Receipts and payment alerts will be sent here.</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <form onSubmit={saveContact} className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="card-expiry-month">Expires</Label>
-                  <Select
-                    value={values.expiryMonth}
-                    onValueChange={(month) => updateField('expiryMonth', month)}
-                    disabled={!isCard}
-                  >
-                    <SelectTrigger id="card-expiry-month">
-                      <SelectValue placeholder="Month" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {months.map((month) => (
-                        <SelectItem key={month.value} value={month.value}>
-                          {month.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="card-expiry-year">Year</Label>
-                  <Select
-                    value={values.expiryYear}
-                    onValueChange={(year) => updateField('expiryYear', year)}
-                    disabled={!isCard}
-                  >
-                    <SelectTrigger id="card-expiry-year">
-                      <SelectValue placeholder="Year" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {years.map((year) => (
-                        <SelectItem key={year} value={year}>
-                          {year}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="card-cvc">CVC</Label>
+                  <Label htmlFor="billing-name">Full name</Label>
                   <Input
-                    id="card-cvc"
-                    value={values.cvc}
-                    onChange={(event) => updateField('cvc', event.target.value)}
-                    placeholder="CVC"
-                    autoComplete="cc-csc"
+                    id="billing-name"
+                    value={contact.fullName}
+                    onChange={(event) => updateContact('fullName', event.target.value)}
                   />
                 </div>
-              </div>
-            </fieldset>
+                <div className="space-y-2">
+                  <Label htmlFor="billing-email">Email</Label>
+                  <Input
+                    id="billing-email"
+                    type="email"
+                    autoComplete="email"
+                    value={contact.email}
+                    onChange={(event) => updateContact('email', event.target.value)}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="billing-city">City</Label>
+                  <Input
+                    id="billing-city"
+                    value={contact.city}
+                    onChange={(event) => updateContact('city', event.target.value)}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="billing-tax">Tax ID</Label>
+                  <Input
+                    id="billing-tax"
+                    value={contact.taxId}
+                    onChange={(event) => updateContact('taxId', event.target.value)}
+                  />
+                </div>
+                <div className="flex flex-col gap-3 sm:flex-row sm:justify-end">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => {
+                      setContact(initialContact)
+                      toast.success('Contact reset to defaults')
+                    }}
+                  >
+                    Cancel
+                  </Button>
+                  <Button type="submit" disabled={isSavingContact}>
+                    {isSavingContact ? 'Saving…' : 'Save contact'}
+                  </Button>
+                </div>
+              </form>
+            </CardContent>
+          </Card>
 
-            {!isCard && (
-              <div className="rounded-md border border-dashed border-muted-foreground/40 bg-muted/40 p-4 text-sm text-muted-foreground">
-                Additional fields are disabled for {values.paymentMethod === 'paypal' ? 'PayPal' : 'Apple Pay'}. You will be redirected to complete the payment on the selected provider.
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between gap-4">
+              <div>
+                <CardTitle className="text-lg">Invoice history</CardTitle>
+                <CardDescription>Download receipts for your records.</CardDescription>
               </div>
-            )}
-          </CardContent>
-          <CardFooter className="flex flex-col gap-3 sm:flex-row sm:justify-end">
-            <Button type="button" variant="outline" onClick={handleReset}>
-              Cancel
-            </Button>
-            <Button type="submit" disabled={isSaving}>
-              {isSaving ? 'Saving…' : 'Save changes'}
-            </Button>
-          </CardFooter>
-        </form>
-      </Card>
+              <Button type="button" variant="outline" size="sm" className="gap-1">
+                <CalendarClock className="h-4 w-4" />
+                View all
+              </Button>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              {invoices.map((invoice) => (
+                <div
+                  key={invoice.id}
+                  className="flex flex-col gap-2 rounded-lg border px-4 py-3 sm:flex-row sm:items-center sm:justify-between"
+                >
+                  <div>
+                    <p className="text-sm font-medium text-foreground">{invoice.id}</p>
+                    <p className="text-xs text-muted-foreground">{invoice.date}</p>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <span className="text-sm font-medium">{invoice.total}</span>
+                    <span
+                      className={cn(
+                        'rounded-full px-2 py-1 text-xs font-medium',
+                        invoice.status === 'paid'
+                          ? 'bg-emerald-500/10 text-emerald-500'
+                          : 'bg-amber-500/10 text-amber-600',
+                      )}
+                    >
+                      {invoice.status === 'paid' ? 'Paid' : 'Due'}
+                    </span>
+                    <Button type="button" size="sm" variant="ghost" className="gap-1">
+                      Download
+                      <ArrowUpRight className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+              ))}
+            </CardContent>
+          </Card>
+        </div>
+      </div>
     </div>
   )
 }
