@@ -1,6 +1,6 @@
 "use client"
 
-import { type ReactNode, useMemo, useState } from "react"
+import { type ReactNode, useCallback, useMemo, useState } from "react"
 import Link from "next/link"
 
 import { Header } from "@/components/Header"
@@ -13,8 +13,8 @@ import { Plus, TrendingUp, Facebook as FacebookIcon, Instagram as InstagramIcon,
 import { format } from "date-fns"
 import type { DateRange } from "react-day-picker"
 import { DateRangePicker } from "@/app/(dashboard)/dashboard/_components/DateRangePicker"
-import ExportMenu from "@/components/ExportMenu.client"
 import { DashboardKPI } from "@/app/(dashboard)/dashboard/_components/DashboardKPI"
+import { buildCSV, computeStats, formatCompact } from "@/app/(dashboard)/dashboard/_lib/analytics"
 
 interface Platform {
   name: string
@@ -71,14 +71,32 @@ const platformOverview: Platform[] = [
 export default function DashboardPage() {
   const [range, setRange] = useState<DateRange | undefined>()
 
+  const stats = useMemo(
+    () => computeStats({ from: range?.from, to: range?.to }),
+    [range]
+  )
+
   const periodLabel = useMemo(() => {
-    if (range?.from && range?.to) {
-      return `${format(range.from, "MMM d, yyyy")} – ${format(range.to, "MMM d, yyyy")}`
+    if (stats.from && stats.to) {
+      return `${format(stats.from, "MMM d, yyyy")} – ${format(stats.to, "MMM d, yyyy")}`
     }
     return undefined
-  }, [range])
+  }, [stats])
 
-  const fallbackNote = periodLabel ? `Range: ${periodLabel}` : "Range: last period"
+  const onExport = useCallback(() => {
+    const csv = buildCSV(stats)
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8" })
+    const url = URL.createObjectURL(blob)
+    const anchor = document.createElement("a")
+    anchor.href = url
+    anchor.download = `key-metrics${
+      stats.from ? `-${format(stats.from, "yyyyMMdd")}` : ""
+    }${stats.to ? `-${format(stats.to, "yyyyMMdd")}` : ""}.csv`
+    document.body.appendChild(anchor)
+    anchor.click()
+    anchor.remove()
+    URL.revokeObjectURL(url)
+  }, [stats])
 
   return (
     <main className="space-y-6">
@@ -87,20 +105,17 @@ export default function DashboardPage() {
       <FadeIn delay={0.12}>
         <div className="flex flex-wrap items-center justify-between gap-3">
           <DateRangePicker value={range} onChange={setRange} />
-          <ExportMenu />
         </div>
       </FadeIn>
 
       <FadeIn delay={0.14}>
         <section className="space-y-4">
           <DashboardKPI
-            engagementRate="5.4%"
-            engagementNote={fallbackNote}
-            impressions="121.5K"
-            impressionsNote={fallbackNote}
-            reached="53.2K"
-            reachedNote={fallbackNote}
+            engagementRate={`${stats.engagementRate.toFixed(2)}%`}
+            impressions={formatCompact(stats.impressions)}
+            reached={formatCompact(stats.reached)}
             periodLabel={periodLabel}
+            onExport={onExport}
           />
         </section>
       </FadeIn>

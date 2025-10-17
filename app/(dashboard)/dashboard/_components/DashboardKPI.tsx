@@ -1,42 +1,32 @@
 "use client"
 
+import { Download } from "lucide-react"
+
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Button } from "@/components/ui/button"
 
 export type KPIValues = {
   engagementRate: string
-  engagementNote?: string
   impressions: string
-  impressionsNote?: string
   reached: string
-  reachedNote?: string
   periodLabel?: string
+  onExport?: () => void
 }
 
-const defaultKpis: KPIValues = {
-  engagementRate: "5.4%",
-  engagementNote: "Range: last period",
-  impressions: "121.5K",
-  impressionsNote: "Range: last period",
-  reached: "53.2K",
-  reachedNote: "Range: last period",
-  periodLabel: undefined,
-}
-
-export function DashboardKPI(props: Partial<KPIValues>) {
-  const kpis = { ...defaultKpis, ...props }
-
+export function DashboardKPI({ engagementRate, impressions, reached, periodLabel, onExport }: KPIValues) {
   return (
     <Card>
       <CardHeader className="pb-4">
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between gap-4">
           <div>
             <CardTitle>Key Metrics</CardTitle>
             <CardDescription>
-              {kpis.periodLabel
-                ? `Performance for ${kpis.periodLabel}`
-                : "Snapshot of your social performance"}
+              {periodLabel ? `Performance for ${periodLabel}` : "Snapshot of your social performance"}
             </CardDescription>
           </div>
+          <Button onClick={onExport} variant="outline" className="gap-2" disabled={!onExport}>
+            <Download className="h-4 w-4" /> Export
+          </Button>
         </div>
       </CardHeader>
 
@@ -44,26 +34,17 @@ export function DashboardKPI(props: Partial<KPIValues>) {
         <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
           <div className="rounded-lg border p-4">
             <div className="text-xs font-medium uppercase text-muted-foreground">Engagement rate</div>
-            <div className="mt-2 text-3xl font-semibold tracking-tight">{kpis.engagementRate}</div>
-            {kpis.engagementNote && (
-              <div className="mt-1 text-xs text-muted-foreground">{kpis.engagementNote}</div>
-            )}
+            <div className="mt-2 text-3xl font-semibold">{engagementRate}</div>
           </div>
 
           <div className="rounded-lg border p-4">
             <div className="text-xs font-medium uppercase text-muted-foreground">Impressions</div>
-            <div className="mt-2 text-3xl font-semibold tracking-tight">{kpis.impressions}</div>
-            {kpis.impressionsNote && (
-              <div className="mt-1 text-xs text-muted-foreground">{kpis.impressionsNote}</div>
-            )}
+            <div className="mt-2 text-3xl font-semibold">{impressions}</div>
           </div>
 
           <div className="rounded-lg border p-4">
             <div className="text-xs font-medium uppercase text-muted-foreground">People reached</div>
-            <div className="mt-2 text-3xl font-semibold tracking-tight">{kpis.reached}</div>
-            {kpis.reachedNote && (
-              <div className="mt-1 text-xs text-muted-foreground">{kpis.reachedNote}</div>
-            )}
+            <div className="mt-2 text-3xl font-semibold">{reached}</div>
           </div>
         </div>
       </CardContent>

@@ -21,29 +21,23 @@ export function DateRangePicker({ value, onChange, className }: DateRangePickerP
   const start = value?.from
   const end = value?.to
 
-  const label = React.useMemo(() => {
-    if (start && end) {
-      return `${format(start, "MMM d, yyyy")} — ${format(end, "MMM d, yyyy")}`
-    }
-    if (start) {
-      return `${format(start, "MMM d, yyyy")} — ...`
-    }
-    return "Pick a date range"
-  }, [start, end])
+  let label = "Pick a date or range"
+  if (start && end) {
+    label = `${format(start, "MMM d, yyyy")} — ${format(end, "MMM d, yyyy")}`
+  } else if (start) {
+    label = format(start, "MMM d, yyyy")
+  }
 
-  const handleSelect = React.useCallback(
-    (range: DateRange | undefined) => {
-      onChange?.(range)
-      if (range?.from && range?.to) {
-        setOpen(false)
-      }
-    },
-    [onChange]
-  )
+  const handleSelect = (range: DateRange | undefined) => {
+    onChange?.(range)
+    if (range?.from && range?.to) {
+      setOpen(false)
+    }
+  }
 
-  const handleClear = React.useCallback(() => {
+  const handleClear = () => {
     onChange?.(undefined)
-  }, [onChange])
+  }
 
   return (
     <div className={cn("flex items-center gap-2", className)}>
