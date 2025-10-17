@@ -81,6 +81,8 @@ const nextConfig = {
     alias['framer-motion'] = path.resolve(process.cwd(), 'stubs/framer-motion.tsx');
     alias['recharts'] = path.resolve(process.cwd(), 'stubs/recharts.tsx');
     alias['swr'] = path.resolve(process.cwd(), 'stubs/swr.ts');
+    aliasWhenMissing(config, 'date-fns', 'stubs/date-fns.ts');
+    aliasWhenMissing(config, 'react-day-picker', 'stubs/react-day-picker.ts');
     aliasWhenMissing(config, 'next-auth', 'stubs/next-auth.ts');
     aliasWhenMissing(config, 'next-auth/react', 'stubs/next-auth-react.ts');
     alias['tailwindcss'] = path.resolve(process.cwd(), 'stubs/tailwindcss.css');

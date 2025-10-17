@@ -1,4 +1,6 @@
-import type { ReactNode } from "react"
+"use client"
+
+import { type ReactNode, useMemo, useState } from "react"
 import Link from "next/link"
 
 import { Header } from "@/components/Header"
@@ -8,7 +10,9 @@ import { Button } from "@/components/ui/button"
 import { FadeIn } from "@/components/fade-in"
 import { Plus, TrendingUp, Facebook as FacebookIcon, Instagram as InstagramIcon, Twitter } from "lucide-react"
 
-import DateRangeToolbar from "@/components/DateRangeToolbar"
+import { format } from "date-fns"
+import type { DateRange } from "react-day-picker"
+import { DateRangePicker } from "@/app/(dashboard)/dashboard/_components/DateRangePicker"
 import ExportMenu from "@/components/ExportMenu.client"
 import { DashboardKPI } from "@/app/(dashboard)/dashboard/_components/DashboardKPI"
 
@@ -65,13 +69,24 @@ const platformOverview: Platform[] = [
 ]
 
 export default function DashboardPage() {
+  const [range, setRange] = useState<DateRange | undefined>()
+
+  const periodLabel = useMemo(() => {
+    if (range?.from && range?.to) {
+      return `${format(range.from, "MMM d, yyyy")} – ${format(range.to, "MMM d, yyyy")}`
+    }
+    return undefined
+  }, [range])
+
+  const fallbackNote = periodLabel ? `Range: ${periodLabel}` : "Range: last period"
+
   return (
     <main className="space-y-6">
       <Header />
 
       <FadeIn delay={0.12}>
         <div className="flex flex-wrap items-center justify-between gap-3">
-          <DateRangeToolbar />
+          <DateRangePicker value={range} onChange={setRange} />
           <ExportMenu />
         </div>
       </FadeIn>
@@ -80,12 +95,12 @@ export default function DashboardPage() {
         <section className="space-y-4">
           <DashboardKPI
             engagementRate="5.4%"
-            engagementNote="Range: Oct 10 – Oct 16"
+            engagementNote={fallbackNote}
             impressions="121.5K"
-            impressionsNote="Range: Oct 10 – Oct 16"
+            impressionsNote={fallbackNote}
             reached="53.2K"
-            reachedNote="Range: Oct 10 – Oct 16"
-            periodLabel="Oct 10 – Oct 16"
+            reachedNote={fallbackNote}
+            periodLabel={periodLabel}
           />
         </section>
       </FadeIn>

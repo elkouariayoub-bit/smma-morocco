@@ -88,6 +88,12 @@
       "swr": [
         "./stubs/swr.ts"
       ],
+      "date-fns": [
+        "./stubs/date-fns.ts"
+      ],
+      "react-day-picker": [
+        "./stubs/react-day-picker.ts"
+      ],
       "next-auth": [
         "./stubs/next-auth.ts"
       ],

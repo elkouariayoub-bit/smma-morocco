@@ -68,3 +68,11 @@ declare module '@radix-ui/react-select' {
   export const ScrollUpButton: typeof import('../stubs/radix-select').ScrollUpButton;
   export const ScrollDownButton: typeof import('../stubs/radix-select').ScrollDownButton;
 }
+
+declare module 'date-fns' {
+  export function format(date: Date, token: string): string;
+}
+
+declare module 'react-day-picker' {
+  export type DateRange = import('../stubs/react-day-picker').DateRange;
+}
