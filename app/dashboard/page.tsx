@@ -1,4 +1,6 @@
-import type { ReactNode } from "react"
+"use client"
+
+import { type ReactNode, useCallback, useMemo, useState } from "react"
 import Link from "next/link"
 
 import { Header } from "@/components/Header"
@@ -8,9 +10,11 @@ import { Button } from "@/components/ui/button"
 import { FadeIn } from "@/components/fade-in"
 import { Plus, TrendingUp, Facebook as FacebookIcon, Instagram as InstagramIcon, Twitter } from "lucide-react"
 
-import DateRangeToolbar from "@/components/DateRangeToolbar"
-import ExportMenu from "@/components/ExportMenu.client"
-import DashboardMetricsLoader from "@/components/DashboardMetricsLoader.client"
+import { format } from "date-fns"
+import type { DateRange } from "react-day-picker"
+import { DateRangePicker } from "@/app/(dashboard)/dashboard/_components/DateRangePicker"
+import { DashboardKPI } from "@/app/(dashboard)/dashboard/_components/DashboardKPI"
+import { buildCSV, computeStats, formatCompact } from "@/app/(dashboard)/dashboard/_lib/analytics"
 
 interface Platform {
   name: string
@@ -65,19 +69,55 @@ const platformOverview: Platform[] = [
 ]
 
 export default function DashboardPage() {
+  const [range, setRange] = useState<DateRange | undefined>()
+
+  const stats = useMemo(
+    () => computeStats({ from: range?.from, to: range?.to }),
+    [range]
+  )
+
+  const periodLabel = useMemo(() => {
+    if (stats.from && stats.to) {
+      return `${format(stats.from, "MMM d, yyyy")} – ${format(stats.to, "MMM d, yyyy")}`
+    }
+    return undefined
+  }, [stats])
+
+  const onExport = useCallback(() => {
+    const csv = buildCSV(stats)
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8" })
+    const url = URL.createObjectURL(blob)
+    const anchor = document.createElement("a")
+    anchor.href = url
+    anchor.download = `key-metrics${
+      stats.from ? `-${format(stats.from, "yyyyMMdd")}` : ""
+    }${stats.to ? `-${format(stats.to, "yyyyMMdd")}` : ""}.csv`
+    document.body.appendChild(anchor)
+    anchor.click()
+    anchor.remove()
+    URL.revokeObjectURL(url)
+  }, [stats])
+
   return (
     <main className="space-y-6">
       <Header />
 
       <FadeIn delay={0.12}>
         <div className="flex flex-wrap items-center justify-between gap-3">
-          <DateRangeToolbar />
-          <ExportMenu />
+          <DateRangePicker value={range} onChange={setRange} />
         </div>
       </FadeIn>
 
       <FadeIn delay={0.14}>
-        <DashboardMetricsLoader />
+        <section className="space-y-4">
+          <DashboardKPI
+            engagementRate={`${stats.engagementRate.toFixed(2)}%`}
+            impressions={formatCompact(stats.impressions)}
+            reached={formatCompact(stats.reached)}
+            periodLabel={periodLabel}
+            onExport={onExport}
+          />
+        </section>
       </FadeIn>
 
       <FadeIn delay={0.18}>

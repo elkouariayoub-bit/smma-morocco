@@ -17,4 +17,8 @@ export const Slot = React.forwardRef<HTMLElement, React.HTMLAttributes<HTMLEleme
 )
 Slot.displayName = 'Slot'
 
+export function createSlot() {
+  return Slot
+}
+
 export default Slot

@@ -1,9 +1,17 @@
-export type ClassValue = string | number | null | undefined | ClassDictionary | ClassValue[]
+export type ClassValue =
+  | string
+  | number
+  | boolean
+  | null
+  | undefined
+  | ClassDictionary
+  | ClassValue[]
 export type ClassDictionary = Record<string, unknown>
 
 function toValue(input: ClassValue): string {
   if (!input) return ""
   if (typeof input === "string" || typeof input === "number") return String(input)
+  if (typeof input === "boolean") return input ? "true" : ""
   if (Array.isArray(input)) return input.map(toValue).filter(Boolean).join(" ")
   if (typeof input === "object") {
     return Object.keys(input)

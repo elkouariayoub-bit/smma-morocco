@@ -18,13 +18,25 @@ function needsProtection(pathname: string) {
 
 export async function middleware(req: NextRequest) {
   const res = NextResponse.next()
-  const supabase = createMiddlewareClient({ req, res })
-  const {
-    data: { session },
-  } = await supabase.auth.getSession()
+
+  const supabaseConfigured = Boolean(
+    process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+  )
+
+  let session = null
+
+  if (supabaseConfigured) {
+    const supabase = createMiddlewareClient({ req, res })
+    const result = await supabase.auth.getSession()
+    session = result.data.session
+  } else if (process.env.NODE_ENV !== 'production') {
+    console.warn(
+      '[middleware] Supabase credentials are not configured. Skipping auth enforcement for local development.',
+    )
+  }
 
   const hasCodeSession = req.cookies.get('code-auth')?.value === 'true'
-  const isAuthenticated = Boolean(session) || hasCodeSession
+  const isAuthenticated = supabaseConfigured ? Boolean(session) || hasCodeSession : true
   const { pathname, search } = req.nextUrl
 
   if (!isAuthenticated && needsProtection(pathname)) {
@@ -43,6 +55,14 @@ export async function middleware(req: NextRequest) {
 }
 
 export const config = {
+  /**
+   * The Supabase helpers depend on Node.js specific APIs. Running the
+   * middleware on the default edge runtime triggers build-time failures in
+   * production (Vercel) because those APIs are unavailable there. Forcing the
+   * Node.js runtime keeps the helpers compatible while the rest of the app
+   * continues to deploy normally.
+   */
+  runtime: 'nodejs',
   matcher: [
     /*
      * Match all request paths except for the ones starting with:
