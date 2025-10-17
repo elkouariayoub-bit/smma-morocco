@@ -10,7 +10,7 @@ import { Plus, TrendingUp, Facebook as FacebookIcon, Instagram as InstagramIcon,
 
 import DateRangeToolbar from "@/components/DateRangeToolbar"
 import ExportMenu from "@/components/ExportMenu.client"
-import { ChartAreaInteractive } from "@/app/(dashboard)/dashboard/_components/ChartAreaInteractive"
+import { DashboardKPI } from "@/app/(dashboard)/dashboard/_components/DashboardKPI"
 
 interface Platform {
   name: string
@@ -78,7 +78,15 @@ export default function DashboardPage() {
 
       <FadeIn delay={0.14}>
         <section className="space-y-4">
-          <ChartAreaInteractive />
+          <DashboardKPI
+            engagementRate="5.4%"
+            engagementNote="Range: Oct 10 – Oct 16"
+            impressions="121.5K"
+            impressionsNote="Range: Oct 10 – Oct 16"
+            reached="53.2K"
+            reachedNote="Range: Oct 10 – Oct 16"
+            periodLabel="Oct 10 – Oct 16"
+          />
         </section>
       </FadeIn>
 
