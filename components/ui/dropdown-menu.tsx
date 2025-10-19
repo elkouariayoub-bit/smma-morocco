@@ -7,8 +7,8 @@ import { cn } from "@/lib/utils"
 type DropdownContextValue = {
   open: boolean
   setOpen: (open: boolean) => void
-  triggerRef: React.RefObject<HTMLElement | null>
-  contentRef: React.RefObject<HTMLDivElement | null>
+  triggerRef: React.MutableRefObject<HTMLElement | null>
+  contentRef: React.MutableRefObject<HTMLDivElement | null>
 }
 
 const DropdownMenuContext = React.createContext<DropdownContextValue | null>(null)
