@@ -21,10 +21,11 @@ export function KeyMetricsDateRange({
 }) {
   const [open, setOpen] = React.useState(false)
 
-  const label =
-    value?.from && value?.to
+  const label = value?.from
+    ? value?.to
       ? `${format(value.from, "MMM d, yyyy")} — ${format(value.to, "MMM d, yyyy")}`
-      : "Pick a date or range"
+      : format(value.from, "MMM d, yyyy")
+    : "Pick a date or range"
 
   return (
     <div className={cn("flex items-center gap-2", className)}>
@@ -53,7 +54,13 @@ export function KeyMetricsDateRange({
             mode="range"
             numberOfMonths={2}
             selected={value}
-            onSelect={(r) => onChange?.(r)}
+            defaultMonth={value?.from ?? new Date()}
+            onSelect={(r) => {
+              onChange?.(r)
+              if (r?.from && r?.to) {
+                setOpen(false)
+              }
+            }}
             className="rounded-md border"
           />
         </PopoverContent>
