@@ -100,6 +100,9 @@
       "next-auth/react": [
         "./stubs/next-auth-react.ts"
       ],
+      "jspdf": [
+        "./stubs/jspdf.ts"
+      ],
       "tailwindcss": [
         "./stubs/tailwindcss.css"
       ],

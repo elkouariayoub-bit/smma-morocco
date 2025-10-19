@@ -171,28 +171,3 @@ export function formatCompact(n: number) {
   return String(n)
 }
 
-export function buildCSV(stats: {
-  impressions: number
-  reached: number
-  engagementRate: number
-  from?: Date
-  to?: Date
-  days: number
-}) {
-  const from = stats.from?.toISOString().slice(0, 10) ?? ""
-  const to = stats.to?.toISOString().slice(0, 10) ?? ""
-
-  const rows = [
-    ["Metric", "Value"],
-    ["From", from],
-    ["To", to],
-    ["Days", String(stats.days)],
-    ["Impressions", String(stats.impressions)],
-    ["People reached", String(stats.reached)],
-    ["Engagement rate", `${stats.engagementRate.toFixed(2)}%`],
-  ]
-
-  return rows
-    .map((row) => row.map((value) => `"${String(value).replace(/"/g, '""')}"`).join(","))
-    .join("\n")
-}

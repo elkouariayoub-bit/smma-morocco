@@ -96,6 +96,7 @@ const nextConfig = {
     aliasWhenMissing(config, 'pdf-lib', 'stubs/pdf-lib.ts');
     aliasWhenMissing(config, 'xlsx', 'stubs/xlsx.ts');
     aliasWhenMissing(config, 'xlsx/xlsx.mjs', 'stubs/xlsx.mjs');
+    aliasWhenMissing(config, 'jspdf', 'stubs/jspdf.ts');
     return config;
   },
 };

@@ -76,3 +76,7 @@ declare module 'date-fns' {
 declare module 'react-day-picker' {
   export type DateRange = import('../stubs/react-day-picker').DateRange;
 }
+
+declare module 'jspdf' {
+  export { jsPDF } from '../stubs/jspdf';
+}
