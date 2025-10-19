@@ -21,15 +21,10 @@ export function KeyMetricsDateRange({
 }) {
   const [open, setOpen] = React.useState(false)
 
-  const label = (() => {
-    if (value?.from && value?.to) {
-      return `${format(value.from, "MMM d, yyyy")} — ${format(value.to, "MMM d, yyyy")}`
-    }
-    if (value?.from) {
-      return format(value.from, "MMM d, yyyy")
-    }
-    return "Pick a date or range"
-  })()
+  const label =
+    value?.from && value?.to
+      ? `${format(value.from, "MMM d, yyyy")} — ${format(value.to, "MMM d, yyyy")}`
+      : "Pick a date or range"
 
   return (
     <div className={cn("flex items-center gap-2", className)}>
@@ -47,19 +42,19 @@ export function KeyMetricsDateRange({
           </Button>
         </PopoverTrigger>
 
-        {/* This is the DROPDOWN content */}
-        <PopoverContent className="w-auto p-2" align="end">
+        {/* Dropdown panel – anchored UNDER the button */}
+        <PopoverContent
+          side="bottom"
+          align="start"
+          sideOffset={8}
+          className="z-50 w-auto p-2 rounded-xl border bg-popover shadow-lg"
+        >
           <Calendar
             mode="range"
-            selected={value}
-            onSelect={(nextRange) => {
-              onChange?.(nextRange)
-              if (nextRange?.from && nextRange?.to) {
-                setOpen(false)
-              }
-            }}
             numberOfMonths={2}
-            className="rounded-md border shadow-sm"
+            selected={value}
+            onSelect={(r) => onChange?.(r)}
+            className="rounded-md border"
           />
         </PopoverContent>
       </Popover>
