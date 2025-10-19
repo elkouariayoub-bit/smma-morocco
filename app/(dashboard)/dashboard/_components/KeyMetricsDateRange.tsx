@@ -21,10 +21,15 @@ export function KeyMetricsDateRange({
 }) {
   const [open, setOpen] = React.useState(false)
 
-  const label =
-    value?.from && value?.to
-      ? `${format(value.from, "MMM d, yyyy")} — ${format(value.to, "MMM d, yyyy")}`
-      : "Pick a date or range"
+  const label = (() => {
+    if (value?.from && value?.to) {
+      return `${format(value.from, "MMM d, yyyy")} — ${format(value.to, "MMM d, yyyy")}`
+    }
+    if (value?.from) {
+      return format(value.from, "MMM d, yyyy")
+    }
+    return "Pick a date or range"
+  })()
 
   return (
     <div className={cn("flex items-center gap-2", className)}>
@@ -47,7 +52,12 @@ export function KeyMetricsDateRange({
           <Calendar
             mode="range"
             selected={value}
-            onSelect={onChange}
+            onSelect={(nextRange) => {
+              onChange?.(nextRange)
+              if (nextRange?.from && nextRange?.to) {
+                setOpen(false)
+              }
+            }}
             numberOfMonths={2}
             className="rounded-md border shadow-sm"
           />
