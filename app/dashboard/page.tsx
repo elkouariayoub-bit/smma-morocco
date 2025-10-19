@@ -12,7 +12,7 @@ import { Plus, TrendingUp, Facebook as FacebookIcon, Instagram as InstagramIcon,
 
 import { format } from "date-fns"
 import type { DateRange } from "react-day-picker"
-import { DateOrRangePicker } from "@/app/(dashboard)/dashboard/_components/DateOrRangePicker"
+import { KeyMetricsDateRange } from "@/app/(dashboard)/dashboard/_components/KeyMetricsDateRange"
 import { DashboardKPI } from "@/app/(dashboard)/dashboard/_components/DashboardKPI"
 import { computeStats, formatCompact } from "@/app/(dashboard)/dashboard/_lib/analytics"
 import {
@@ -154,18 +154,7 @@ export default function DashboardPage() {
             impressions={formatCompact(stats.impressions)}
             reached={formatCompact(stats.reached)}
             periodLabel={periodLabel}
-            headerExtra={
-              <div className="flex items-center gap-2">
-                <DateOrRangePicker mode="range" range={range} onRangeChange={setRange} />
-                <Button
-                  variant="ghost"
-                  className="text-xs text-muted-foreground"
-                  onClick={() => setRange(undefined)}
-                >
-                  Clear
-                </Button>
-              </div>
-            }
+            headerExtra={<KeyMetricsDateRange value={range} onChange={setRange} />}
             onExportCSV={onExportCSV}
             onExportXLSX={onExportXLSX}
             onExportPDF={onExportPDF}
