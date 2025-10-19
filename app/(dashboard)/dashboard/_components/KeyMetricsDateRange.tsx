@@ -36,6 +36,7 @@ export function KeyMetricsDateRange({
               "w-[260px] justify-start text-left font-normal",
               !value?.from && "text-muted-foreground"
             )}
+            aria-label="Pick a date or range"
           >
             <CalendarIcon className="mr-2 h-4 w-4" />
             {label}
