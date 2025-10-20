@@ -64,7 +64,7 @@ const nextConfig = {
       'stubs/vercel-analytics.tsx'
     );
     config.resolve.alias['framer-motion'] = path.resolve(process.cwd(), 'stubs/framer-motion.tsx');
-    config.resolve.alias['recharts'] = path.resolve(process.cwd(), 'stubs/recharts.tsx');
+    config.resolve.alias['recharts'] = path.resolve(process.cwd(), 'stubs/recharts');
     config.resolve.alias['swr'] = path.resolve(process.cwd(), 'stubs/swr.ts');
     config.resolve.alias['tailwindcss'] = path.resolve(process.cwd(), 'stubs/tailwindcss.css');
     config.resolve.alias['tw-animate-css'] = path.resolve(process.cwd(), 'stubs/tw-animate-css.css');

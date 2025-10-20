@@ -5,6 +5,7 @@ import { Analytics } from '@vercel/analytics/next'
 
 import { PageTransition } from '@/components/page-transition'
 import { DateRangeProvider } from './providers/date-range'
+import { GoalsProvider } from '@/app/providers/goals'
 
 import './globals.css'
 
@@ -24,9 +25,11 @@ export default function RootLayout({
       <body
         className={`bg-gray-50 dark:bg-neutral-950 text-gray-900 dark:text-gray-100 font-sans ${GeistSans.variable} ${GeistMono.variable}`}
       >
-        <DateRangeProvider>
-          <PageTransition>{children}</PageTransition>
-        </DateRangeProvider>
+        <GoalsProvider>
+          <DateRangeProvider>
+            <PageTransition>{children}</PageTransition>
+          </DateRangeProvider>
+        </GoalsProvider>
         <Analytics />
       </body>
     </html>
