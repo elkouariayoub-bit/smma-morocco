@@ -1,17 +1,12 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { createServerComponentClient } from "@supabase/auth-helpers-nextjs";
-import dynamic from "next/dynamic";
 import { cookies } from "next/headers";
 
 import GoalBadge from "@/components/dashboard/GoalBadge";
+import BreakdownExplorer from "@/components/dashboard/BreakdownExplorer";
 import PostingHeatmap from "@/components/dashboard/PostingHeatmap";
 import TopPosts from "@/components/dashboard/TopPosts";
 import { env } from "@/lib/env";
-
-const BreakdownSection = dynamic(
-  () => import("@/components/analytics/BreakdownSection.client"),
-  { ssr: false },
-);
 
 export const revalidate = 3600; // Revalidate hourly
 
@@ -41,9 +36,7 @@ export default async function AnalyticsPage() {
             <PostingHeatmap />
           </div>
         </section>
-        <section className="space-y-6">
-          <BreakdownSection />
-        </section>
+        <BreakdownExplorer />
       </div>
     );
   }
@@ -212,9 +205,7 @@ export default async function AnalyticsPage() {
           <PostingHeatmap />
         </div>
       </section>
-      <section className="space-y-6">
-        <BreakdownSection />
-      </section>
+      <BreakdownExplorer />
     </div>
   );
 }
