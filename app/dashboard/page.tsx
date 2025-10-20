@@ -1,4 +1,6 @@
-import type { ReactNode } from "react"
+"use client"
+
+import { type ReactNode, useCallback, useMemo, useState } from "react"
 import Link from "next/link"
 
 import { Header } from "@/components/Header"
@@ -8,9 +10,18 @@ import { Button } from "@/components/ui/button"
 import { FadeIn } from "@/components/fade-in"
 import { Plus, TrendingUp, Facebook as FacebookIcon, Instagram as InstagramIcon, Twitter } from "lucide-react"
 
-import DateRangeToolbar from "@/components/DateRangeToolbar"
-import ExportMenu from "@/components/ExportMenu.client"
-import DashboardMetricsLoader from "@/components/DashboardMetricsLoader.client"
+import { format } from "date-fns"
+import type { DateRange } from "react-day-picker"
+import { KeyMetricsDateRange } from "@/app/(dashboard)/dashboard/_components/KeyMetricsDateRange"
+import { DashboardKPI } from "@/app/(dashboard)/dashboard/_components/DashboardKPI"
+import { computeStats, formatCompact } from "@/app/(dashboard)/dashboard/_lib/analytics"
+import {
+  buildCSV,
+  buildPDF,
+  buildXLSX,
+  downloadBlob,
+  type Interval,
+} from "@/app/(dashboard)/dashboard/_lib/exports"
 
 interface Platform {
   name: string
@@ -65,19 +76,90 @@ const platformOverview: Platform[] = [
 ]
 
 export default function DashboardPage() {
+  const [range, setRange] = useState<DateRange | undefined>()
+
+  const stats = useMemo(
+    () => computeStats({ from: range?.from, to: range?.to }),
+    [range],
+  )
+
+  const periodLabel = useMemo(() => {
+    if (stats.from && stats.to) {
+      return `${format(stats.from, "MMM d, yyyy")} – ${format(stats.to, "MMM d, yyyy")}`
+    }
+    return undefined
+  }, [stats])
+
+  const intervals = useMemo<Interval[]>(() => {
+    if (range?.from || range?.to) {
+      return [
+        {
+          from: range?.from,
+          to: range?.to ?? range?.from,
+        },
+      ]
+    }
+    if (stats.from || stats.to) {
+      return [
+        {
+          from: stats.from,
+          to: stats.to,
+        },
+      ]
+    }
+    return []
+  }, [range, stats.from, stats.to])
+
+  const rows = useMemo<Array<[string, string]>>(
+    () => [
+      ["Impressions", String(stats.impressions)],
+      ["People reached", String(stats.reached)],
+      ["Engagement rate", `${stats.engagementRate.toFixed(2)}%`],
+    ],
+    [stats],
+  )
+
+  const filenameBase = useMemo(() => {
+    const fromPart = stats.from ? `-${format(stats.from, "yyyyMMdd")}` : ""
+    const toPart = stats.to ? `-${format(stats.to, "yyyyMMdd")}` : ""
+    return `key-metrics${fromPart}${toPart}`
+  }, [stats.from, stats.to])
+
+  const onExportCSV = useCallback(() => {
+    const csv = buildCSV(rows, intervals)
+    downloadBlob(
+      new Blob([csv], { type: "text/csv;charset=utf-8" }),
+      `${filenameBase}.csv`,
+    )
+  }, [rows, intervals, filenameBase])
+
+  const onExportXLSX = useCallback(async () => {
+    const blob = await buildXLSX(rows, intervals)
+    downloadBlob(blob, `${filenameBase}.xlsx`)
+  }, [rows, intervals, filenameBase])
+
+  const onExportPDF = useCallback(async () => {
+    const blob = await buildPDF("Key Metrics Report", rows, intervals)
+    downloadBlob(blob, `${filenameBase}.pdf`)
+  }, [rows, intervals, filenameBase])
+
   return (
     <main className="space-y-6">
       <Header />
 
-      <FadeIn delay={0.12}>
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <DateRangeToolbar />
-          <ExportMenu />
-        </div>
-      </FadeIn>
-
       <FadeIn delay={0.14}>
-        <DashboardMetricsLoader />
+        <section className="space-y-4">
+          <DashboardKPI
+            engagementRate={`${stats.engagementRate.toFixed(2)}%`}
+            impressions={formatCompact(stats.impressions)}
+            reached={formatCompact(stats.reached)}
+            periodLabel={periodLabel}
+            headerExtra={<KeyMetricsDateRange value={range} onChange={setRange} />}
+            onExportCSV={onExportCSV}
+            onExportXLSX={onExportXLSX}
+            onExportPDF={onExportPDF}
+          />
+        </section>
       </FadeIn>
 
       <FadeIn delay={0.18}>
