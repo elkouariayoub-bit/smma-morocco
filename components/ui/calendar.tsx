@@ -17,6 +17,7 @@ type CalendarProps = {
   onSelect?: (value: CalendarRange | undefined) => void
   className?: string
   toDate?: Date
+  defaultMonth?: Date
 }
 
 function toISO(date?: Date) {
