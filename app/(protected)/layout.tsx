@@ -7,59 +7,30 @@ import { DashboardLayout } from "@/components/dashboard-layout";
 
 export const dynamic = "force-dynamic";
 
-function parsePath(value: string | null): string | null {
-  if (!value) {
+function normalizeRedirectPath(candidate: string | null): string | null {
+  if (!candidate) {
     return null;
   }
 
-  const trimmed = value.trim();
-
+  const trimmed = candidate.trim();
   if (!trimmed) {
     return null;
   }
 
+  let path: string;
   if (trimmed.startsWith("http://") || trimmed.startsWith("https://")) {
     try {
       const url = new URL(trimmed);
-      return url.pathname + url.search;
+      path = url.pathname + url.search;
     } catch {
       return null;
     }
+  } else {
+    path = trimmed.startsWith("/") ? trimmed : `/${trimmed}`;
   }
 
-  if (!trimmed.startsWith("/")) {
-    return `/${trimmed}`;
-  }
-
-  return trimmed;
-}
-
-function stripRouteGroups(path: string): string {
-  const withoutGroups = path.replace(/\/\([^/]+?\)/g, "");
-  if (!withoutGroups) {
-    return "/";
-  }
-
-  return withoutGroups.startsWith("/") ? withoutGroups : `/${withoutGroups}`;
-}
-
-function resolveRedirectPath(): string {
-  const headerList = headers();
-  const candidates = [
-    headerList.get("next-url"),
-    headerList.get("x-invoke-path"),
-    headerList.get("x-matched-path"),
-    headerList.get("referer"),
-  ];
-
-  for (const candidate of candidates) {
-    const parsed = parsePath(candidate);
-    if (parsed) {
-      return stripRouteGroups(parsed);
-    }
-  }
-
-  return "/dashboard";
+  const withoutRouteGroups = path.replace(/\/\([^/]+?\)/g, "");
+  return withoutRouteGroups || "/";
 }
 
 export default async function ProtectedLayout({
@@ -68,7 +39,7 @@ export default async function ProtectedLayout({
   children: ReactNode;
 }) {
   const cookieStore = cookies();
-  const supabase = createServerComponentClient({ cookies });
+  const supabase = createServerComponentClient({ cookies: () => cookieStore });
 
   const {
     data: { session },
@@ -77,8 +48,16 @@ export default async function ProtectedLayout({
   const hasCodeSession = cookieStore.get("code-auth")?.value === "true";
 
   if (!session && !hasCodeSession) {
+    const headerList = headers();
+    const redirectTarget =
+      normalizeRedirectPath(headerList.get("x-invoke-path")) ??
+      normalizeRedirectPath(headerList.get("x-matched-path")) ??
+      normalizeRedirectPath(headerList.get("next-url")) ??
+      normalizeRedirectPath(headerList.get("referer")) ??
+      "/dashboard";
+
     const loginParams = new URLSearchParams({
-      next: resolveRedirectPath(),
+      next: redirectTarget,
       reason: "redirect",
     });
 
