@@ -1,4 +1,3 @@
-import { createMiddlewareClient } from '@supabase/auth-helpers-nextjs'
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 
@@ -16,15 +15,54 @@ function needsProtection(pathname: string) {
   return PROTECTED_PREFIXES.some((prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`))
 }
 
-export async function middleware(req: NextRequest) {
+function getSupabaseAuthCookieName(): string | null {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+
+  if (!supabaseUrl) {
+    return null
+  }
+
+  try {
+    const { hostname } = new URL(supabaseUrl)
+    const projectRef = hostname.split('.')[0]
+
+    if (!projectRef) {
+      return null
+    }
+
+    return `sb-${projectRef}-auth-token`
+  } catch {
+    return null
+  }
+}
+
+function hasSupabaseSessionCookie(req: NextRequest): boolean {
+  const cookieName = getSupabaseAuthCookieName()
+
+  if (!cookieName) {
+    return false
+  }
+
+  const value = req.cookies.get(cookieName)?.value
+
+  if (!value) {
+    return false
+  }
+
+  try {
+    const parsed = JSON.parse(decodeURIComponent(value))
+    return Boolean(parsed?.access_token)
+  } catch {
+    return false
+  }
+}
+
+export function middleware(req: NextRequest) {
   const res = NextResponse.next()
-  const supabase = createMiddlewareClient({ req, res })
-  const {
-    data: { session },
-  } = await supabase.auth.getSession()
 
   const hasCodeSession = req.cookies.get('code-auth')?.value === 'true'
-  const isAuthenticated = Boolean(session) || hasCodeSession
+  const hasSupabaseSession = hasSupabaseSessionCookie(req)
+  const isAuthenticated = hasSupabaseSession || hasCodeSession
   const { pathname, search } = req.nextUrl
 
   if (!isAuthenticated && needsProtection(pathname)) {
