@@ -85,5 +85,13 @@ export function assertServerEnv(options?: { optional?: Array<keyof EnvValues> })
 }
 
 if (typeof window !== 'undefined') {
-  assertBrowserEnv();
+  try {
+    assertBrowserEnv();
+  } catch (error) {
+    if (process.env.NODE_ENV !== 'production') {
+      const message =
+        error instanceof Error ? error.message : 'Unknown browser environment validation error.';
+      console.warn('Missing optional browser environment variables:', message);
+    }
+  }
 }
