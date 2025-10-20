@@ -28,6 +28,20 @@ export function KeyMetricsDateRange({
       ? format(value.from, "MMM d, yyyy")
       : "Pick a date or range"
 
+  const defaultMonth = value?.from ?? value?.to ?? new Date()
+
+  const handleSelect = (nextValue?: DateRange) => {
+    onChange?.(nextValue)
+    if (nextValue?.from && nextValue?.to) {
+      setOpen(false)
+    }
+  }
+
+  const handleClear = () => {
+    onChange?.(undefined)
+    setOpen(false)
+  }
+
   return (
     <div className={cn("flex items-center gap-2", className)}>
       <Popover open={open} onOpenChange={setOpen}>
@@ -55,7 +69,8 @@ export function KeyMetricsDateRange({
             mode="range"
             numberOfMonths={2}
             selected={value}
-            onSelect={(r) => onChange?.(r)}
+            onSelect={handleSelect}
+            defaultMonth={defaultMonth}
             className="rounded-md border"
           />
         </PopoverContent>
@@ -64,7 +79,7 @@ export function KeyMetricsDateRange({
       <Button
         variant="ghost"
         className="text-xs text-muted-foreground"
-        onClick={() => onChange?.(undefined)}
+        onClick={handleClear}
       >
         Clear
       </Button>
