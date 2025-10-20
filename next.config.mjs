@@ -13,6 +13,7 @@ function aliasWhenMissing(config, moduleName, stubPath) {
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  serverExternalPackages: ['exceljs', 'pdf-lib'],
   experimental: {
     serverComponentsExternalPackages: ['exceljs', 'pdf-lib'],
   },
