@@ -27,9 +27,6 @@ function aliasWhenMissing(config, moduleName, stubPath) {
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  experimental: {
-    serverComponentsExternalPackages: ['exceljs', 'pdf-lib'],
-  },
   webpack(config) {
     const alias = ensureAliasMap(config);
     alias['@daveyplate/better-auth-ui'] = path.resolve(
