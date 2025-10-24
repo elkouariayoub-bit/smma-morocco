@@ -2,7 +2,7 @@
 
 import * as React from "react"
 import { Area, AreaChart, CartesianGrid, XAxis, YAxis } from "recharts"
-import { differenceInCalendarDays, format } from "date-fns"
+import { format } from "date-fns"
 import type { DateRange } from "react-day-picker"
 
 import {
@@ -28,20 +28,34 @@ const chartConfig = {
   reached: { label: "People Reached", color: "var(--chart-3)" },
 } satisfies ChartConfig
 
+const MS_IN_DAY = 86_400_000
+
+function normalizeDate(date: Date | string) {
+  const result = new Date(date)
+  result.setHours(0, 0, 0, 0)
+  return result
+}
+
+function formatShort(dateISO: string) {
+  return new Date(dateISO).toLocaleDateString("en-US", { month: "short", day: "numeric" })
+}
+
 function computeLabel(range: DateRange | undefined, data: KeyMetricsChartDatum[]) {
   if (range?.from && range?.to) {
-    const days = Math.abs(differenceInCalendarDays(range.to, range.from)) + 1
+    const start = normalizeDate(range.from)
+    const end = normalizeDate(range.to)
+    const days = Math.abs(Math.round((end.getTime() - start.getTime()) / MS_IN_DAY)) + 1
     return `Showing metrics for ${days} day${days === 1 ? "" : "s"}`
   }
 
   if (data.length === 1) {
-    return `Showing metrics for ${format(new Date(data[0].dateISO), "MMM d")}`
+    return `Showing metrics for ${formatShort(data[0].dateISO)}`
   }
 
   if (data.length > 1) {
     const first = data[0]
     const last = data[data.length - 1]
-    return `Showing metrics from ${format(new Date(first.dateISO), "MMM d")} to ${format(new Date(last.dateISO), "MMM d")}`
+    return `Showing metrics from ${formatShort(first.dateISO)} to ${formatShort(last.dateISO)}`
   }
 
   return "Showing metrics over time"
