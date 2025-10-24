@@ -1,6 +1,7 @@
 "use client"
 
 import type { ReactNode } from "react"
+import type { DateRange } from "react-day-picker"
 import { Download } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
@@ -12,6 +13,8 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 
+import { KeyMetricsChart, type KeyMetricsChartDatum } from "./KeyMetricsChart"
+
 export type KPIValues = {
   engagementRate: string
   impressions: string
@@ -21,6 +24,8 @@ export type KPIValues = {
   onExportCSV?: () => void
   onExportXLSX?: () => void
   onExportPDF?: () => void
+  chartData?: KeyMetricsChartDatum[]
+  chartRange?: DateRange
 }
 
 export function DashboardKPI({
@@ -32,6 +37,8 @@ export function DashboardKPI({
   onExportCSV,
   onExportXLSX,
   onExportPDF,
+  chartData,
+  chartRange,
 }: KPIValues) {
   const handleCSV = () => {
     onExportCSV?.()
@@ -94,6 +101,8 @@ export function DashboardKPI({
             <div className="mt-2 text-3xl font-semibold">{reached}</div>
           </div>
         </div>
+
+        {chartData && <KeyMetricsChart data={chartData} range={chartRange} />}
       </CardContent>
     </Card>
   )

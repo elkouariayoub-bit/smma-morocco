@@ -161,6 +161,30 @@ export function computeStats(range?: Range) {
   }
 }
 
+export function selectDailyData(range?: Range) {
+  if (!dailyData.length) {
+    return [] as DailyDatum[]
+  }
+
+  if (!range?.from && !range?.to) {
+    return dailyData
+  }
+
+  const firstDate = new Date(dailyData[0].date)
+  const lastDate = new Date(dailyData[dailyData.length - 1].date)
+
+  const from = new Date(range?.from ?? firstDate)
+  const to = new Date(range?.to ?? (range?.from ?? lastDate))
+
+  from.setHours(0, 0, 0, 0)
+  to.setHours(23, 59, 59, 999)
+
+  return dailyData.filter((datum) => {
+    const current = new Date(datum.date)
+    return current >= from && current <= to
+  })
+}
+
 export function formatCompact(n: number) {
   if (n >= 1_000_000) {
     return `${(n / 1_000_000).toFixed(1).replace(/\.0$/, "")}M`
