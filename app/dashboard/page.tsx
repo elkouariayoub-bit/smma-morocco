@@ -14,7 +14,7 @@ import { format } from "date-fns"
 import type { DateRange } from "react-day-picker"
 import { KeyMetricsDateRange } from "@/app/(dashboard)/dashboard/_components/KeyMetricsDateRange"
 import { DashboardKPI } from "@/app/(dashboard)/dashboard/_components/DashboardKPI"
-import { computeStats, formatCompact } from "@/app/(dashboard)/dashboard/_lib/analytics"
+import { computeStats, formatCompact, selectDailyData } from "@/app/(dashboard)/dashboard/_lib/analytics"
 import {
   buildCSV,
   buildPDF,
@@ -82,6 +82,21 @@ export default function DashboardPage() {
     () => computeStats({ from: range?.from, to: range?.to }),
     [range],
   )
+
+  const chartData = useMemo(() => {
+    const filtered = selectDailyData({ from: range?.from, to: range?.to })
+    return filtered.map((datum) => {
+      const current = new Date(datum.date)
+      const engagementRate = datum.impressions > 0 ? (datum.engagements / datum.impressions) * 100 : 0
+      return {
+        dateISO: datum.date,
+        dateLabel: format(current, "MMM d"),
+        engagementRate,
+        impressions: datum.impressions,
+        reached: datum.reached,
+      }
+    })
+  }, [range])
 
   const periodLabel = useMemo(() => {
     if (stats.from && stats.to) {
@@ -158,6 +173,8 @@ export default function DashboardPage() {
             onExportCSV={onExportCSV}
             onExportXLSX={onExportXLSX}
             onExportPDF={onExportPDF}
+            chartData={chartData}
+            chartRange={range}
           />
         </section>
       </FadeIn>

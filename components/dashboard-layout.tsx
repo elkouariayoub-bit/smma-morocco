@@ -1,7 +1,7 @@
 "use client"
 
 import Link from "next/link"
-import { usePathname } from "next/navigation"
+import { useParams, usePathname } from "next/navigation"
 import type { ReactNode } from "react"
 
 import { Sidebar, sidebarNavItems } from "@/components/Sidebar"
@@ -27,6 +27,9 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
 
 function MobileTopNav() {
   const pathname = usePathname()
+  const params = useParams<{ orgId?: string }>()
+  const defaultOrgId = "demo"
+  const resolvedOrgId = params?.orgId ?? defaultOrgId
 
   return (
     <div className="border-b border-gray-200 bg-white transition-colors dark:border-gray-800 dark:bg-gray-900 lg:hidden">
@@ -37,12 +40,16 @@ function MobileTopNav() {
         </div>
         <nav className="-mx-1 flex items-center gap-2 overflow-x-auto pb-1" aria-label="Mobile navigation">
           {sidebarNavItems.map((item) => {
-            const isActive = pathname === item.href
+            const isDynamicUsersLink = item.href.includes("/org/[orgId]/users")
+            const targetHref = isDynamicUsersLink ? `/org/${resolvedOrgId}/users` : item.href
+            const isActive = isDynamicUsersLink
+              ? pathname.startsWith(`/org/${resolvedOrgId}/users`)
+              : pathname === item.href
 
             return (
               <Link
                 key={item.href}
-                href={item.href}
+                href={targetHref}
                 className={cn(
                   "group flex items-center gap-2 whitespace-nowrap rounded-full px-3 py-2 text-sm font-medium transition-colors duration-200",
                   "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2563eb]",
