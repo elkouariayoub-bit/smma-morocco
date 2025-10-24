@@ -1,7 +1,16 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  ChartConfig,
+  ChartContainer,
+  ChartLegend,
+  ChartLegendContent,
+  ChartTooltip,
+  ChartTooltipContent,
+} from "@/components/ui/chart";
 import { createServerComponentClient } from "@supabase/auth-helpers-nextjs";
 import dynamic from "next/dynamic";
 import { cookies } from "next/headers";
+import { Area, AreaChart, CartesianGrid, XAxis, YAxis } from "recharts";
 
 import GoalBadge from "@/components/dashboard/GoalBadge";
 import PostingHeatmap from "@/components/dashboard/PostingHeatmap";
@@ -126,14 +135,33 @@ export default async function AnalyticsPage() {
     },
   ];
 
-  const chartValues = snapshots.map(
-    (snapshot) => (snapshot.impressions ?? 0) + (snapshot.likes ?? 0) + (snapshot.comments ?? 0),
-  );
-  const maxChartValue = chartValues.reduce((max, value) => (value > max ? value : max), 0);
-  const chartHeights =
-    maxChartValue > 0
-      ? chartValues.map((value) => Math.max(12, Math.round((value / maxChartValue) * 100)))
-      : [42, 58, 64, 72, 60, 80, 54, 68];
+  const chartConfig = {
+    impressions: {
+      label: "Impressions",
+      color: "hsl(var(--chart-1))",
+    },
+    engagement: {
+      label: "Engagement",
+      color: "hsl(var(--chart-2))",
+    },
+  } satisfies ChartConfig;
+
+  const placeholderChartData = [
+    { label: "Jan", impressions: 4200, engagement: 2100 },
+    { label: "Feb", impressions: 5100, engagement: 2400 },
+    { label: "Mar", impressions: 4600, engagement: 2000 },
+    { label: "Apr", impressions: 6100, engagement: 2600 },
+    { label: "May", impressions: 5400, engagement: 2300 },
+    { label: "Jun", impressions: 6800, engagement: 2900 },
+  ];
+
+  const chartData = snapshots.length
+    ? snapshots.map((snapshot, index) => ({
+        label: `Snapshot ${index + 1}`,
+        impressions: snapshot.impressions ?? 0,
+        engagement: (snapshot.likes ?? 0) + (snapshot.comments ?? 0),
+      }))
+    : placeholderChartData;
 
   return (
     <div className="flex flex-col gap-4 p-4 md:p-6">
@@ -186,18 +214,61 @@ export default async function AnalyticsPage() {
                 </div>
               </div>
               <div className="space-y-3">
-                <div
-                  aria-hidden="true"
-                  className="flex h-48 items-end gap-2 rounded-md border border-dashed border-muted/40 bg-muted/10 p-4"
+                <ChartContainer
+                  config={chartConfig}
+                  className="relative h-[260px] w-full overflow-hidden rounded-xl border border-border/40 bg-muted/5"
                 >
-                  {chartHeights.map((height, index) => (
-                    <div
-                      key={index}
-                      className="flex-1 rounded bg-primary/40 transition-colors dark:bg-primary/30"
-                      style={{ height: `${Math.min(100, Math.max(12, height))}%` }}
+                  <AreaChart data={chartData} margin={{ left: 12, right: 12, top: 48, bottom: 12 }}>
+                    <defs>
+                      <linearGradient id="fill-impressions" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="var(--color-impressions)" stopOpacity={0.8} />
+                        <stop offset="95%" stopColor="var(--color-impressions)" stopOpacity={0.05} />
+                      </linearGradient>
+                      <linearGradient id="fill-engagement" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="var(--color-engagement)" stopOpacity={0.8} />
+                        <stop offset="95%" stopColor="var(--color-engagement)" stopOpacity={0.05} />
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid vertical={false} stroke="hsl(var(--border) / 0.4)" strokeDasharray="3 3" />
+                    <XAxis
+                      dataKey="label"
+                      axisLine={false}
+                      tickLine={false}
+                      tickMargin={12}
+                      style={{ fontSize: "12px" }}
                     />
-                  ))}
-                </div>
+                    <YAxis
+                      axisLine={false}
+                      tickLine={false}
+                      tickMargin={12}
+                      style={{ fontSize: "12px" }}
+                      tickFormatter={(value: number) =>
+                        value >= 1000 ? `${Math.round(value / 100) / 10}k` : `${value}`
+                      }
+                    />
+                    <ChartTooltip
+                      cursor={{ stroke: "hsl(var(--border) / 0.6)", strokeDasharray: "4 4" }}
+                      content={<ChartTooltipContent indicator="dot" labelFormatter={(label) => label} />}
+                    />
+                    <Area
+                      type="monotone"
+                      dataKey="impressions"
+                      stroke="var(--color-impressions)"
+                      strokeWidth={2}
+                      fill="url(#fill-impressions)"
+                      activeDot={{ r: 5 }}
+                    />
+                    <Area
+                      type="monotone"
+                      dataKey="engagement"
+                      stroke="var(--color-engagement)"
+                      strokeWidth={2}
+                      fill="url(#fill-engagement)"
+                      activeDot={{ r: 5 }}
+                    />
+                    <ChartLegend verticalAlign="top" height={36} content={<ChartLegendContent />} />
+                  </AreaChart>
+                </ChartContainer>
                 <p className="text-xs text-muted-foreground">
                   {snapshotCount > 0
                     ? "Activity levels across your saved analytics snapshots."
