@@ -13,10 +13,16 @@ export async function DashboardShell({
   redirectPath: string
 }) {
   const cookieStore = cookies()
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+
+  if (!supabaseUrl || !supabaseAnonKey) {
+    return <DashboardLayout>{children}</DashboardLayout>
+  }
+
   const supabase = createServerComponentClient({ cookies })
-  const {
-    data: { session },
-  } = await supabase.auth.getSession()
+  const response = await supabase.auth.getSession()
+  const session = response.data.session
   const hasCodeSession = cookieStore.get("code-auth")?.value === "true"
 
   if (!session && !hasCodeSession) {
